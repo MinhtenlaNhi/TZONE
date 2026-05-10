@@ -1,0 +1,94 @@
+.tcl {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 8px 0 40px;
+}
+
+.tcl__title {
+  margin: 0 0 12px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #24b384;
+}
+
+.tcl__lead,
+.tcl__note {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: #4b5563;
+  margin: 0 0 12px;
+}
+
+.tcl__note {
+  font-size: 0.8125rem;
+  padding: 10px 12px;
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+
+.tcl__form {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tcl__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tcl__field span {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #24b384;
+}
+
+.tcl__field select,
+.tcl__field input {
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+}
+
+.tcl__err {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
+.tcl__ok {
+  margin: 0;
+  color: #047857;
+  font-size: 0.875rem;
+}
+
+.tcl__submit {
+  padding: 14px 20px;
+  border: none;
+  border-radius: 999px;
+  background: #24b384;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.tcl__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tcl__back {
+  display: inline-block;
+  margin-top: 24px;
+  font-weight: 600;
+  color: #24b384;
+  text-decoration: none;
+}
+
+.tcl__back:hover {
+  text-decoration: underline;
+}

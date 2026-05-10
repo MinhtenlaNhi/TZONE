@@ -1,0 +1,128 @@
+.admin-orders {
+  padding: 1.5rem;
+}
+
+.admin-orders__header {
+  margin-bottom: 2rem;
+}
+
+.admin-orders__header h1 {
+  font-size: 1.8rem;
+  margin: 0 0 0.5rem;
+}
+
+.admin-orders__header p {
+  color: #64748b;
+  margin: 0;
+}
+
+.admin-orders__filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.admin-orders__filters select {
+  padding: 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+}
+
+.order-courses-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.btn-view-receipt {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #3b82f6;
+}
+
+.btn-view-receipt:hover {
+  background: #e2e8f0;
+}
+
+.admin-action-btns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-approve {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-reject {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-approve:hover { background: #059669; }
+.btn-reject:hover { background: #dc2626; }
+
+.text-red { color: #ef4444; }
+.text-gray { color: #64748b; }
+.text-sm { font-size: 0.85rem; }
+.font-bold { font-weight: bold; }
+
+/* Modal */
+.receipt-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.receipt-modal-content {
+  background: white;
+  padding: 0.5rem;
+  border-radius: 8px;
+  max-width: 90%;
+  max-height: 90vh;
+  position: relative;
+}
+
+.receipt-modal-content img {
+  max-width: 100%;
+  max-height: calc(90vh - 2rem);
+  object-fit: contain;
+  display: block;
+}
+
+.receipt-modal-close {
+  position: absolute;
+  top: -1.5rem;
+  right: -1.5rem;
+  background: white;
+  color: black;
+  border: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}

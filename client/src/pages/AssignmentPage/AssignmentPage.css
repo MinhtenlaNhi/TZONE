@@ -1,0 +1,220 @@
+.assignment-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: 80vh;
+}
+
+.assignment-loading {
+  text-align: center;
+  padding: 5rem;
+  color: #64748b;
+  font-size: 1.2rem;
+}
+
+.assignment-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.back-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.back-link:hover { text-decoration: underline; }
+
+.assignment-header h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.8rem;
+  color: #1e293b;
+}
+
+.assignment-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: white;
+  font-weight: 500;
+}
+
+.badge-quiz { background: #8b5cf6; }
+.badge-essay { background: #f59e0b; }
+.due-date { color: #ef4444; font-weight: 500; }
+
+/* Quiz Styles */
+.quiz-result-card {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.quiz-result-card h2 { margin: 0 0 0.5rem; color: #166534; }
+.score-text { font-size: 2rem; font-weight: bold; color: #15803d; }
+
+.question-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.correct-box { border-left: 4px solid #22c55e; }
+.wrong-box { border-left: 4px solid #ef4444; }
+
+.question-text { margin: 0 0 1rem; font-size: 1.1rem; color: #1e293b; }
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.option-item:hover:not(.disabled) { background: #f8fafc; }
+.option-item.disabled { cursor: default; }
+
+.correct-opt { background: #dcfce7; border-color: #4ade80; font-weight: 500; }
+.wrong-opt { background: #fee2e2; border-color: #f87171; text-decoration: line-through; }
+
+.explanation-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.quiz-actions {
+  text-align: right;
+  margin-top: 2rem;
+}
+
+/* Essay Styles */
+.essay-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.essay-form label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #334155;
+}
+
+.essay-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.essay-form textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.essay-instruction {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+}
+
+.status-banner {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.status-banner h3 { margin: 0 0 1rem; color: #1e3a8a; }
+
+.final-score {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1d4ed8;
+  margin: 0 0 1rem;
+}
+
+.teacher-comment {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 4px solid #3b82f6;
+}
+
+.teacher-comment p { margin: 0.5rem 0 0; }
+
+.your-submission {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.your-submission h4 { margin: 0 0 1rem; color: #475569; }
+
+.submission-text {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
+.submission-file {
+  margin-top: 1rem;
+}
+
+/* Global */
+.btn-submit-assignment {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-submit-assignment:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-submit-assignment:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
