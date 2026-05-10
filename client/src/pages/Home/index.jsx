@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { apiFetchJson } from "../../api/base";
+import { apiFetchJson, apiPath } from "../../api/base";
 import CourseCategoryTapSuPage from "../CourseCategoryTapSu";
 import CourseCategoryToeicAPage from "../CourseCategoryToeicA";
 import CourseCategoryToeicBPage from "../CourseCategoryToeicB";
