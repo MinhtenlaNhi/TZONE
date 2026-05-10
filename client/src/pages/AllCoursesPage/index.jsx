@@ -96,6 +96,9 @@ export default function AllCoursesPage() {
           <h1>Khám phá các khóa học tại TZONE</h1>
           <p>Lộ trình học tập rõ ràng, phương pháp hiện đại giúp bạn đạt mục tiêu TOEIC nhanh nhất.</p>
         </div>
+        <div className="tz-ac-header-graphic">
+          <img src="/assets/header-graphic.png" alt="" onError={(e) => e.target.style.display = 'none'} />
+        </div>
       </div>
 
       <div className="tz-ac-container">
@@ -103,7 +106,8 @@ export default function AllCoursesPage() {
           {/* Sidebar Filters */}
           <aside className="tz-ac-sidebar">
             <div className="tz-ac-widget">
-              <h3 className="tz-ac-widget-title">Tìm kiếm</h3>
+              <h2 className="tz-ac-widget-main-title">Bộ lọc tìm kiếm</h2>
+              
               <form onSubmit={handleSearchSubmit} className="tz-ac-search-box">
                 <input 
                   type="text" 
@@ -113,47 +117,48 @@ export default function AllCoursesPage() {
                   onChange={handleFilterChange}
                 />
                 <button type="submit" aria-label="Tìm kiếm">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </button>
               </form>
-            </div>
 
-            <div className="tz-ac-widget">
-              <h3 className="tz-ac-widget-title">Danh mục</h3>
-              <div className="tz-ac-radio-group">
-                <label className="tz-ac-custom-radio">
-                  <input 
-                    type="radio" 
-                    name="category" 
-                    value="" 
-                    checked={filters.category === ""}
-                    onChange={handleFilterChange}
-                  />
-                  <span className="tz-radio-mark"></span>
-                  Tất cả các khóa
-                </label>
-                {categories.map(c => (
-                  <label key={c.id} className="tz-ac-custom-radio">
+              <div className="tz-ac-widget-section">
+                <h3 className="tz-ac-widget-title">Danh mục</h3>
+                <div className="tz-ac-radio-group">
+                  <label className="tz-ac-custom-radio">
                     <input 
                       type="radio" 
                       name="category" 
-                      value={c.id} 
-                      checked={filters.category === c.id}
+                      value="" 
+                      checked={filters.category === ""}
                       onChange={handleFilterChange}
                     />
                     <span className="tz-radio-mark"></span>
-                    {c.name}
+                    Tất cả các khóa
                   </label>
-                ))}
+                  {categories.map(c => (
+                    <label key={c.id} className="tz-ac-custom-radio">
+                      <input 
+                        type="radio" 
+                        name="category" 
+                        value={c.id} 
+                        checked={filters.category === c.id}
+                        onChange={handleFilterChange}
+                      />
+                      <span className="tz-radio-mark"></span>
+                      {c.name}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="tz-ac-widget">
-              <h3 className="tz-ac-widget-title">Khoảng giá (VNĐ)</h3>
-              <div className="tz-ac-price-range">
-                <input type="number" name="minPrice" placeholder="Tối thiểu" value={filters.minPrice} onChange={handleFilterChange} />
-                <span className="tz-price-divider">-</span>
-                <input type="number" name="maxPrice" placeholder="Tối đa" value={filters.maxPrice} onChange={handleFilterChange} />
+              <div className="tz-ac-widget-section">
+                <h3 className="tz-ac-widget-title">Khoảng giá (VNĐ)</h3>
+                <div className="tz-ac-price-range">
+                  <input type="number" name="minPrice" placeholder="Tối thiểu" value={filters.minPrice} onChange={handleFilterChange} />
+                  <span className="tz-price-divider">~</span>
+                  <input type="number" name="maxPrice" placeholder="Tối đa" value={filters.maxPrice} onChange={handleFilterChange} />
+                </div>
+                <button className="tz-ac-btn-apply" onClick={loadCourses}>Áp dụng</button>
               </div>
             </div>
           </aside>
@@ -204,6 +209,9 @@ export default function AllCoursesPage() {
                           </div>
                         )}
                         <span className={`tz-cc-badge ${badgeClass}`}>{catName}</span>
+                        <button className="tz-cc-favorite" onClick={(e) => e.preventDefault()}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                        </button>
                       </div>
                       <div className="tz-cc-body">
                         <h3 className="tz-cc-title">{course.title}</h3>
@@ -243,32 +251,40 @@ export default function AllCoursesPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="tz-ac-pagination">
-                <button 
-                  className="tz-page-btn"
-                  disabled={page === 1} 
-                  onClick={() => setPage(p => p - 1)}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+              <div className="tz-ac-pagination-row">
+                <div className="tz-ac-pagination">
                   <button 
-                    key={p}
-                    className={`tz-page-btn tz-page-num ${page === p ? 'active' : ''}`}
-                    onClick={() => setPage(p)}
+                    className="tz-page-btn"
+                    disabled={page === 1} 
+                    onClick={() => setPage(p => p - 1)}
                   >
-                    {p}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
                   </button>
-                ))}
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                    <button 
+                      key={p}
+                      className={`tz-page-btn tz-page-num ${page === p ? 'active' : ''}`}
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
+                    </button>
+                  ))}
 
-                <button 
-                  className="tz-page-btn"
-                  disabled={page === totalPages} 
-                  onClick={() => setPage(p => p + 1)}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </button>
+                  <button 
+                    className="tz-page-btn"
+                    disabled={page === totalPages} 
+                    onClick={() => setPage(p => p + 1)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                </div>
+                <div className="tz-ac-per-page">
+                  12 / trang
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
               </div>
             )}
           </main>
