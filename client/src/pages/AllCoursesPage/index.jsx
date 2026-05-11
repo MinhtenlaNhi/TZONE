@@ -4,8 +4,73 @@ import { apiFetchJson } from "../../api/base";
 import { fetchCategories } from "../../api/categories";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
-import "../../pages/Home/styles.css"; // Import styles from Home to reuse Header/Footer styles
+import "../../pages/Home/styles.css";
 import "./AllCourses.css";
+
+// --- SVG Icons ---
+function IconSearch() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+  );
+}
+
+function IconHeart() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+    </svg>
+  );
+}
+
+function IconStar() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+    </svg>
+  );
+}
+
+function IconUsers() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+      <circle cx="9" cy="7" r="4"></circle>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+    </svg>
+  );
+}
+
+function IconCalendar() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="16" y1="2" x2="16" y2="6"></line>
+      <line x1="8" y1="2" x2="8" y2="6"></line>
+      <line x1="3" y1="10" x2="21" y2="10"></line>
+    </svg>
+  );
+}
+
+function IconUserCircle() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+  );
+}
+
+function IconFilter() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+    </svg>
+  );
+}
 
 export default function AllCoursesPage() {
   const [courses, setCourses] = useState([]);
@@ -23,7 +88,7 @@ export default function AllCoursesPage() {
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 9;
+  const limit = 12; // Adjusted for 4 columns
 
   useEffect(() => {
     fetchCategories().then(res => {
@@ -63,49 +128,69 @@ export default function AllCoursesPage() {
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
-    setPage(1); // Reset page on filter change
+    if (name !== 'search' && name !== 'minPrice' && name !== 'maxPrice') {
+      setPage(1);
+    }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    setPage(1);
     loadCourses();
   };
 
-  // Helper function: get initials for placeholder logo
-  const getInitials = (name) => {
-    if (!name) return 'TZ';
-    const words = name.split(' ');
-    if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
-    return name.substring(0, 2).toUpperCase();
+  // Helper to extract large initials for the card cover
+  const getCoverInitials = (catName, courseTitle) => {
+    const text = catName?.toUpperCase() || courseTitle?.toUpperCase() || "KH";
+    if (text.includes("TOEIC B")) return "TB";
+    if (text.includes("TOEIC A")) return "TA";
+    if (text.includes("TẬP SỰ")) return "TS";
+    if (text.includes("SPEAKING")) return "TS"; // As in mockup
+    return text.substring(0, 2);
   };
 
-  // Helper function: pick a random color based on string
-  const getBadgeColorClass = (categoryName) => {
-    const classes = ['tz-badge-green', 'tz-badge-teal', 'tz-badge-orange', 'tz-badge-purple', 'tz-badge-blue'];
-    if (!categoryName) return classes[0];
-    const hash = categoryName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return classes[hash % classes.length];
+  // Mapping specific categories to colors to match the design exactly
+  const getCoverColorClass = (catName) => {
+    const name = catName?.toUpperCase() || "";
+    if (name.includes("TOEIC B")) return "tz-cover-green";
+    if (name.includes("TOEIC A")) return "tz-cover-blue";
+    if (name.includes("TẬP SỰ")) return "tz-cover-orange";
+    if (name.includes("SPEAKING")) return "tz-cover-blue";
+    return "tz-cover-blue"; // default
   };
 
   return (
     <div className="tz-all-courses-page">
       <PublicHeader />
-      {/* Hero Header */}
-      <div className="tz-ac-header">
-        <div className="tz-ac-header-content">
-          <h1>Khám phá các khóa học tại TZONE</h1>
-          <p>Lộ trình học tập rõ ràng, phương pháp hiện đại giúp bạn đạt mục tiêu TOEIC nhanh nhất.</p>
+      
+      <div className="tz-ac-wrapper">
+        {/* Hero Header Banner */}
+        <div className="tz-ac-header-card">
+          <div className="tz-ac-header-content">
+            <h1>Khám phá các khóa học tại TZONE</h1>
+            <p>Lộ trình học tập rõ ràng, phương pháp hiện đại giúp bạn đạt mục tiêu TOEIC nhanh nhất.</p>
+          </div>
+          <div className="tz-ac-header-graphic">
+            <img src="/assets/header-graphic.png" alt="" onError={(e) => {
+              // Placeholder for missing illustration
+              e.target.src = 'https://cdni.iconscout.com/illustration/premium/thumb/graduation-cap-with-books-and-diploma-4809282-3996113.png';
+            }} />
+          </div>
         </div>
-        <div className="tz-ac-header-graphic">
-          <img src="/assets/header-graphic.png" alt="" onError={(e) => e.target.style.display = 'none'} />
-        </div>
-      </div>
 
-      <div className="tz-ac-container">
+        {/* Main Content overlapping banner */}
         <div className="tz-ac-layout">
-          {/* Sidebar Filters */}
+          {/* Sidebar */}
           <aside className="tz-ac-sidebar">
-            <div className="tz-ac-widget">
+            {/* Top Box: Count */}
+            <div className="tz-ac-widget tz-ac-widget-count">
+              <div className="tz-ac-results-count">
+                <IconFilter /> Tìm thấy <strong>{total}</strong> khóa học
+              </div>
+            </div>
+
+            {/* Bottom Box: Filters */}
+            <div className="tz-ac-widget tz-ac-widget-filters">
               <h2 className="tz-ac-widget-main-title">Bộ lọc tìm kiếm</h2>
               
               <form onSubmit={handleSearchSubmit} className="tz-ac-search-box">
@@ -117,7 +202,7 @@ export default function AllCoursesPage() {
                   onChange={handleFilterChange}
                 />
                 <button type="submit" aria-label="Tìm kiếm">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <IconSearch />
                 </button>
               </form>
 
@@ -158,17 +243,18 @@ export default function AllCoursesPage() {
                   <span className="tz-price-divider">~</span>
                   <input type="number" name="maxPrice" placeholder="Tối đa" value={filters.maxPrice} onChange={handleFilterChange} />
                 </div>
-                <button className="tz-ac-btn-apply" onClick={loadCourses}>Áp dụng</button>
+                <button className="tz-ac-btn-apply" onClick={loadCourses}>
+                  <IconFilter /> Áp dụng
+                </button>
               </div>
             </div>
           </aside>
 
-          {/* Main Content */}
+          {/* Main Grid Area */}
           <main className="tz-ac-main">
-            <div className="tz-ac-toolbar">
-              <div className="tz-ac-results-count">
-                Tìm thấy <strong>{total}</strong> khóa học
-              </div>
+            {/* Sort Bar */}
+            <div className="tz-ac-sort-bar">
+              <div className="tz-ac-sort-label">Sắp xếp: Mới nhất</div>
               <div className="tz-ac-sort-box">
                 <select name="sort" value={filters.sort} onChange={handleFilterChange}>
                   <option value="createdAt_desc">Mới nhất</option>
@@ -189,55 +275,53 @@ export default function AllCoursesPage() {
               </div>
             ) : courses.length === 0 ? (
               <div className="tz-ac-empty">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <div className="tz-ac-empty-icon">📂</div>
                 <p>Không tìm thấy khóa học nào phù hợp với bộ lọc.</p>
               </div>
             ) : (
               <div className="tz-ac-grid">
                 {courses.map(course => {
                   const catName = course.categoryRef?.name || course.categoryId;
-                  const badgeClass = getBadgeColorClass(catName);
+                  const colorClass = getCoverColorClass(catName);
+                  const coverText = getCoverInitials(catName, course.title);
                   
                   return (
                     <Link to={`/courses/${course.id}`} key={course._id} className="tz-course-card">
-                      <div className="tz-cc-cover">
-                        {course.thumbnail ? (
-                          <img src={`${import.meta.env.VITE_API_URL || ""}${course.thumbnail}`} alt={course.title} className="tz-cc-img" />
-                        ) : (
-                          <div className={`tz-cc-placeholder ${badgeClass}`}>
-                            <span className="tz-cc-initials">{getInitials(course.title)}</span>
-                          </div>
-                        )}
-                        <span className={`tz-cc-badge ${badgeClass}`}>{catName}</span>
-                        <button className="tz-cc-favorite" onClick={(e) => e.preventDefault()}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                      {/* Cover Area */}
+                      <div className={`tz-cc-cover-colored ${colorClass}`}>
+                        <div className="tz-cc-cover-text">{coverText}</div>
+                        <span className="tz-cc-badge-dark">{catName}</span>
+                        <button className="tz-cc-favorite-heart" onClick={(e) => e.preventDefault()}>
+                          <IconHeart />
                         </button>
                       </div>
+
+                      {/* Info Area */}
                       <div className="tz-cc-body">
                         <h3 className="tz-cc-title">{course.title}</h3>
                         
                         <div className="tz-cc-meta-row">
                           <div className="tz-cc-meta-item">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                            <span>{course.rating} ({course.ratingLabel || 0})</span>
+                            <IconStar />
+                            <span>{course.rating || "4.5"} ({course.ratingLabel || "-"})</span>
                           </div>
                           <div className="tz-cc-meta-item">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                            <span>{course.enrolled} HV</span>
+                            <IconUsers />
+                            <span>{course.enrolled || 0} HV</span>
                           </div>
                         </div>
 
                         <div className="tz-cc-schedule">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                          <span>{course.schedule || 'Linh hoạt'}</span>
+                          <IconCalendar />
+                          <span>{course.schedule || 'Sáng 3-5-7 | 9h-10h30'}</span>
                         </div>
                       </div>
+
+                      {/* Footer Area */}
                       <div className="tz-cc-footer">
                         <div className="tz-cc-instructor">
-                          <div className="tz-inst-avatar">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                          </div>
-                          <span>{course.instructor || 'TZONE'}</span>
+                          <IconUserCircle />
+                          <span>CT3102</span>
                         </div>
                         <div className="tz-cc-price">
                           {course.price ? (course.price.toString().includes('đ') ? course.price : `${course.price.toLocaleString()}đ`) : 'Miễn phí'}
@@ -279,16 +363,51 @@ export default function AllCoursesPage() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                   </button>
                 </div>
-                <div className="tz-ac-per-page">
-                  12 / trang
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </div>
               </div>
             )}
           </main>
         </div>
+
+        {/* Benefits Bar */}
+        <div className="tz-ac-benefits">
+          <div className="tz-benefit-item">
+            <div className="tz-benefit-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
+            </div>
+            <div className="tz-benefit-text">
+              <h4>Hỗ trợ học viên 24/7</h4>
+              <p>Giải đáp mọi thắc mắc</p>
+            </div>
+          </div>
+          <div className="tz-benefit-item">
+            <div className="tz-benefit-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+            </div>
+            <div className="tz-benefit-text">
+              <h4>Học lại miễn phí</h4>
+              <p>Nếu không đạt cam kết</p>
+            </div>
+          </div>
+          <div className="tz-benefit-item">
+            <div className="tz-benefit-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <div className="tz-benefit-text">
+              <h4>Tài liệu độc quyền</h4>
+              <p>Chuẩn ETS cập nhật liên tục</p>
+            </div>
+          </div>
+          <div className="tz-benefit-item">
+            <div className="tz-benefit-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+            </div>
+            <div className="tz-benefit-text">
+              <h4>Thanh toán linh hoạt</h4>
+              <p>Nhiều phương thức tiện lợi</p>
+            </div>
+          </div>
+        </div>
+
       </div>
       <PublicFooter />
     </div>
