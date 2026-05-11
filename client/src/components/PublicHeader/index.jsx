@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { fetchCategories } from "../../api/categories";
 import UserNavMenu from "../UserNavMenu";
 
 const SearchIcon = () => (
@@ -12,6 +14,35 @@ const CartIcon = () => (
 );
 
 export default function PublicHeader() {
+  const navigate = useNavigate();
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    fetchCategories().then(res => {
+      if (res.success) setCategories(res.categories);
+    });
+
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsCategoryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const searchVal = e.target.search.value;
+    if (searchVal.trim()) {
+      navigate(`/courses?search=${encodeURIComponent(searchVal.trim())}`);
+    } else {
+      navigate(`/courses`);
+    }
+  };
+
   return (
     <header className="tz-home-header">
       <div className="tz-nav-container">
@@ -19,16 +50,39 @@ export default function PublicHeader() {
           <Link to="/" className="tz-logo">
             <span className="tz-logo-icon">TZ</span> TZONE
           </Link>
-          <button className="tz-btn-category">
-            <HamburgerIcon /> Danh mục
-          </button>
+          <div className="tz-category-wrapper" ref={dropdownRef}>
+            <button 
+              className={`tz-btn-category ${isCategoryOpen ? 'active' : ''}`}
+              onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+            >
+              <HamburgerIcon /> Danh mục
+            </button>
+            
+            {isCategoryOpen && (
+              <div className="tz-category-dropdown">
+                <Link to="/courses" className="tz-dropdown-item tz-all-courses-item" onClick={() => setIsCategoryOpen(false)}>
+                  Tất cả khóa học
+                </Link>
+                {categories.map(c => (
+                  <Link 
+                    key={c.id} 
+                    to={`/courses?category=${c.id}`} 
+                    className="tz-dropdown-item"
+                    onClick={() => setIsCategoryOpen(false)}
+                  >
+                    {c.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="tz-nav-search">
-          <div className="tz-search-pill">
-            <input type="text" placeholder="Tìm kiếm khóa học..." />
-            <button><SearchIcon /></button>
-          </div>
+          <form className="tz-search-pill" onSubmit={handleSearch}>
+            <input type="text" name="search" placeholder="Tìm kiếm khóa học..." />
+            <button type="submit"><SearchIcon /></button>
+          </form>
         </div>
 
         <div className="tz-nav-right">

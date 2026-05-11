@@ -62,6 +62,31 @@ export default function AdminCoursesPage() {
   // Giả lập doanh thu tháng này
   const totalRevenue = 120000000; 
 
+  // Lọc dữ liệu local
+  const filteredCourses = courses.filter(c => {
+    // Lọc theo search (title hoặc ID)
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      const titleMatch = c.title?.toLowerCase().includes(q);
+      const idMatch = (c.id || c._id)?.toLowerCase().includes(q);
+      if (!titleMatch && !idMatch) return false;
+    }
+    // Lọc theo danh mục
+    if (categoryFilter) {
+      const catName = c.categoryRef?.name || c.categoryId || "Khác";
+      if (catName !== categoryFilter) return false;
+    }
+    // Lọc theo trạng thái
+    if (statusFilter) {
+      if (statusFilter === "published" && !c.isPublished) return false;
+      if (statusFilter === "draft" && c.isPublished) return false;
+    }
+    return true;
+  });
+
+  // Lấy danh sách danh mục duy nhất từ dữ liệu khóa học để làm bộ lọc
+  const uniqueCategories = [...new Set(courses.map(c => c.categoryRef?.name || c.categoryId || "Khác"))];
+
   const getCategoryColor = (catName) => {
     if (!catName) return "badge-blue";
     if (catName.toLowerCase().includes("toeic")) return "badge-blue";
@@ -177,8 +202,9 @@ export default function AdminCoursesPage() {
             <span>Danh mục:</span>
             <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
               <option value="">Tất cả</option>
-              <option value="toeic">TOEIC</option>
-              <option value="tapsu">Tập sự</option>
+              {uniqueCategories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
             </select>
           </div>
 
@@ -220,10 +246,10 @@ export default function AdminCoursesPage() {
           <tbody>
             {loading ? (
               <tr><td colSpan="7" className="text-center py-4">Đang tải dữ liệu...</td></tr>
-            ) : courses.length === 0 ? (
-              <tr><td colSpan="7" className="text-center py-4">Chưa có khóa học nào</td></tr>
+            ) : filteredCourses.length === 0 ? (
+              <tr><td colSpan="7" className="text-center py-4">Không tìm thấy khóa học nào phù hợp</td></tr>
             ) : (
-              courses.map(course => {
+              filteredCourses.map(course => {
                 const catName = course.categoryRef?.name || course.categoryId || "Khác";
                 return (
                   <tr key={course._id}>
@@ -262,7 +288,11 @@ export default function AdminCoursesPage() {
                     </td>
                     <td className="text-center">
                       <div className="tz-course-actions">
-                        <button className="tz-btn-icon-circle tz-bg-gray" title="Xem chi tiết">
+                        <button 
+                          className="tz-btn-icon-circle tz-bg-gray" 
+                          title="Xem chi tiết"
+                          onClick={() => window.open(`/courses/${course.id || course._id}`, '_blank')}
+                        >
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </button>
                         <button className="tz-btn-icon-circle tz-bg-blue" title="Sửa" onClick={() => navigate(`/admin/courses/edit/${course._id}`)}>
@@ -284,7 +314,7 @@ export default function AdminCoursesPage() {
         {!loading && courses.length > 0 && (
           <div className="tz-courses-footer">
             <div className="tz-showing-text">
-              Hiển thị 1 - {courses.length} trong {courses.length} khóa học
+              Hiển thị 1 - {filteredCourses.length} trong {filteredCourses.length} khóa học
             </div>
             <div className="tz-pagination-controls">
               <div className="tz-pagination">

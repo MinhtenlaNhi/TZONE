@@ -68,7 +68,55 @@
   cursor: pointer;
 }
 
-.tz-btn-category:hover { color: #10b981; }
+.tz-btn-category:hover, .tz-btn-category.active { color: #10b981; }
+
+.tz-category-wrapper {
+  position: relative;
+}
+
+.tz-category-dropdown {
+  position: absolute;
+  top: calc(100% + 15px);
+  left: 0;
+  width: 240px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  border: 1px solid #f1f5f9;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tz-dropdown-item {
+  padding: 0.75rem 1rem;
+  color: #475569;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tz-dropdown-item:hover {
+  background: #f8fafc;
+  color: #10b981;
+}
+
+.tz-all-courses-item {
+  color: #10b981;
+  font-weight: 700;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 0.5rem;
+  border-radius: 8px 8px 0 0;
+}
 
 .tz-nav-search {
   flex: 1;

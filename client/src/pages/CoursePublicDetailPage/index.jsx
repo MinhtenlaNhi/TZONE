@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { apiFetch, apiPath } from "../../api/base";
+import { apiFetchJson, apiFetch, apiPath } from "../../api/base";
 import { addToCart } from "../../api/cartApi";
 import { fetchCourseReviews } from "../../api/reviewsApi";
 import { getAuth } from "../../auth/auth";
 import StarRating from "../../components/StarRating";
+import PublicHeader from "../../components/PublicHeader";
+import PublicFooter from "../../components/PublicFooter";
+import "../../pages/Home/styles.css";
 import "./CoursePublicDetail.css";
 
 export default function CoursePublicDetailPage() {
@@ -23,7 +26,7 @@ export default function CoursePublicDetailPage() {
       try {
         setLoading(true);
         const [resCourse, resReviews] = await Promise.all([
-          apiFetch(apiPath(`/api/courses/${id}`)),
+          apiFetchJson(`/api/courses/${id}`),
           fetchCourseReviews(id)
         ]);
 
@@ -71,7 +74,7 @@ export default function CoursePublicDetailPage() {
     }
 
     try {
-      const res = await apiFetch(apiPath(`/api/enrollments/course/${course.id || course._id}/trial`), {
+      const res = await apiFetchJson(`/api/enrollments/course/${course.id || course._id}/trial`, {
         method: "POST"
       });
 
@@ -87,14 +90,28 @@ export default function CoursePublicDetailPage() {
   };
 
   if (loading) {
-    return <div className="course-detail-loading">Đang tải thông tin khóa học...</div>;
+    return (
+      <div className="course-public tz-home">
+        <PublicHeader />
+        <div className="course-detail-loading">
+          <div className="spinner" style={{ borderColor: '#e2e8f0', borderTopColor: '#10b981', width: 40, height: 40, borderRadius: '50%', borderStyle: 'solid', borderWidth: 4, animation: 'spin 1s linear infinite', margin: '0 auto 1rem' }}></div>
+          Đang tải thông tin khóa học...
+        </div>
+        <PublicFooter />
+      </div>
+    );
   }
 
   if (error || !course) {
     return (
-      <div className="course-detail-error">
-        <h2>{error || "Khóa học không tồn tại hoặc đã bị ẩn"}</h2>
-        <Link to="/courses" className="btn-back">← Về danh sách khóa học</Link>
+      <div className="course-public tz-home">
+        <PublicHeader />
+        <div className="course-detail-error">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1" style={{ margin: '0 auto 1rem' }}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <h2>{error || "Khóa học không tồn tại hoặc đã bị ẩn"}</h2>
+          <Link to="/courses" className="btn-back">← Về danh sách khóa học</Link>
+        </div>
+        <PublicFooter />
       </div>
     );
   }
@@ -108,10 +125,11 @@ export default function CoursePublicDetailPage() {
   };
 
   return (
-    <div className="course-public">
+    <div className="course-public tz-home">
+      <PublicHeader />
       <div className="course-public__hero">
         <div className="course-public__hero-content">
-          <Link to="/courses" className="course-public__back">← Các khóa học</Link>
+          <Link to="/courses" className="course-public__back">← Trở về danh sách</Link>
           <div className="course-public__badge">{course.categoryRef?.name || course.categoryId}</div>
           <h1 className="course-public__title">{course.title}</h1>
           <p className="course-public__short-desc">Khóa học {course.categoryRef?.name} chất lượng cao cùng {course.instructor}</p>
@@ -202,8 +220,7 @@ export default function CoursePublicDetailPage() {
                     Đăng ký học ngay
                   </button>
                   <button 
-                    className="course-public__btn-enroll" 
-                    style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fcd34d' }}
+                    className="course-public__btn-trial" 
                     onClick={handleTrial}
                   >
                     Học thử miễn phí
@@ -218,6 +235,7 @@ export default function CoursePublicDetailPage() {
           </div>
         </aside>
       </div>
+      <PublicFooter />
     </div>
   );
 }
