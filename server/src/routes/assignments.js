@@ -26,7 +26,7 @@ const upload = multer({ storage: storage });
 
 // Kiểm tra user có quyền làm bài tập trong course này không
 const checkEnrollment = async (req, courseId) => {
-  const enr = await Enrollment.findOne({ user: req.user.userId, course: courseId });
+  const enr = await Enrollment.findOne({ user: req.user._id, course: courseId });
   return !!enr;
 };
 
@@ -65,7 +65,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
     // Kiểm tra đã nộp bài chưa
     const submission = await Submission.findOne({ 
       assignmentRef: assignment._id, 
-      studentRef: req.user.userId 
+      studentRef: req.user._id 
     }).lean();
 
     // Nếu chưa nộp thì giấu đáp án
@@ -87,7 +87,7 @@ router.get("/:id/my-submission", authMiddleware, async (req, res) => {
   try {
     const submission = await Submission.findOne({ 
       assignmentRef: req.params.id, 
-      studentRef: req.user.userId 
+      studentRef: req.user._id 
     }).lean();
 
     res.json({ success: true, submission });
@@ -106,7 +106,7 @@ router.post("/:id/submit", authMiddleware, upload.single("file"), async (req, re
     if (!hasEnrolled) return res.status(403).json({ success: false, message: "Chưa đăng ký khóa học" });
 
     // Kiểm tra xem đã nộp chưa
-    const existing = await Submission.findOne({ assignmentRef: assignment._id, studentRef: req.user.userId });
+    const existing = await Submission.findOne({ assignmentRef: assignment._id, studentRef: req.user._id });
     if (existing) {
       return res.status(400).json({ success: false, message: "Bạn đã nộp bài tập này rồi." });
     }
@@ -128,7 +128,7 @@ router.post("/:id/submit", authMiddleware, upload.single("file"), async (req, re
 
       const sub = new Submission({
         assignmentRef: assignment._id,
-        studentRef: req.user.userId,
+        studentRef: req.user._id,
         type: "quiz",
         answers: userAnswers,
         score: score,
@@ -144,7 +144,7 @@ router.post("/:id/submit", authMiddleware, upload.single("file"), async (req, re
 
       const sub = new Submission({
         assignmentRef: assignment._id,
-        studentRef: req.user.userId,
+        studentRef: req.user._id,
         type: "essay",
         textContent,
         fileUrl,

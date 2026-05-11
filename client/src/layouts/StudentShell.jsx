@@ -358,9 +358,9 @@ export default function StudentShell() {
           </span>
           <input type="search" name="q" placeholder="Tìm kiếm khóa học" autoComplete="off" className="student-shell__search-input" />
         </label>
-        <button type="button" className="student-shell__cart" aria-label="Giỏ hàng">
+        <Link to="/cart" className="student-shell__cart" aria-label="Giỏ hàng">
           <IconCart />
-        </button>
+        </Link>
       </div>
 
       <main className="student-shell__main">

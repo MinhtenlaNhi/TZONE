@@ -39,14 +39,14 @@ const upload = multer({
 // Helper: Phân tích giá tiền từ chuỗi (Vd: "3.200.000đ" -> 3200000)
 function parsePrice(priceStr) {
   if (!priceStr) return 0;
-  const numStr = priceStr.replace(/[^\d]/g, "");
+  const numStr = priceStr.toString().replace(/[^\d]/g, "");
   return parseInt(numStr, 10) || 0;
 }
 
 // 1. Lịch sử đơn hàng của User
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user.userId })
+    const orders = await Order.find({ user: req.user._id })
       .populate({
         path: "items.courseRef",
         select: "id title thumbnail categoryRef",
@@ -64,7 +64,7 @@ router.get("/", authMiddleware, async (req, res) => {
 // 2. Lấy chi tiết một đơn hàng
 router.get("/:id", authMiddleware, async (req, res) => {
   try {
-    const order = await Order.findOne({ _id: req.params.id, user: req.user.userId })
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id })
       .populate({
         path: "items.courseRef",
         select: "id title thumbnail schedule instructor"
@@ -92,7 +92,7 @@ router.post("/", authMiddleware, upload.single("transferReceipt"), async (req, r
     }
 
     // 1. Lấy giỏ hàng
-    const cart = await Cart.findOne({ user: req.user.userId }).populate("items.courseRef");
+    const cart = await Cart.findOne({ user: req.user._id }).populate("items.courseRef");
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ success: false, message: "Giỏ hàng trống." });
     }
@@ -106,7 +106,7 @@ router.post("/", authMiddleware, upload.single("transferReceipt"), async (req, r
       if (!course) continue;
 
       // Ktra xem user đã mua chưa
-      const enrolled = await Enrollment.findOne({ user: req.user.userId, course: course._id, isTrial: false });
+      const enrolled = await Enrollment.findOne({ user: req.user._id, course: course._id, isTrial: false });
       if (enrolled) {
         return res.status(400).json({ success: false, message: `Bạn đã sở hữu khóa học ${course.title}` });
       }
@@ -132,7 +132,7 @@ router.post("/", authMiddleware, upload.single("transferReceipt"), async (req, r
     }
 
     const newOrder = await Order.create({
-      user: req.user.userId,
+      user: req.user._id,
       items: orderItems,
       totalAmount,
       paymentMethod,
@@ -149,10 +149,10 @@ router.post("/", authMiddleware, upload.single("transferReceipt"), async (req, r
       // Tạo enrollment cho từng khóa học
       for (const item of orderItems) {
         // Xóa enrollment trial nếu có
-        await Enrollment.deleteOne({ user: req.user.userId, course: item.courseRef, isTrial: true });
+        await Enrollment.deleteOne({ user: req.user._id, course: item.courseRef, isTrial: true });
         
         await Enrollment.create({
-          user: req.user.userId,
+          user: req.user._id,
           course: item.courseRef,
           order: newOrder._id,
           isTrial: false

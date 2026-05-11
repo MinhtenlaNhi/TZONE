@@ -7,18 +7,25 @@ import "./CartPage.css";
 
 export default function CartPage() {
   const auth = getAuth();
+  const authEmail = auth?.email;
   const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const loadCart = async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await fetchCart();
       if (res.success) {
         setCart(res.cart);
+      } else {
+        setError(res.message || "Không thể tải giỏ hàng.");
+        toast.error(res.message || "Không thể tải giỏ hàng.");
       }
     } catch (e) {
+      setError("Không thể tải giỏ hàng.");
       toast.error("Không thể tải giỏ hàng.");
     } finally {
       setLoading(false);
@@ -26,12 +33,12 @@ export default function CartPage() {
   };
 
   useEffect(() => {
-    if (!auth) {
+    if (!authEmail) {
       navigate("/login", { state: { from: "/cart" } });
       return;
     }
     loadCart();
-  }, [auth, navigate]);
+  }, [authEmail, navigate]);
 
   const handleRemove = async (courseId) => {
     try {
@@ -51,13 +58,22 @@ export default function CartPage() {
     return <div className="cart-page-loading">Đang tải giỏ hàng...</div>;
   }
 
+  if (error) {
+    return (
+      <div className="cart-page__empty">
+        <p className="text-danger">{error}</p>
+        <button onClick={loadCart} className="btn-primary">Thử lại</button>
+      </div>
+    );
+  }
+
   const items = cart?.items || [];
 
   const calculateTotal = () => {
     return items.reduce((total, item) => {
       const course = item.courseRef;
       if (!course || !course.price) return total;
-      const numStr = course.price.replace(/[^\d]/g, "");
+      const numStr = course.price.toString().replace(/[^\d]/g, "");
       return total + (parseInt(numStr, 10) || 0);
     }, 0);
   };

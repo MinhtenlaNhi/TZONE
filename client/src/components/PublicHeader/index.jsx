@@ -86,10 +86,10 @@ export default function PublicHeader() {
         </div>
 
         <div className="tz-nav-right">
-          <button className="tz-btn-cart">
+          <Link to="/cart" className="tz-btn-cart">
             <CartIcon />
             <span className="tz-cart-badge">0</span>
-          </button>
+          </Link>
           <UserNavMenu />
         </div>
       </div>

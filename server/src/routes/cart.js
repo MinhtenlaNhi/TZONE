@@ -9,14 +9,14 @@ const router = express.Router();
 // Lấy giỏ hàng của user
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    let cart = await Cart.findOne({ user: req.user.userId }).populate({
+    let cart = await Cart.findOne({ user: req.user._id }).populate({
       path: "items.courseRef",
       select: "id title price thumbnail categoryRef schedule sessionDuration totalSessions",
       populate: { path: "categoryRef", select: "name slug" }
     });
 
     if (!cart) {
-      cart = await Cart.create({ user: req.user.userId, items: [] });
+      cart = await Cart.create({ user: req.user._id, items: [] });
     }
 
     return res.json({ success: true, cart });
@@ -45,7 +45,7 @@ router.post("/add", authMiddleware, async (req, res) => {
     }
 
     // 2. Kiểm tra xem user đã sở hữu khóa học này chưa
-    const existingEnrollment = await Enrollment.findOne({ user: req.user.userId, course: course._id });
+    const existingEnrollment = await Enrollment.findOne({ user: req.user._id, course: course._id });
     if (existingEnrollment) {
       if (existingEnrollment.isTrial) {
         // Đã học thử -> Vẫn cho mua
@@ -55,9 +55,9 @@ router.post("/add", authMiddleware, async (req, res) => {
     }
 
     // 3. Tìm hoặc tạo giỏ hàng
-    let cart = await Cart.findOne({ user: req.user.userId });
+    let cart = await Cart.findOne({ user: req.user._id });
     if (!cart) {
-      cart = await Cart.create({ user: req.user.userId, items: [] });
+      cart = await Cart.create({ user: req.user._id, items: [] });
     }
 
     // 4. Kiểm tra xem đã có trong giỏ chưa
@@ -80,7 +80,7 @@ router.post("/add", authMiddleware, async (req, res) => {
 // Xóa khóa học khỏi giỏ
 router.delete("/:courseId", authMiddleware, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ user: req.user.userId });
+    const cart = await Cart.findOne({ user: req.user._id });
     if (!cart) {
       return res.status(404).json({ success: false, message: "Không tìm thấy giỏ hàng." });
     }

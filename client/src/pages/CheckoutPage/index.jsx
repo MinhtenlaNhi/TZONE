@@ -8,6 +8,7 @@ import "./CheckoutPage.css";
 
 export default function CheckoutPage() {
   const auth = getAuth();
+  const authEmail = auth?.email;
   const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ export default function CheckoutPage() {
   };
 
   useEffect(() => {
-    if (!auth) {
+    if (!authEmail) {
       navigate("/login", { state: { from: "/checkout" } });
       return;
     }
@@ -43,7 +44,7 @@ export default function CheckoutPage() {
       }
     };
     loadCart();
-  }, [auth, navigate]);
+  }, [authEmail, navigate]);
 
   const items = cart?.items || [];
 
@@ -51,7 +52,7 @@ export default function CheckoutPage() {
     return items.reduce((total, item) => {
       const course = item.courseRef;
       if (!course || !course.price) return total;
-      const numStr = course.price.replace(/[^\d]/g, "");
+      const numStr = course.price.toString().replace(/[^\d]/g, "");
       return total + (parseInt(numStr, 10) || 0);
     }, 0);
   };

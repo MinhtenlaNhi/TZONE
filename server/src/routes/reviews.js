@@ -45,14 +45,14 @@ router.post("/", authMiddleware, async (req, res) => {
     }
 
     // Kiểm tra xem user có phải học sinh của khóa không (và không phải Trial)
-    const enrollment = await Enrollment.findOne({ user: req.user.userId, course: courseId });
+    const enrollment = await Enrollment.findOne({ user: req.user._id, course: courseId });
     if (!enrollment || enrollment.isTrial) {
       return res.status(403).json({ success: false, message: "Chỉ học viên chính thức mới có thể viết đánh giá." });
     }
 
     // Upsert (Cập nhật nếu có, tạo mới nếu chưa)
     const review = await Review.findOneAndUpdate(
-      { courseRef: courseId, userRef: req.user.userId },
+      { courseRef: courseId, userRef: req.user._id },
       { rating, comment },
       { new: true, upsert: true } // Upsert!
     );

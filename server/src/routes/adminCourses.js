@@ -84,6 +84,23 @@ function normalizeSessionsFromPayload(payload) {
   return cols.map((col) => ({ col, startMin, endMin }));
 }
 
+function generateSlug(text) {
+  if (!text) return `k_${Date.now()}`;
+  return text.toString().toLowerCase()
+    .replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, "a")
+    .replace(/[èéẹẻẽêềếệểễ]/g, "e")
+    .replace(/[ìíịỉĩ]/g, "i")
+    .replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, "o")
+    .replace(/[ùúụủũưừứựửữ]/g, "u")
+    .replace(/[ỳýỵỷỹ]/g, "y")
+    .replace(/đ/g, "d")
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
+}
+
 // --- LEGACY ROUTES (giữ tương thích cũ) ---
 router.post("/courses-list", async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
@@ -127,7 +144,7 @@ router.post("/v2/courses", upload.single("thumbnail"), async (req, res) => {
     }
 
     const docData = {
-      id: raw.id || `k_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      id: raw.id || generateSlug(raw.title || "Khóa học mới"),
       categoryId: raw.categoryId || "tap-su", // fallback for backward compat
       categoryRef: raw.categoryRef || null,
       title: raw.title || "Khóa học mới",

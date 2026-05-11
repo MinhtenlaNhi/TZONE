@@ -30,7 +30,7 @@ export const COURSE_IMG = [
 
 export const COURSES = [
   {
-    id: "1",
+    id: "toeic-a-st15",
     categoryId: "toeic-a",
     badge: "KHÓA TOEIC A",
     title: "TOEIC A ST15",
@@ -45,7 +45,7 @@ export const COURSES = [
     instructor: "Ms. Hà Trang"
   },
   {
-    id: "2",
+    id: "tap-su-ts08",
     categoryId: "tap-su",
     badge: "KHÓA TẬP SỰ",
     title: "TẬP SỰ TS08",
@@ -60,7 +60,7 @@ export const COURSES = [
     instructor: "Ms. Hà Trang"
   },
   {
-    id: "3",
+    id: "toeic-a-st16",
     categoryId: "toeic-a",
     badge: "KHÓA TOEIC A",
     title: "TOEIC A ST16",
@@ -75,7 +75,7 @@ export const COURSES = [
     instructor: "Mr. Minh Tuấn"
   },
   {
-    id: "4",
+    id: "toeic-b-tb02",
     categoryId: "toeic-b",
     badge: "KHÓA TOEIC B",
     title: "TOEIC B TB02",
@@ -90,7 +90,7 @@ export const COURSES = [
     instructor: "Ms. Lan Anh"
   },
   {
-    id: "5",
+    id: "tap-su-ts09",
     categoryId: "tap-su",
     badge: "KHÓA TẬP SỰ",
     title: "TẬP SỰ TS09",
@@ -105,7 +105,7 @@ export const COURSES = [
     instructor: "Ms. Hà Trang"
   },
   {
-    id: "6",
+    id: "toeic-sw-sw01",
     categoryId: "toeic-sw",
     badge: "KHÓA TOEIC SW",
     title: "TOEIC SW SW01",
@@ -121,7 +121,7 @@ export const COURSES = [
   },
   /** Khóa mẫu trong mockup lịch: Thứ 3, 5, 7 — 20h–21h30 */
   {
-    id: "st35",
+    id: "tap-su-st35",
     categoryId: "tap-su",
     badge: "KHÓA TẬP SỰ",
     title: "Tập sự ST35",
