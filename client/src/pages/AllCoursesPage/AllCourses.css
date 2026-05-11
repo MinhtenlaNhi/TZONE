@@ -305,8 +305,8 @@
 /* Grid & Cards */
 .tz-ac-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
 }
 
 .tz-course-card {
@@ -588,15 +588,27 @@
   background: #f8fafc;
 }
 
-/* Responsive */
+@media (max-width: 1200px) {
+  .tz-ac-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 992px) {
   .tz-ac-layout {
     grid-template-columns: 240px 1fr;
+  }
+  .tz-ac-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
   .tz-ac-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .tz-ac-grid {
     grid-template-columns: 1fr;
   }
   

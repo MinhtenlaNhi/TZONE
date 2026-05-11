@@ -177,7 +177,7 @@ export default function DashboardHome() {
           </div>
         ) : (
           <div className="tz-do-course-grid">
-            {enrollments.slice(0, 3).map(enr => {
+            {enrollments.slice(0, 4).map(enr => {
               const course = enr.course;
               if (!course) return null;
               
