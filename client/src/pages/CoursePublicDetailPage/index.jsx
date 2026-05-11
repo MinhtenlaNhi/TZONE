@@ -124,117 +124,181 @@ export default function CoursePublicDetailPage() {
     return now >= open && now <= close;
   };
 
+  const catName = course.categoryRef?.name || course.categoryId || "Khác";
+
   return (
     <div className="course-public tz-home">
       <PublicHeader />
-      <div className="course-public__hero">
-        <div className="course-public__hero-content">
-          <Link to="/courses" className="course-public__back">← Trở về danh sách</Link>
-          <div className="course-public__badge">{course.categoryRef?.name || course.categoryId}</div>
-          <h1 className="course-public__title">{course.title}</h1>
-          <p className="course-public__short-desc">Khóa học {course.categoryRef?.name} chất lượng cao cùng {course.instructor}</p>
-          
-          <div className="cp-detail__rating-summary">
-            <span className="rating-score">{course.rating || 0}</span>
-            <StarRating rating={Math.round(course.rating || 0)} />
-            <span className="rating-count">({course.reviewCount || 0} đánh giá)</span>
-          </div>
-
-          <div className="course-public__meta">
-            <span>🎓 {course.enrolled} học viên đã tham gia</span>
-            <span>🕒 {course.totalSessions} buổi ({course.sessionDuration} phút/buổi)</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="course-public__layout">
-        <div className="course-public__main">
-          <h2>Giới thiệu khóa học</h2>
-          <div 
-            className="course-public__description"
-            dangerouslySetInnerHTML={{ __html: course.description || "<p>Chưa có mô tả chi tiết.</p>" }}
-          />
-
-          <h2>Lịch học & Khai giảng</h2>
-          <div className="course-public__schedule-box">
-            <p><strong>Ngày khai giảng dự kiến:</strong> {course.startDate || "Liên hệ"}</p>
-            <p><strong>Lịch học trong tuần:</strong> {course.schedule}</p>
-          </div>
-
-          {/* REVIEWS SECTION moved to main body */}
-          <div className="cp-detail__reviews">
-            <h2>Đánh giá từ Học viên</h2>
-            {reviews.length === 0 ? (
-              <p className="no-reviews">Chưa có đánh giá nào cho khóa học này.</p>
-            ) : (
-              <div className="reviews-list">
-                {reviews.map(rev => (
-                  <div key={rev._id} className="review-card">
-                    <div className="reviewer-info">
-                      <img 
-                        src={rev.userRef?.avatar ? `${import.meta.env.VITE_API_URL || ""}${rev.userRef.avatar}` : "/default-avatar.png"} 
-                        alt="avatar" 
-                        className="reviewer-avatar" 
-                        onError={(e) => { e.target.src = "https://ui-avatars.com/api/?name=" + (rev.userRef?.name || "U"); }}
-                      />
-                      <div className="reviewer-meta">
-                        <strong>{rev.userRef?.name || "Học viên ẩn danh"}</strong>
-                        <span className="review-date">{new Date(rev.createdAt).toLocaleDateString('vi-VN')}</span>
-                      </div>
-                    </div>
-                    <div className="review-rating">
-                      <StarRating rating={rev.rating} />
-                    </div>
-                    {rev.comment && <p className="review-comment">{rev.comment}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
+      
+      <div className="cp-container">
+        {/* Breadcrumb */}
+        <div className="cp-breadcrumb">
+          <Link to="/courses" className="cp-back-link">← Trở về danh sách</Link>
+          <span className="cp-breadcrumb-badge">{catName}</span>
         </div>
 
-        <aside className="course-public__sidebar">
-          <div className="course-public__buy-card">
-            <div className="course-public__buy-img">
-              {course.thumbnail ? (
-                <img src={`${import.meta.env.VITE_API_URL || ""}${course.thumbnail}`} alt={course.title} />
-              ) : (
-                <div className="img-placeholder">TZONE</div>
-              )}
+        {/* Hero Banner */}
+        <div className="cp-hero-banner">
+          <div className="cp-hero-content">
+            <span className="cp-hero-badge">{catName}</span>
+            <h1 className="cp-hero-title">{course.title}</h1>
+            <div className="cp-hero-rating">
+              <span className="score">{course.rating || "4.5"}</span>
+              <StarRating rating={Math.round(course.rating || 5)} />
+              <span className="count">({course.reviewCount || 10} đánh giá)</span>
             </div>
-            
-            <div className="course-public__buy-content">
-              <div className="course-public__price">{course.price || "Liên hệ"}</div>
-              
-              <ul className="course-public__features">
-                <li>✓ Truy cập toàn bộ bài giảng trực tiếp</li>
-                <li>✓ {course.trialLessonCount} buổi học thử miễn phí</li>
-                <li>✓ Hỗ trợ giải đáp 24/7 từ giáo viên</li>
-                <li>✓ Tài liệu độc quyền TZONE</li>
-              </ul>
+            <p className="cp-hero-desc">Khóa học {catName} chất lượng cao cùng {course.instructor}</p>
+            <div className="cp-hero-meta">
+              <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> {course.enrolled || 0} học viên đã tham gia</span>
+              <span className="separator">|</span>
+              <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> {course.totalSessions || 8} buổi ({course.sessionDuration || 90} phút/buổi)</span>
+            </div>
+          </div>
+          <div className="cp-hero-graphic">
+            <img src="/images/course-team-collab.png" alt="" onError={e => e.target.style.display='none'} />
+          </div>
+        </div>
 
-              {isEnrollmentOpen() ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <button className="course-public__btn-enroll" onClick={handleEnroll}>
-                    Đăng ký học ngay
-                  </button>
-                  <button 
-                    className="course-public__btn-trial" 
-                    onClick={handleTrial}
-                  >
-                    Học thử miễn phí
-                  </button>
+        {/* Main Layout */}
+        <div className="cp-layout">
+          {/* Left Column */}
+          <div className="cp-main-col">
+            <div className="cp-section">
+              <h2 className="cp-section-title">
+                <span className="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span>
+                Giới thiệu khóa học
+              </h2>
+              <div className="cp-section-content" dangerouslySetInnerHTML={{ __html: course.description || "<p>Đây là mô tả chi tiết mẫu cho khóa học.</p><p>Khóa học sẽ giúp bạn đạt điểm cao trong kỳ thi sắp tới.</p>" }} />
+            </div>
+
+            <div className="cp-section">
+              <h2 className="cp-section-title">
+                <span className="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
+                Lịch học & Khai giảng
+              </h2>
+              <div className="cp-schedule-box">
+                <div className="cp-schedule-item">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span><strong>Ngày khai giảng dự kiến:</strong> {course.startDate || "Liên hệ"}</span>
                 </div>
+                <div className="cp-schedule-item">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span><strong>Lịch học trong tuần:</strong> {course.schedule || "Linh hoạt"}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="cp-section">
+              <h2 className="cp-section-title">
+                <span className="icon-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span>
+                Đánh giá từ Học viên
+              </h2>
+              {reviews.length === 0 ? (
+                <p className="cp-no-reviews">Chưa có đánh giá nào cho khóa học này.</p>
               ) : (
-                <button className="course-public__btn-closed" disabled>
-                  Đã đóng đăng ký
-                </button>
+                <div className="cp-reviews-list">
+                  {reviews.map(rev => (
+                    <div key={rev._id} className="cp-review-card">
+                      <div className="reviewer-info">
+                        <img 
+                          src={rev.userRef?.avatar ? `${import.meta.env.VITE_API_URL || ""}${rev.userRef.avatar}` : "/default-avatar.png"} 
+                          alt="avatar" 
+                          className="reviewer-avatar" 
+                          onError={(e) => { e.target.src = "https://ui-avatars.com/api/?name=" + (rev.userRef?.name || "U"); }}
+                        />
+                        <div className="reviewer-meta">
+                          <strong>{rev.userRef?.name || "Học viên ẩn danh"}</strong>
+                          <span className="review-date">{new Date(rev.createdAt).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                      </div>
+                      <div className="review-rating">
+                        <StarRating rating={rev.rating} />
+                      </div>
+                      {rev.comment && <p className="review-comment">{rev.comment}</p>}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
-        </aside>
+
+          {/* Right Column (Sidebar) */}
+          <div className="cp-sidebar-col">
+            <div className="cp-buy-card">
+              <div className="cp-buy-img-wrap">
+                <span className="cp-buy-status-badge">Còn chỗ</span>
+                {course.thumbnail ? (
+                  <img src={`${import.meta.env.VITE_API_URL || ""}${course.thumbnail}`} alt={course.title} />
+                ) : (
+                  <div className="cp-buy-img-placeholder">TZONE</div>
+                )}
+              </div>
+              
+              <div className="cp-buy-details">
+                <div className="cp-buy-price">
+                  {course.price ? (course.price.toString().includes('đ') ? course.price : `${Number(course.price).toLocaleString()}đ`) : "Miễn phí"}
+                </div>
+                
+                <ul className="cp-buy-features">
+                  <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Truy cập toàn bộ bài giảng trực tiếp</li>
+                  <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg> {course.trialLessonCount || 2} buổi học thử miễn phí</li>
+                  <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Hỗ trợ giải đáp 24/7 từ giáo viên</li>
+                  <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Tài liệu độc quyền TZONE</li>
+                </ul>
+
+                <div className="cp-buy-actions">
+                  {isEnrollmentOpen() ? (
+                    <>
+                      <button className="cp-btn-enroll" onClick={handleEnroll}>
+                        Đăng ký học ngay <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                      </button>
+                      <button className="cp-btn-trial" onClick={handleTrial}>
+                        Học thử miễn phí <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
+                      </button>
+                    </>
+                  ) : (
+                    <button className="cp-btn-closed" disabled>Đã đóng đăng ký</button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Features Banner */}
+        <div className="cp-bottom-features">
+          <div className="cp-feature-item">
+            <div className="cp-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
+            <div className="cp-feature-text">
+              <h4>Hỗ trợ học viên 24/7</h4>
+              <p>Giải đáp mọi thắc mắc</p>
+            </div>
+          </div>
+          <div className="cp-feature-item">
+            <div className="cp-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></div>
+            <div className="cp-feature-text">
+              <h4>Học lại miễn phí</h4>
+              <p>Nếu không đạt cam kết</p>
+            </div>
+          </div>
+          <div className="cp-feature-item">
+            <div className="cp-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
+            <div className="cp-feature-text">
+              <h4>Tài liệu độc quyền</h4>
+              <p>Chuẩn ETS cập nhật liên tục</p>
+            </div>
+          </div>
+          <div className="cp-feature-item">
+            <div className="cp-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div>
+            <div className="cp-feature-text">
+              <h4>Thanh toán linh hoạt</h4>
+              <p>Nhiều phương thức tiện lợi</p>
+            </div>
+          </div>
+        </div>
+
       </div>
+      
       <PublicFooter />
     </div>
   );
