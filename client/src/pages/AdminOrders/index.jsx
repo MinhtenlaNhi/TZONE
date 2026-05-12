@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { fetchAdminOrders, confirmOrder, cancelOrder } from "../../api/ordersApi";
+import { 
+  FiShoppingCart, FiClock, FiCheckCircle, FiXCircle, 
+  FiSearch, FiCalendar, FiCheck, FiX, FiImage, FiTrash2
+} from "react-icons/fi";
 import "./AdminOrders.css";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);
+  const [stats, setStats] = useState({ total: 0, pending: 0, paid: 0, cancelled: 0 });
   const [loading, setLoading] = useState(true);
   
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [statusFilter, setStatusFilter] = useState("pending");
 
   const [selectedReceipt, setSelectedReceipt] = useState(null);
@@ -16,10 +22,14 @@ export default function AdminOrdersPage() {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const res = await fetchAdminOrders(page, 20, statusFilter);
+      const res = await fetchAdminOrders(page, 10, statusFilter);
       if (res.success) {
         setOrders(res.orders);
         setTotalPages(res.totalPages);
+        setTotalItems(res.total || 0);
+        if (res.stats) {
+          setStats(res.stats);
+        }
       } else {
         toast.error("Lỗi tải danh sách đơn hàng.");
       }
@@ -66,40 +76,105 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusBadge = (status) => {
     switch (status) {
-      case "pending": return <span className="status-badge status-pending">Chờ duyệt</span>;
-      case "paid": return <span className="status-badge status-paid">Đã thanh toán</span>;
-      case "cancelled": return <span className="status-badge status-cancelled">Đã hủy</span>;
-      default: return status;
+      case "pending": 
+        return <span className="badge badge-warning"><FiClock className="badge-icon" /> Chờ duyệt</span>;
+      case "paid": 
+        return <span className="badge badge-success"><FiCheck className="badge-icon" /> Đã duyệt</span>;
+      case "cancelled": 
+        return <span className="badge badge-danger"><FiX className="badge-icon" /> Đã hủy</span>;
+      default: 
+        return <span className="badge">{status}</span>;
     }
   };
 
+  const getAvatarInitials = (name) => {
+    if (!name) return "U";
+    const parts = name.trim().split(" ");
+    return parts[parts.length - 1].charAt(0).toUpperCase();
+  };
+
+  // Tính số thứ tự bản ghi đang hiển thị
+  const startItem = (page - 1) * 10 + (orders.length > 0 ? 1 : 0);
+  const endItem = startItem + orders.length - (orders.length > 0 ? 1 : 0);
+
   return (
-    <div className="admin-orders">
-      <div className="admin-orders__header">
-        <h1>Quản lý đơn hàng</h1>
-        <p>Kiểm tra giao dịch chuyển khoản và cấp quyền vào lớp</p>
+    <div className="admin-orders-page">
+      <div className="ao-header-section">
+        <div className="ao-title">
+          <h1>Quản lý đơn hàng</h1>
+          <p>Kiểm tra giao dịch chuyển khoản và cấp quyền vào lớp</p>
+        </div>
+        
+        <div className="ao-summary-cards">
+          <div className="ao-card">
+            <div className="ao-card-icon bg-green-light">
+              <FiShoppingCart className="text-green" />
+            </div>
+            <div className="ao-card-info">
+              <span className="ao-card-label">Tổng đơn hàng</span>
+              <div className="ao-card-value"><strong>{stats.total}</strong> <span>Đơn</span></div>
+            </div>
+          </div>
+          <div className="ao-card">
+            <div className="ao-card-icon bg-yellow-light">
+              <FiClock className="text-yellow" />
+            </div>
+            <div className="ao-card-info">
+              <span className="ao-card-label">Chờ duyệt</span>
+              <div className="ao-card-value"><strong>{stats.pending}</strong> <span>Đơn</span></div>
+            </div>
+          </div>
+          <div className="ao-card">
+            <div className="ao-card-icon bg-success-light">
+              <FiCheckCircle className="text-success" />
+            </div>
+            <div className="ao-card-info">
+              <span className="ao-card-label">Đã duyệt</span>
+              <div className="ao-card-value"><strong>{stats.paid}</strong> <span>Đơn</span></div>
+            </div>
+          </div>
+          <div className="ao-card">
+            <div className="ao-card-icon bg-danger-light">
+              <FiXCircle className="text-danger" />
+            </div>
+            <div className="ao-card-info">
+              <span className="ao-card-label">Đã hủy</span>
+              <div className="ao-card-value"><strong>{stats.cancelled}</strong> <span>Đơn</span></div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="admin-orders__filters">
-        <label>Trạng thái:</label>
-        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
-          <option value="">Tất cả</option>
-          <option value="pending">Chờ duyệt</option>
-          <option value="paid">Đã thanh toán</option>
-          <option value="cancelled">Đã hủy</option>
-        </select>
+      <div className="ao-filters-bar">
+        <div className="ao-filter-group">
+          <label>Trạng thái:</label>
+          <div className="ao-select-wrapper">
+            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
+              <option value="">Tất cả</option>
+              <option value="pending">Chờ duyệt</option>
+              <option value="paid">Đã duyệt</option>
+              <option value="cancelled">Đã hủy</option>
+            </select>
+          </div>
+        </div>
+        <div className="ao-filter-group">
+          <div className="ao-date-input">
+            <FiCalendar className="date-icon" />
+            <input type="text" placeholder="Chọn khoảng thời gian" readOnly />
+          </div>
+        </div>
       </div>
 
-      <div className="admin-orders__content">
+      <div className="ao-content-box">
         {loading ? (
-          <p className="loading-text">Đang tải...</p>
+          <div className="ao-loading">Đang tải dữ liệu...</div>
         ) : orders.length === 0 ? (
-          <p className="empty-text">Không có đơn hàng nào phù hợp.</p>
+          <div className="ao-empty">Không có đơn hàng nào phù hợp.</div>
         ) : (
-          <div className="admin-table-wrap">
-            <table className="admin-table">
+          <div className="ao-table-container">
+            <table className="ao-table">
               <thead>
                 <tr>
                   <th>Mã ĐH</th>
@@ -115,38 +190,58 @@ export default function AdminOrdersPage() {
               <tbody>
                 {orders.map((o) => (
                   <tr key={o._id}>
-                    <td><code className="admin-code">{o._id.substring(18).toUpperCase()}</code></td>
                     <td>
-                      <div><strong>{o.user?.name}</strong></div>
-                      <div className="text-sm text-gray">{o.user?.email}</div>
+                      <span className="ao-order-code">
+                        {o._id.substring(18).toUpperCase()}
+                      </span>
                     </td>
                     <td>
-                      <ul className="order-courses-list">
+                      <div className="ao-user-cell">
+                        <div className="ao-avatar">{getAvatarInitials(o.user?.name)}</div>
+                        <div className="ao-user-info">
+                          <strong className="ao-user-name">{o.user?.name || "Khách"}</strong>
+                          <span className="ao-user-email">{o.user?.email}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="ao-course-list">
                         {o.items.map((i, idx) => (
-                          <li key={idx}>- {i.courseRef?.title}</li>
+                          <div key={idx} className="ao-course-item">– {i.courseRef?.title}</div>
                         ))}
-                      </ul>
+                      </div>
                     </td>
-                    <td className="text-red font-bold">{o.totalAmount.toLocaleString("vi-VN")}đ</td>
+                    <td>
+                      <strong className="ao-amount">{o.totalAmount.toLocaleString("vi-VN")}đ</strong>
+                    </td>
                     <td>{o.paymentMethod.toUpperCase()}</td>
                     <td>
                       {o.transferReceipt ? (
                         <button 
-                          className="btn-view-receipt"
+                          className="ao-receipt-btn"
+                          title="Xem minh chứng"
                           onClick={() => setSelectedReceipt(`${import.meta.env.VITE_API_URL || ""}${o.transferReceipt}`)}
                         >
-                          Xem ảnh
+                          <FiImage />
                         </button>
                       ) : "-"}
                     </td>
-                    <td>{getStatusLabel(o.status)}</td>
+                    <td>{getStatusBadge(o.status)}</td>
                     <td>
-                      {o.status === "pending" && (
-                        <div className="admin-action-btns">
-                          <button className="btn-approve" onClick={() => handleConfirm(o._id)}>Duyệt</button>
-                          <button className="btn-reject" onClick={() => handleCancel(o._id)}>Hủy</button>
-                        </div>
-                      )}
+                      <div className="ao-actions">
+                        {o.status === "pending" ? (
+                          <>
+                            <button className="ao-btn ao-btn-approve" onClick={() => handleConfirm(o._id)}>
+                              <FiCheck /> Duyệt
+                            </button>
+                            <button className="ao-btn ao-btn-reject" onClick={() => handleCancel(o._id)}>
+                              <FiTrash2 /> Hủy
+                            </button>
+                          </>
+                        ) : (
+                          <span className="ao-action-none">-</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -154,21 +249,49 @@ export default function AdminOrdersPage() {
             </table>
           </div>
         )}
-      </div>
 
-      {totalPages > 1 && (
-        <div className="admin-pagination">
-          <button disabled={page === 1} onClick={() => setPage(p => p - 1)}>Trước</button>
-          <span>Trang {page} / {totalPages}</span>
-          <button disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>Sau</button>
-        </div>
-      )}
+        {!loading && orders.length > 0 && (
+          <div className="ao-pagination-wrapper">
+            <div className="ao-pagination-info">
+              Hiển thị {startItem} đến {endItem} trong tổng số {totalItems} đơn hàng
+            </div>
+            <div className="ao-pagination">
+              <button className="ao-page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>&lt;</button>
+              
+              {/* Render page numbers simple logic */}
+              {[...Array(totalPages)].map((_, i) => {
+                const p = i + 1;
+                // Chỉ hiện vài trang quanh trang hiện tại để khỏi dài
+                if (p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1)) {
+                  return (
+                    <button 
+                      key={p} 
+                      className={`ao-page-btn ${page === p ? 'active' : ''}`}
+                      onClick={() => setPage(p)}
+                    >
+                      {p}
+                    </button>
+                  );
+                }
+                if (p === page - 2 || p === page + 2) {
+                  return <span key={p} className="ao-page-dots">...</span>;
+                }
+                return null;
+              })}
+
+              <button className="ao-page-btn" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}>&gt;</button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modal View Receipt */}
       {selectedReceipt && (
-        <div className="receipt-modal" onClick={() => setSelectedReceipt(null)}>
-          <div className="receipt-modal-content" onClick={e => e.stopPropagation()}>
-            <button className="receipt-modal-close" onClick={() => setSelectedReceipt(null)}>×</button>
+        <div className="ao-modal-overlay" onClick={() => setSelectedReceipt(null)}>
+          <div className="ao-modal-content" onClick={e => e.stopPropagation()}>
+            <button className="ao-modal-close" onClick={() => setSelectedReceipt(null)}>
+              <FiX />
+            </button>
             <img src={selectedReceipt} alt="Receipt" />
           </div>
         </div>

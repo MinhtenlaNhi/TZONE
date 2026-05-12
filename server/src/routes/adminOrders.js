@@ -26,9 +26,18 @@ router.get("/", authMiddleware, isAdmin, async (req, res) => {
       .limit(limitNum)
       .lean();
 
+    // Lấy thống kê chung (không bị ảnh hưởng bởi bộ lọc status hiện tại)
+    const stats = {
+      total: await Order.countDocuments(),
+      pending: await Order.countDocuments({ status: "pending" }),
+      paid: await Order.countDocuments({ status: "paid" }),
+      cancelled: await Order.countDocuments({ status: "cancelled" })
+    };
+
     return res.json({
       success: true,
       orders,
+      stats,
       total,
       page: pageNum,
       totalPages: Math.ceil(total / limitNum)

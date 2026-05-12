@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { verifyVNPayReturn } = require("../utils/vnpay");
+const { verifyVNPayReturn, verifyVNPayIpn } = require("../utils/vnpay");
 const Order = require("../models/Order");
 const Enrollment = require("../models/Enrollment");
 
@@ -12,7 +12,7 @@ router.get("/vnpay_ipn", async (req, res) => {
     const orderId = vnp_Params["vnp_TxnRef"];
     const rspCode = vnp_Params["vnp_ResponseCode"];
 
-    if (verifyVNPayReturn(vnp_Params)) {
+    if (verifyVNPayIpn(vnp_Params)) {
       const order = await Order.findById(orderId);
       if (!order) {
         return res.status(200).json({ RspCode: "01", Message: "Order not found" });
