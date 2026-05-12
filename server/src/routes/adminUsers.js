@@ -68,6 +68,34 @@ router.put("/:id/toggle-block", authMiddleware, isAdmin, async (req, res) => {
   }
 });
 
+// Thay đổi vai trò user
+router.put("/:id/role", authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!["student", "teacher", "admin"].includes(role)) {
+      return res.status(400).json({ success: false, message: "Vai trò không hợp lệ" });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy user" });
+
+    // Không cho phép tự hạ quyền admin của chính mình
+    if (user._id.toString() === req.user._id.toString() && role !== "admin") {
+      return res.status(403).json({ success: false, message: "Không thể tự hạ quyền của chính mình" });
+    }
+
+    user.role = role;
+    if (role === "teacher" && !user.teacherApprovalStatus) {
+      user.teacherApprovalStatus = "approved"; // tự động duyệt nếu admin gán quyền
+    }
+    await user.save();
+
+    res.json({ success: true, message: "Cập nhật vai trò thành công", user: user.toSafeObject() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+  }
+});
+
 // Xem lịch sử đơn hàng của user
 router.get("/:id/orders", authMiddleware, isAdmin, async (req, res) => {
   try {

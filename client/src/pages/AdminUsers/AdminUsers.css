@@ -260,13 +260,36 @@
   font-size: 0.85rem;
 }
 
-/* Role Badges */
+/* Role Badges & Selects */
 .tz-role-badge {
   padding: 0.4rem 1rem;
   border-radius: 99px;
   font-size: 0.85rem;
   font-weight: 600;
   display: inline-block;
+}
+
+.tz-role-select {
+  padding: 0.4rem 2rem 0.4rem 1rem;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: all 0.2s;
+}
+
+.tz-role-select:hover {
+  border-color: #cbd5e1;
+}
+
+.tz-role-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
 }
 
 .role-student { background: #e0f2fe; color: #0284c7; }

@@ -133,7 +133,7 @@ function IconDdLogout() {
 function accountBadgeLabel(user) {
   if (!user) return "Học sinh";
   if (user.role === "admin") return "Quản trị";
-  if (user.accountType === "teacher") return "Giáo viên";
+  if (user.role === "teacher") return "Giáo viên";
   return "Học sinh";
 }
 
@@ -150,6 +150,8 @@ const nav = [
   { to: "/my-courses", label: "Các khóa học của bạn", Icon: IconCourses }
 ];
 
+import { getCurrentUser } from "../api/auth";
+
 export default function StudentShell() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -159,6 +161,24 @@ export default function StudentShell() {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const menuRef = useRef(null);
   const categoryRef = useRef(null);
+
+  useEffect(() => {
+    // Tự động làm mới thông tin session từ server (VD: admin vừa đổi role)
+    const refreshSession = async () => {
+      try {
+        const res = await getCurrentUser();
+        if (res.success && res.user) {
+          // setAuth lưu lại vào sessionStorage
+          const { setAuth } = await import("../auth/auth");
+          setAuth(res.user);
+          setUser(res.user);
+        }
+      } catch (err) {
+        // Lỗi lấy info -> có thể token hết hạn, kệ để auth logic lo
+      }
+    };
+    refreshSession();
+  }, []);
 
   const activeCategoryId =
     location.pathname === "/dashboard" ? searchParams.get("category") : null;

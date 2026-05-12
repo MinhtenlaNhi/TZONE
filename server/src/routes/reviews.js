@@ -35,6 +35,20 @@ router.get("/course/:courseId", async (req, res) => {
   }
 });
 
+// 1.5. Lấy danh sách đánh giá của tôi (user đang đăng nhập)
+router.get("/me", authMiddleware, async (req, res) => {
+  try {
+    const reviews = await Review.find({ userRef: req.user._id })
+      .populate("courseRef", "title thumbnail")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, reviews });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi khi tải đánh giá của bạn" });
+  }
+});
+
 // 2. Viết / Cập nhật đánh giá
 router.post("/", authMiddleware, async (req, res) => {
   try {

@@ -82,7 +82,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// 3. Lấy submission của tôi
+// 3. Lấy submission của tôi (trong 1 bài tập cụ thể)
 router.get("/:id/my-submission", authMiddleware, async (req, res) => {
   try {
     const submission = await Submission.findOne({ 
@@ -93,6 +93,27 @@ router.get("/:id/my-submission", authMiddleware, async (req, res) => {
     res.json({ success: true, submission });
   } catch (err) {
     res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+  }
+});
+
+// 3.5. Lấy TẤT CẢ submissions của tôi trên toàn hệ thống
+router.get("/my-submissions/all", authMiddleware, async (req, res) => {
+  try {
+    const submissions = await Submission.find({ studentRef: req.user._id })
+      .populate({
+        path: "assignmentRef",
+        select: "title type dueDate courseRef",
+        populate: {
+          path: "courseRef",
+          select: "title thumbnail"
+        }
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, submissions });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ khi lấy danh sách bài làm" });
   }
 });
 

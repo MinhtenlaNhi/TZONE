@@ -1,22 +1,27 @@
 const express = require("express");
 const User = require("../models/User");
 const { isDbReady } = require("../db");
-const { verifyAdminFromRequestBody, normalizeEmail } = require("../utils/adminAuth");
+const { authMiddleware } = require("../middlewares/auth");
+const { isAdmin } = require("../middlewares/role");
 const { ensureTeacherHasCode } = require("../utils/teacherCode");
 
 const router = express.Router();
+
+function normalizeEmail(email) {
+  return String(email || "").toLowerCase().trim();
+}
 
 function dbUnavailable(res) {
   return res.status(503).json({ success: false, message: "Cơ sở dữ liệu chưa sẵn sàng." });
 }
 
+// Áp dụng middleware bảo vệ cho toàn bộ route
+router.use(authMiddleware, isAdmin);
+
 /** Danh sách giáo viên chờ duyệt */
-router.post("/pending-teachers", async (req, res) => {
+router.get("/pending-teachers", async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
-  const v = await verifyAdminFromRequestBody(req.body);
-  if (!v.ok) return res.status(v.status).json({ success: false, message: v.message });
   try {
-    /** pending rõ ràng, hoặc bản ghi cũ chưa có trường (coi như chưa duyệt). */
     const rows = await User.find({
       role: "teacher",
       $or: [
@@ -36,10 +41,8 @@ router.post("/pending-teachers", async (req, res) => {
 });
 
 /** Tất cả giáo viên (để admin xem trạng thái) */
-router.post("/teachers", async (req, res) => {
+router.get("/teachers", async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
-  const v = await verifyAdminFromRequestBody(req.body);
-  if (!v.ok) return res.status(v.status).json({ success: false, message: v.message });
   try {
     const rows = await User.find({ role: "teacher" })
       .sort({ updatedAt: -1 })
@@ -54,8 +57,6 @@ router.post("/teachers", async (req, res) => {
 
 router.post("/approve-teacher", async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
-  const v = await verifyAdminFromRequestBody(req.body);
-  if (!v.ok) return res.status(v.status).json({ success: false, message: v.message });
   try {
     const teacherEmail = normalizeEmail(req.body?.teacherEmail);
     if (!teacherEmail) {
@@ -81,8 +82,6 @@ router.post("/approve-teacher", async (req, res) => {
 
 router.post("/reject-teacher", async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
-  const v = await verifyAdminFromRequestBody(req.body);
-  if (!v.ok) return res.status(v.status).json({ success: false, message: v.message });
   try {
     const teacherEmail = normalizeEmail(req.body?.teacherEmail);
     if (!teacherEmail) {

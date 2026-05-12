@@ -15,7 +15,7 @@ router.get("/", authMiddleware, isAdmin, async (req, res) => {
     // Tổng doanh thu từ các đơn hàng "paid"
     const revenueResult = await Order.aggregate([
       { $match: { status: "paid" } },
-      { $group: { _id: null, total: { $sum: "$amount" } } }
+      { $group: { _id: null, total: { $sum: "$totalAmount" } } }
     ]);
     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
 
@@ -29,7 +29,7 @@ router.get("/", authMiddleware, isAdmin, async (req, res) => {
       {
         $group: {
           _id: { month: { $month: "$createdAt" }, year: { $year: "$createdAt" } },
-          total: { $sum: "$amount" }
+          total: { $sum: "$totalAmount" }
         }
       },
       { $sort: { "_id.year": 1, "_id.month": 1 } }

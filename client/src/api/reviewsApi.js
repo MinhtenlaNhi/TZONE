@@ -11,6 +11,10 @@ export async function submitReview(courseId, rating, comment) {
   });
 }
 
+export async function fetchMyReviews() {
+  return apiFetchJson(apiPath(`/api/reviews/me`));
+}
+
 // ---- Admin Reviews ----
 
 export async function fetchAdminReviews(courseId = "") {

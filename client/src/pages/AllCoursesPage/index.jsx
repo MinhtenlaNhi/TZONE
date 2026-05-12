@@ -162,7 +162,7 @@ export default function AllCoursesPage() {
   return (
     <div className="tz-all-courses-page">
       <PublicHeader />
-      
+
       <div className="tz-ac-wrapper">
         {/* Hero Header Banner */}
         <div className="tz-ac-header-card">
@@ -192,12 +192,12 @@ export default function AllCoursesPage() {
             {/* Bottom Box: Filters */}
             <div className="tz-ac-widget tz-ac-widget-filters">
               <h2 className="tz-ac-widget-main-title">Bộ lọc tìm kiếm</h2>
-              
+
               <form onSubmit={handleSearchSubmit} className="tz-ac-search-box">
-                <input 
-                  type="text" 
-                  name="search" 
-                  placeholder="Nhập tên khóa học..." 
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Nhập tên khóa học..."
                   value={filters.search}
                   onChange={handleFilterChange}
                 />
@@ -210,10 +210,10 @@ export default function AllCoursesPage() {
                 <h3 className="tz-ac-widget-title">Danh mục</h3>
                 <div className="tz-ac-radio-group">
                   <label className="tz-ac-custom-radio">
-                    <input 
-                      type="radio" 
-                      name="category" 
-                      value="" 
+                    <input
+                      type="radio"
+                      name="category"
+                      value=""
                       checked={filters.category === ""}
                       onChange={handleFilterChange}
                     />
@@ -222,10 +222,10 @@ export default function AllCoursesPage() {
                   </label>
                   {categories.map(c => (
                     <label key={c.id} className="tz-ac-custom-radio">
-                      <input 
-                        type="radio" 
-                        name="category" 
-                        value={c.id} 
+                      <input
+                        type="radio"
+                        name="category"
+                        value={c.id}
                         checked={filters.category === c.id}
                         onChange={handleFilterChange}
                       />
@@ -284,7 +284,7 @@ export default function AllCoursesPage() {
                   const catName = course.categoryRef?.name || course.categoryId;
                   const colorClass = getCoverColorClass(catName);
                   const coverText = getCoverInitials(catName, course.title);
-                  
+
                   return (
                     <Link to={`/courses/${course.id}`} key={course._id} className="tz-course-card">
                       {/* Cover Area */}
@@ -299,7 +299,7 @@ export default function AllCoursesPage() {
                       {/* Info Area */}
                       <div className="tz-cc-body">
                         <h3 className="tz-cc-title">{course.title}</h3>
-                        
+
                         <div className="tz-cc-meta-row">
                           <div className="tz-cc-meta-item">
                             <IconStar />
@@ -337,16 +337,16 @@ export default function AllCoursesPage() {
             {totalPages > 1 && (
               <div className="tz-ac-pagination-row">
                 <div className="tz-ac-pagination">
-                  <button 
+                  <button
                     className="tz-page-btn"
-                    disabled={page === 1} 
+                    disabled={page === 1}
                     onClick={() => setPage(p => p - 1)}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
                   </button>
-                  
+
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                    <button 
+                    <button
                       key={p}
                       className={`tz-page-btn tz-page-num ${page === p ? 'active' : ''}`}
                       onClick={() => setPage(p)}
@@ -355,9 +355,9 @@ export default function AllCoursesPage() {
                     </button>
                   ))}
 
-                  <button 
+                  <button
                     className="tz-page-btn"
-                    disabled={page === totalPages} 
+                    disabled={page === totalPages}
                     onClick={() => setPage(p => p + 1)}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
@@ -368,45 +368,7 @@ export default function AllCoursesPage() {
           </main>
         </div>
 
-        {/* Benefits Bar */}
-        <div className="tz-ac-benefits">
-          <div className="tz-benefit-item">
-            <div className="tz-benefit-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
-            </div>
-            <div className="tz-benefit-text">
-              <h4>Hỗ trợ học viên 24/7</h4>
-              <p>Giải đáp mọi thắc mắc</p>
-            </div>
-          </div>
-          <div className="tz-benefit-item">
-            <div className="tz-benefit-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
-            </div>
-            <div className="tz-benefit-text">
-              <h4>Học lại miễn phí</h4>
-              <p>Nếu không đạt cam kết</p>
-            </div>
-          </div>
-          <div className="tz-benefit-item">
-            <div className="tz-benefit-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            </div>
-            <div className="tz-benefit-text">
-              <h4>Tài liệu độc quyền</h4>
-              <p>Chuẩn ETS cập nhật liên tục</p>
-            </div>
-          </div>
-          <div className="tz-benefit-item">
-            <div className="tz-benefit-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-            </div>
-            <div className="tz-benefit-text">
-              <h4>Thanh toán linh hoạt</h4>
-              <p>Nhiều phương thức tiện lợi</p>
-            </div>
-          </div>
-        </div>
+
 
       </div>
       <PublicFooter />

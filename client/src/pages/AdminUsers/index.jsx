@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchAdminUsers, toggleBlockUser } from "../../api/adminApi";
+import { fetchAdminUsers, toggleBlockUser, changeUserRole } from "../../api/adminApi";
 import { toast } from "react-toastify";
 import "./AdminUsers.css";
 
@@ -54,6 +54,24 @@ export default function AdminUsersPage() {
       }
     } catch (e) {
       toast.error("Lỗi cập nhật trạng thái");
+    }
+  };
+
+  const handleChangeRole = async (userId, newRole, currentRole) => {
+    if (newRole === currentRole) return;
+    if (!window.confirm(`Bạn có chắc muốn đổi vai trò của user này thành ${roleText(newRole)}?`)) return;
+
+    try {
+      const res = await changeUserRole(userId, newRole);
+      
+      if (res.success) {
+        toast.success(res.message);
+        setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
+      } else {
+        toast.error(res.message);
+      }
+    } catch (e) {
+      toast.error("Lỗi đổi vai trò");
     }
   };
 
@@ -204,9 +222,15 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
                     <td>
-                      <span className={`tz-role-badge ${isStudent ? 'role-student' : isTeacher ? 'role-teacher' : 'role-admin'}`}>
-                        {roleText(user.role)}
-                      </span>
+                      <select
+                        className={`tz-role-select ${isStudent ? 'role-student' : isTeacher ? 'role-teacher' : 'role-admin'}`}
+                        value={user.role || "student"}
+                        onChange={(e) => handleChangeRole(user._id, e.target.value, user.role || "student")}
+                      >
+                        <option value="student">Học viên</option>
+                        <option value="teacher">Giảng viên</option>
+                        <option value="admin">Quản trị viên</option>
+                      </select>
                     </td>
                     <td>
                       <div className="tz-status">

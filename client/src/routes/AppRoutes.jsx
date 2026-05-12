@@ -23,6 +23,8 @@ import SchedulePage from "../pages/SchedulePage";
 import ForgotPasswordPage from "../pages/ForgotPassword";
 import ResetPasswordPage from "../pages/ResetPassword";
 import ProfilePage from "../pages/Profile";
+import MyReviewsPage from "../pages/MyReviewsPage";
+import MyTestsPage from "../pages/MyTestsPage";
 
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
@@ -88,6 +90,8 @@ function AppRoutes() {
         <Route path="/learn/:courseId/assignment/:id" element={<AssignmentPage />} />
         <Route path="/teacher/course-links" element={<TeacherCourseLinksPage />} />
         <Route path="/account" element={<ProfilePage />} />
+        <Route path="/reviews" element={<MyReviewsPage />} />
+        <Route path="/tests" element={<MyTestsPage />} />
 
       </Route>
       

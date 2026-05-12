@@ -21,3 +21,10 @@ export async function toggleBlockUser(userId) {
 export async function fetchUserOrders(userId) {
   return apiFetchJson(`/api/admin/users/${userId}/orders`);
 }
+
+export async function changeUserRole(userId, role) {
+  return apiFetchJson(`/api/admin/users/${userId}/role`, {
+    method: "PUT",
+    body: JSON.stringify({ role })
+  });
+}
