@@ -140,9 +140,21 @@ router.post("/", authMiddleware, upload.single("transferReceipt"), async (req, r
       status: "pending" // Nếu là chuyển khoản hoặc VNPAY thì ban đầu là pending
     });
 
-    // 4. Nếu là mock gateway (vnpay/momo/zalopay) -> Tạm thời tự động chuyển sang "paid" và tạo enrollment
-    // Trong thực tế, phải có callback từ gateway để update trạng thái đơn.
-    if (["vnpay", "momo", "zalopay"].includes(paymentMethod)) {
+    // 4. Nếu là vnpay -> Sinh URL chuyển hướng
+    if (paymentMethod === "vnpay") {
+      const { generateVNPayUrl } = require("../utils/vnpay");
+      const ipAddr = req.headers["x-forwarded-for"] || req.connection.remoteAddress || req.socket.remoteAddress || "127.0.0.1";
+      const orderInfo = `Thanh toan don hang ${newOrder._id}`;
+      const returnUrl = process.env.VNP_RETURN_URL;
+      const paymentUrl = generateVNPayUrl(ipAddr, newOrder._id.toString(), totalAmount, orderInfo, returnUrl);
+      
+      // Xóa giỏ hàng
+      cart.items = [];
+      await cart.save();
+      
+      return res.json({ success: true, message: "Chuyển hướng đến VNPay.", orderId: newOrder._id, paymentUrl });
+    } else if (["momo", "zalopay"].includes(paymentMethod)) {
+      // Mock cho các cổng khác
       newOrder.status = "paid";
       await newOrder.save();
 

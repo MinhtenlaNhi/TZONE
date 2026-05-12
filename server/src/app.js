@@ -21,6 +21,7 @@ const adminOrdersRoutes = require("./routes/adminOrders");
 const adminReviewsRoutes = require("./routes/adminReviews");
 const adminDashboardRoutes = require("./routes/adminDashboard");
 const adminUsersRoutes = require("./routes/adminUsers");
+const vnpayRoutes = require("./routes/vnpay");
 
 const teacherCoursesRoutes = require("./routes/teacherCourses");
 const teacherLessonsRoutes = require("./routes/teacherLessons");
@@ -74,6 +75,7 @@ app.use("/api/orders", ordersRoutes);
 app.use("/api/enrollments", enrollmentsRoutes);
 app.use("/api/assignments", assignmentsRoutes);
 app.use("/api/reviews", reviewsRoutes);
+app.use("/api/vnpay", vnpayRoutes);
 
 // ----------------------------------------------------------------------
 // GẮN TEACHER ROUTER

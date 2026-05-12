@@ -97,8 +97,13 @@ export default function CheckoutPage() {
 
       const res = await createOrder(formData);
       if (res.success) {
-        toast.success("Đặt hàng thành công!");
-        navigate("/orders"); // Chuyển đến trang lịch sử đơn hàng
+        if (res.paymentUrl) {
+          // Chuyển hướng sang VNPAY
+          window.location.href = res.paymentUrl;
+        } else {
+          toast.success("Đặt hàng thành công!");
+          navigate("/orders"); // Chuyển đến trang lịch sử đơn hàng
+        }
       } else {
         toast.error(res.message || "Có lỗi xảy ra khi đặt hàng.");
       }
@@ -179,7 +184,7 @@ export default function CheckoutPage() {
             {paymentMethod === "vnpay" && (
               <div className="checkout-section vnpay-details">
                 <p>Hệ thống sẽ chuyển hướng bạn đến cổng thanh toán VNPAY an toàn.</p>
-                <p><em>(Mock Sandbox: Giao dịch sẽ tự động thành công và bạn được duyệt vào lớp ngay lập tức).</em></p>
+                <p><em>Sau khi thanh toán thành công trên cổng VNPAY, đơn hàng của bạn sẽ được tự động kích hoạt.</em></p>
               </div>
             )}
 
