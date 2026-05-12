@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { clearAuth, getAuth } from "../auth/auth";
+import { getCurrentUser } from "../api/auth";
 import { canUseTeacherCourseLinkTools } from "../auth/teacherApproval";
 import { COURSE_CATEGORIES } from "../data/studentCourses";
 import { apiPath } from "../api/base";
@@ -149,8 +150,6 @@ const nav = [
   { to: "/schedule", label: "Lịch học", Icon: IconCalendar },
   { to: "/my-courses", label: "Các khóa học của bạn", Icon: IconCourses }
 ];
-
-import { getCurrentUser } from "../api/auth";
 
 export default function StudentShell() {
   const navigate = useNavigate();
