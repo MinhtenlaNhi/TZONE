@@ -7,6 +7,34 @@ import { submitReview } from "../../api/reviewsApi";
 import StarRating from "../../components/StarRating";
 import "./LearningPage.css";
 
+// SVG Icons
+const IconArrowLeft = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+);
+const IconCheckCircle = ({ checked }) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill={checked ? "#00a260" : "none"} stroke={checked ? "#00a260" : "#cbd5e1"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+    {checked && <polyline points="22 4 12 14.01 9 11.01" stroke="white" strokeWidth="3"></polyline>}
+  </svg>
+);
+const IconVideo = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+);
+const IconCalendar = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+);
+const IconFile = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+);
+const IconEdit = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+);
+const IconChevronDown = ({ open }) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}>
+    <polyline points="6 9 12 15 18 9"></polyline>
+  </svg>
+);
+
 export default function LearningPage() {
   const { courseId } = useParams();
   const [courseInfo, setCourseInfo] = useState(null);
@@ -16,7 +44,7 @@ export default function LearningPage() {
   // States cho việc học
   const [activeSection, setActiveSection] = useState(1);
   const [activeLesson, setActiveLesson] = useState(null);
-  const [completedLessons, setCompletedLessons] = useState(new Set()); // Lưu ID các bài đã hoàn thành
+  const [completedLessons, setCompletedLessons] = useState(new Set());
   
   // Assignment State
   const [assignments, setAssignments] = useState([]);
@@ -41,6 +69,7 @@ export default function LearningPage() {
           if (res.curriculum?.length > 0 && res.curriculum[0].lessons.length > 0) {
             setActiveLesson(res.curriculum[0].lessons[0]);
             setActiveSection(res.curriculum[0].sectionIndex);
+            loadAssignments(res.curriculum[0].lessons[0]._id);
           }
         } else {
           toast.error(res.message || "Lỗi tải bài học");
@@ -60,6 +89,7 @@ export default function LearningPage() {
 
   const loadAssignments = async (lessonId) => {
     try {
+      setAssignments([]);
       const res = await fetchAssignmentsByLesson(lessonId);
       if (res.success) {
         setAssignments(res.assignments || []);
@@ -71,8 +101,11 @@ export default function LearningPage() {
 
   const handleLessonSelect = (lesson, sectionIndex) => {
     setActiveLesson(lesson);
-    setActiveSection(sectionIndex);
     loadAssignments(lesson._id);
+  };
+
+  const toggleSection = (sectionIndex) => {
+    setActiveSection(prev => prev === sectionIndex ? null : sectionIndex);
   };
 
   const handleComplete = async () => {
@@ -88,7 +121,7 @@ export default function LearningPage() {
     try {
       await updateCourseProgress(courseId, newProgress);
       setCourseInfo(prev => ({ ...prev, progress: newProgress }));
-      toast.success("Đã lưu tiến độ!");
+      toast.success("Tuyệt vời! Đã lưu tiến độ.");
     } catch (e) {
       console.error(e);
     }
@@ -100,7 +133,8 @@ export default function LearningPage() {
       setSubmittingReview(true);
       const res = await submitReview(courseId, rating, comment);
       if (res.success) {
-        toast.success("Đã gửi đánh giá thành công!");
+        toast.success("Cảm ơn bạn đã gửi đánh giá!");
+        setComment("");
       } else {
         toast.error(res.message);
       }
@@ -112,163 +146,207 @@ export default function LearningPage() {
   };
 
   if (loading) {
-    return <div className="learning-loading">Đang tải dữ liệu bài học...</div>;
+    return (
+      <div className="tz-learning-loading">
+        <div className="tz-spinner"></div>
+        <p>Đang tải không gian học tập...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="learning-page">
+    <div className="tz-learning-layout">
       {/* Sidebar */}
-      <aside className="learning-sidebar">
-        <div className="learning-sidebar__header">
-          <Link to="/my-courses" className="back-link">← Trở về</Link>
-          <h2 className="course-title">{courseInfo?.title}</h2>
-          {courseInfo?.isTrial && <span className="trial-badge">Đang học thử</span>}
-          <div className="progress-bar-wrap">
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: `${courseInfo?.progress || 0}%` }}></div>
+      <aside className="tz-learning-sidebar">
+        <div className="tz-ls-header">
+          <Link to="/dashboard" className="tz-ls-back">
+            <IconArrowLeft /> Quay lại Dashboard
+          </Link>
+          <h2 className="tz-ls-course-title">{courseInfo?.title}</h2>
+          {courseInfo?.isTrial && <span className="tz-ls-trial-badge">Đang học thử</span>}
+          
+          <div className="tz-ls-progress-container">
+            <div className="tz-ls-progress-info">
+              <span>Tiến độ học tập</span>
+              <strong>{Math.round(courseInfo?.progress || 0)}%</strong>
             </div>
-            <span className="progress-text">{Math.round(courseInfo?.progress || 0)}% hoàn thành</span>
+            <div className="tz-ls-progress-bar">
+              <div className="tz-ls-progress-fill" style={{ width: `${courseInfo?.progress || 0}%` }}></div>
+            </div>
           </div>
         </div>
 
-        <div className="curriculum-list">
+        <div className="tz-ls-curriculum">
           {curriculum.length === 0 ? (
-            <p className="p-4 text-sm text-gray">Khóa học chưa có bài học nào.</p>
+            <div className="tz-ls-empty">Khóa học đang được cập nhật bài học.</div>
           ) : (
-            curriculum.map((section) => (
-              <div className="section-group" key={section.sectionIndex}>
-                <div 
-                  className={`section-header ${activeSection === section.sectionIndex ? 'active' : ''}`}
-                  onClick={() => setActiveSection(section.sectionIndex)}
-                >
-                  <span className="section-title">Chương {section.sectionIndex}: {section.sectionTitle}</span>
-                  <span className="section-count">{section.lessons.length} bài</span>
-                </div>
-                
-                {activeSection === section.sectionIndex && (
-                  <div className="section-lessons">
-                    {section.lessons.map(lesson => (
-                      <div 
-                        key={lesson._id}
-                        className={`lesson-item ${activeLesson?._id === lesson._id ? 'active' : ''} ${completedLessons.has(lesson._id) ? 'completed' : ''}`}
-                        onClick={() => handleLessonSelect(lesson, section.sectionIndex)}
-                      >
-                        <span className="lesson-icon">
-                          {completedLessons.has(lesson._id) ? "✅" : "📄"}
-                        </span>
-                        <span className="lesson-title">{lesson.title}</span>
-                      </div>
-                    ))}
+            curriculum.map((section) => {
+              const isOpen = activeSection === section.sectionIndex;
+              return (
+                <div className="tz-ls-section" key={section.sectionIndex}>
+                  <div 
+                    className={`tz-ls-section-header ${isOpen ? 'active' : ''}`}
+                    onClick={() => toggleSection(section.sectionIndex)}
+                  >
+                    <div>
+                      <h4 className="tz-ls-section-title">Chương {section.sectionIndex}: {section.sectionTitle}</h4>
+                      <span className="tz-ls-section-meta">{section.lessons.length} bài học</span>
+                    </div>
+                    <IconChevronDown open={isOpen} />
                   </div>
-                )}
-              </div>
-            ))
+                  
+                  <div className={`tz-ls-section-body ${isOpen ? 'open' : ''}`}>
+                    {section.lessons.map(lesson => {
+                      const isActive = activeLesson?._id === lesson._id;
+                      const isCompleted = completedLessons.has(lesson._id);
+                      return (
+                        <div 
+                          key={lesson._id}
+                          className={`tz-ls-lesson-item ${isActive ? 'active' : ''}`}
+                          onClick={() => handleLessonSelect(lesson, section.sectionIndex)}
+                        >
+                          <div className="tz-ls-lesson-icon">
+                            <IconCheckCircle checked={isCompleted} />
+                          </div>
+                          <span className="tz-ls-lesson-name">{lesson.title}</span>
+                          {lesson.isFreePreview && <span className="tz-ls-preview-tag">Free</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="learning-main">
-        {activeLesson ? (
-          <div className="lesson-content-area">
-            <div className="lesson-header">
-              <h1>{activeLesson.title}</h1>
-              {activeLesson.isFreePreview && <span className="badge-preview">Free Preview</span>}
-            </div>
-
-            <div className="lesson-details">
-              <div className="detail-box time-box">
-                <h3>Thời gian học</h3>
-                <p>{activeLesson.date ? new Date(activeLesson.date).toLocaleString("vi-VN") : "Chưa có lịch cụ thể"}</p>
+      <main className="tz-learning-main">
+        <div className="tz-lm-container">
+          {activeLesson ? (
+            <>
+              <div className="tz-lm-lesson-header">
+                {activeLesson.isFreePreview && <span className="tz-lm-preview-badge">Bài học miễn phí (Học thử)</span>}
+                <h1 className="tz-lm-lesson-title">{activeLesson.title}</h1>
               </div>
 
-              <div className="detail-box meet-box">
-                <h3>Phòng học Trực tuyến</h3>
-                {activeLesson.meetUrl ? (
-                  <a href={activeLesson.meetUrl} target="_blank" rel="noreferrer" className="btn-meet">
-                    Vào lớp học Google Meet
-                  </a>
-                ) : (
-                  <p className="no-link">Giáo viên chưa gắn link lớp học.</p>
-                )}
-              </div>
-            </div>
+              <div className="tz-lm-cards-grid">
+                {/* Lịch học Card */}
+                <div className="tz-lm-card">
+                  <div className="tz-lm-card-icon bg-blue"><IconCalendar /></div>
+                  <div className="tz-lm-card-content">
+                    <h3>Thời gian diễn ra</h3>
+                    <p>{activeLesson.date ? new Date(activeLesson.date).toLocaleString("vi-VN") : "Chưa cập nhật thời gian"}</p>
+                  </div>
+                </div>
 
-            {activeLesson.materials && activeLesson.materials.length > 0 && (
-              <div className="lesson-materials">
-                <h3>Tài liệu đính kèm</h3>
-                <ul className="materials-list">
-                  {activeLesson.materials.map((mat, idx) => (
-                    <li key={idx}>
-                      <a href={mat.url} target="_blank" rel="noreferrer" className="material-link">
-                        📎 {mat.title || "Tài liệu"}
+                {/* Phòng học Card */}
+                <div className="tz-lm-card">
+                  <div className="tz-lm-card-icon bg-green"><IconVideo /></div>
+                  <div className="tz-lm-card-content">
+                    <h3>Phòng học Trực tuyến</h3>
+                    {activeLesson.meetUrl ? (
+                      <a href={activeLesson.meetUrl} target="_blank" rel="noreferrer" className="tz-lm-btn-meet">
+                        <IconVideo /> Vào lớp Google Meet
                       </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {assignments.length > 0 && (
-              <div className="lesson-assignments">
-                <h3>Bài tập</h3>
-                <div className="assignments-list">
-                  {assignments.map(ass => (
-                    <div className="assignment-item" key={ass._id}>
-                      <div className="assignment-info">
-                        <span className="assignment-type badge-preview">{ass.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}</span>
-                        <span className="assignment-title">{ass.title}</span>
-                      </div>
-                      <Link to={`/learn/${courseId}/assignment/${ass._id}`} className="btn-do-assignment">
-                        Làm bài
-                      </Link>
-                    </div>
-                  ))}
+                    ) : (
+                      <p className="tz-lm-no-link">Giảng viên chưa mở link phòng học.</p>
+                    )}
+                  </div>
                 </div>
               </div>
-            )}
 
-            <div className="lesson-actions">
-              <button 
-                className="btn-complete" 
-                onClick={handleComplete}
-                disabled={completedLessons.has(activeLesson._id)}
-              >
-                {completedLessons.has(activeLesson._id) ? "Đã hoàn thành" : "Đánh dấu hoàn thành"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="no-lesson-selected">
-            <p>Vui lòng chọn bài học ở danh sách bên trái.</p>
-          </div>
-        )}
+              {/* Tài liệu đính kèm */}
+              {activeLesson.materials && activeLesson.materials.length > 0 && (
+                <div className="tz-lm-section">
+                  <h3 className="tz-lm-section-title"><IconFile /> Tài liệu bài học</h3>
+                  <div className="tz-lm-materials-grid">
+                    {activeLesson.materials.map((mat, idx) => (
+                      <a key={idx} href={mat.url} target="_blank" rel="noreferrer" className="tz-lm-material-card">
+                        <div className="tz-lm-material-icon">
+                          <IconFile />
+                        </div>
+                        <div className="tz-lm-material-info">
+                          <span className="tz-lm-material-name">{mat.title || "Tài liệu đính kèm"}</span>
+                          <span className="tz-lm-material-action">Tải xuống</span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        {/* Form Đánh giá Khóa học */}
-        {!courseInfo?.isTrial && (
-          <div className="course-review-section">
-            <h3>Đánh giá khóa học</h3>
-            <p className="review-subtitle">Chia sẻ cảm nhận của bạn để giúp các bạn khác hiểu thêm về khóa học nhé!</p>
-            <form onSubmit={handleReviewSubmit} className="review-form">
-              <div className="form-group rating-group">
-                <label>Bạn chấm bao nhiêu sao?</label>
-                <StarRating rating={rating} setRating={setRating} interactive={true} />
+              {/* Bài tập */}
+              {assignments.length > 0 && (
+                <div className="tz-lm-section">
+                  <h3 className="tz-lm-section-title"><IconEdit /> Bài tập về nhà</h3>
+                  <div className="tz-lm-assignments-list">
+                    {assignments.map(ass => (
+                      <div className="tz-lm-assignment-card" key={ass._id}>
+                        <div className="tz-lm-ass-info">
+                          <span className={`tz-lm-ass-type ${ass.type === 'quiz' ? 'bg-orange' : 'bg-blue'}`}>
+                            {ass.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
+                          </span>
+                          <span className="tz-lm-ass-title">{ass.title}</span>
+                        </div>
+                        <Link to={`/learn/${courseId}/assignment/${ass._id}`} className="tz-lm-btn-do-task">
+                          Làm bài ngay
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Nút hoàn thành */}
+              <div className="tz-lm-complete-section">
+                <button 
+                  className={`tz-lm-btn-complete ${completedLessons.has(activeLesson._id) ? 'completed' : ''}`}
+                  onClick={handleComplete}
+                  disabled={completedLessons.has(activeLesson._id)}
+                >
+                  <IconCheckCircle checked={completedLessons.has(activeLesson._id)} />
+                  {completedLessons.has(activeLesson._id) ? "Đã hoàn thành bài học này" : "Đánh dấu hoàn thành"}
+                </button>
               </div>
-              <div className="form-group">
-                <label>Nhận xét của bạn (Không bắt buộc):</label>
+            </>
+          ) : (
+            <div className="tz-lm-empty-state">
+              <div className="tz-lm-empty-icon">📚</div>
+              <h2>Chọn bài học để bắt đầu</h2>
+              <p>Hãy chọn một bài học trong menu bên trái để xem nội dung, link học trực tuyến và bài tập nhé.</p>
+            </div>
+          )}
+
+          {/* Đánh giá khóa học */}
+          {!courseInfo?.isTrial && (
+            <div className="tz-lm-review-box">
+              <div className="tz-lm-review-header">
+                <h3>Đánh giá khóa học</h3>
+                <p>Chia sẻ cảm nhận để giúp các bạn khác hiểu thêm về khóa học nhé!</p>
+              </div>
+              <form onSubmit={handleReviewSubmit} className="tz-lm-review-form">
+                <div className="tz-lm-rating-row">
+                  <span className="tz-lm-rating-label">Mức độ hài lòng:</span>
+                  <StarRating rating={rating} setRating={setRating} interactive={true} />
+                </div>
                 <textarea 
+                  className="tz-lm-textarea"
                   rows="4" 
                   placeholder="Khóa học này như thế nào? Giảng viên dạy ra sao?..."
                   value={comment}
                   onChange={e => setComment(e.target.value)}
                 ></textarea>
-              </div>
-              <button type="submit" className="btn-submit-review" disabled={submittingReview}>
-                {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
-              </button>
-            </form>
-          </div>
-        )}
+                <div className="tz-lm-review-actions">
+                  <button type="submit" className="tz-lm-btn-submit" disabled={submittingReview}>
+                    {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

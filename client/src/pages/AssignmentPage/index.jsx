@@ -4,6 +4,23 @@ import { toast } from "react-toastify";
 import { fetchAssignmentDetail, submitAssignment, fetchMySubmission } from "../../api/assignmentsApi";
 import "./AssignmentPage.css";
 
+// SVG Icons
+const IconArrowLeft = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+);
+const IconCheckCircle = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="#10b981" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+);
+const IconXCircle = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="#ef4444" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+);
+const IconClock = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+);
+const IconUpload = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+);
+
 export default function AssignmentPage() {
   const { courseId, id } = useParams();
   const [assignment, setAssignment] = useState(null);
@@ -12,7 +29,7 @@ export default function AssignmentPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // States cho Quiz
-  const [answers, setAnswers] = useState([]); // mảng index của đáp án chọn
+  const [answers, setAnswers] = useState([]); 
   
   // States cho Essay
   const [textContent, setTextContent] = useState("");
@@ -62,11 +79,13 @@ export default function AssignmentPage() {
       setSubmitting(true);
       const res = await submitAssignment(id, { answers }, false);
       if (res.success) {
-        toast.success("Đã nộp bài!");
+        toast.success("Tuyệt vời! Đã nộp bài thành công.");
         setSubmission(res.submission);
         // Tải lại assignment để lấy được correctAnswerIndex
         const resA = await fetchAssignmentDetail(id);
         if (resA.success) setAssignment(resA.assignment);
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         toast.error(res.message);
       }
@@ -96,6 +115,7 @@ export default function AssignmentPage() {
       if (res.success) {
         toast.success("Nộp bài tự luận thành công!");
         setSubmission(res.submission);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         toast.error(res.message);
       }
@@ -106,33 +126,57 @@ export default function AssignmentPage() {
     }
   };
 
-  if (loading) return <div className="assignment-loading">Đang tải bài tập...</div>;
-  if (!assignment) return <div className="assignment-loading">Không tìm thấy bài tập.</div>;
+  if (loading) {
+    return (
+      <div className="tz-ap-loading">
+        <div className="tz-spinner"></div>
+        <p>Đang chuẩn bị đề bài...</p>
+      </div>
+    );
+  }
+  if (!assignment) return <div className="tz-ap-loading">Không tìm thấy bài tập.</div>;
 
   const renderQuizMode = () => {
     const isDone = !!submission;
 
     return (
-      <div className="quiz-container">
+      <div className="tz-ap-quiz-container">
         {isDone && (
-          <div className="quiz-result-card">
-            <h2>Kết quả của bạn: <span className="score-text">{submission.score} / 100</span></h2>
-            <p className="text-gray">Xem lại đáp án chi tiết bên dưới.</p>
+          <div className="tz-ap-score-card">
+            <div className="tz-ap-score-circle">
+              <span className="tz-ap-score-number">{submission.score}</span>
+              <span className="tz-ap-score-max">/ 100</span>
+            </div>
+            <div className="tz-ap-score-info">
+              <h2>Đã hoàn thành bài kiểm tra</h2>
+              <p>Bạn có thể xem lại chi tiết từng câu hỏi và đáp án ở bên dưới để rút kinh nghiệm nhé.</p>
+            </div>
           </div>
         )}
 
-        <div className="quiz-questions">
+        <div className="tz-ap-questions-list">
           {assignment.questions.map((q, qIndex) => {
             const userChoice = isDone ? submission.answers[qIndex] : answers[qIndex];
             const isCorrect = isDone && userChoice === q.correctAnswerIndex;
-            const isWrong = isDone && userChoice !== q.correctAnswerIndex;
+            const isWrong = isDone && userChoice !== q.correctAnswerIndex && userChoice !== null;
+            const unAnswered = isDone && userChoice === null;
 
             return (
-              <div key={qIndex} className={`question-card ${isDone ? (isCorrect ? 'correct-box' : 'wrong-box') : ''}`}>
-                <h4 className="question-text">Câu {qIndex + 1}: {q.questionText}</h4>
-                <div className="options-list">
+              <div key={qIndex} className={`tz-ap-question-card ${isDone ? (isCorrect ? 'correct' : 'wrong') : ''}`}>
+                <div className="tz-ap-q-header">
+                  <span className="tz-ap-q-num">Câu {qIndex + 1}</span>
+                  {isDone && isCorrect && <span className="tz-ap-q-badge badge-correct"><IconCheckCircle /> Chính xác</span>}
+                  {isDone && isWrong && <span className="tz-ap-q-badge badge-wrong"><IconXCircle /> Sai</span>}
+                  {isDone && unAnswered && <span className="tz-ap-q-badge badge-wrong"><IconXCircle /> Bỏ trống</span>}
+                </div>
+                
+                <h4 className="tz-ap-q-text">{q.questionText}</h4>
+                
+                <div className="tz-ap-options-list">
                   {q.options.map((opt, optIndex) => {
-                    let optClass = "option-item";
+                    let optClass = "tz-ap-option-item";
+                    let isChecked = userChoice === optIndex;
+                    
                     if (isDone) {
                       if (optIndex === q.correctAnswerIndex) optClass += " correct-opt";
                       else if (optIndex === userChoice && isWrong) optClass += " wrong-opt";
@@ -141,22 +185,27 @@ export default function AssignmentPage() {
 
                     return (
                       <label key={optIndex} className={optClass}>
-                        <input 
-                          type="radio" 
-                          name={`q-${qIndex}`} 
-                          value={optIndex}
-                          checked={userChoice === optIndex}
-                          onChange={() => handleQuizChange(qIndex, optIndex)}
-                          disabled={isDone}
-                        />
-                        <span className="option-text">{opt}</span>
+                        <div className="tz-ap-radio-wrapper">
+                          <input 
+                            type="radio" 
+                            name={`q-${qIndex}`} 
+                            value={optIndex}
+                            checked={isChecked}
+                            onChange={() => handleQuizChange(qIndex, optIndex)}
+                            disabled={isDone}
+                          />
+                          <span className="tz-ap-radio-mark"></span>
+                        </div>
+                        <span className="tz-ap-opt-text">{opt}</span>
                       </label>
                     );
                   })}
                 </div>
+                
                 {isDone && q.explanation && (
-                  <div className="explanation-box">
-                    <strong>Giải thích:</strong> {q.explanation}
+                  <div className="tz-ap-explanation">
+                    <strong className="tz-ap-exp-title">Giải thích:</strong>
+                    <p>{q.explanation}</p>
                   </div>
                 )}
               </div>
@@ -165,10 +214,13 @@ export default function AssignmentPage() {
         </div>
 
         {!isDone && (
-          <div className="quiz-actions">
-            <button className="btn-submit-assignment" onClick={handleQuizSubmit} disabled={submitting}>
-              {submitting ? "Đang nộp..." : "Nộp bài trắc nghiệm"}
-            </button>
+          <div className="tz-ap-action-bar">
+            <div className="tz-ap-action-content">
+              <span>Bạn đã trả lời {answers.filter(a => a !== null).length} / {assignment.questions.length} câu hỏi.</span>
+              <button className="tz-ap-btn-submit" onClick={handleQuizSubmit} disabled={submitting}>
+                {submitting ? "Đang xử lý..." : "Nộp bài kiểm tra"}
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -180,33 +232,44 @@ export default function AssignmentPage() {
 
     if (isDone) {
       return (
-        <div className="essay-result-container">
-          <div className="status-banner">
-            <h3>Trạng thái: {submission.status === 'graded' ? 'Đã chấm điểm' : 'Đang chờ chấm'}</h3>
-            {submission.status === 'graded' && (
-              <div className="graded-info">
-                <p className="final-score">Điểm: {submission.score} / 100</p>
-                {submission.teacherComment && (
-                  <div className="teacher-comment">
-                    <strong>Nhận xét của GV:</strong>
-                    <p>{submission.teacherComment}</p>
-                  </div>
-                )}
-              </div>
-            )}
+        <div className="tz-ap-essay-result">
+          <div className={`tz-ap-status-banner ${submission.status === 'graded' ? 'graded' : 'pending'}`}>
+            <div className="tz-ap-status-icon">
+              {submission.status === 'graded' ? <IconCheckCircle /> : <IconClock />}
+            </div>
+            <div className="tz-ap-status-text">
+              <h3>{submission.status === 'graded' ? 'Đã chấm điểm' : 'Đang chờ chấm điểm'}</h3>
+              <p>{submission.status === 'graded' 
+                ? 'Giảng viên đã chấm bài và để lại nhận xét cho bạn.' 
+                : 'Bài của bạn đã được ghi nhận. Vui lòng chờ giảng viên chấm điểm.'}
+              </p>
+            </div>
           </div>
           
-          <div className="your-submission">
-            <h4>Bài nộp của bạn:</h4>
+          {submission.status === 'graded' && (
+            <div className="tz-ap-grade-card">
+              <div className="tz-ap-grade-score">
+                <span className="label">Điểm số</span>
+                <span className="value">{submission.score} <small>/ 100</small></span>
+              </div>
+              {submission.teacherComment && (
+                <div className="tz-ap-grade-comment">
+                  <strong>Nhận xét từ Giảng viên:</strong>
+                  <p>{submission.teacherComment}</p>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <div className="tz-ap-submission-view">
+            <h4>Bài làm của bạn:</h4>
             {submission.textContent && (
-              <div className="submission-text">{submission.textContent}</div>
+              <div className="tz-ap-sub-text">{submission.textContent}</div>
             )}
             {submission.fileUrl && (
-              <div className="submission-file">
-                <a href={`${import.meta.env.VITE_API_URL || ""}${submission.fileUrl}`} target="_blank" rel="noreferrer">
-                  📎 Tải file đính kèm đã nộp
-                </a>
-              </div>
+              <a href={`${import.meta.env.VITE_API_URL || ""}${submission.fileUrl}`} target="_blank" rel="noreferrer" className="tz-ap-sub-file">
+                <IconUpload /> Tải file đính kèm đã nộp
+              </a>
             )}
           </div>
         </div>
@@ -214,50 +277,70 @@ export default function AssignmentPage() {
     }
 
     return (
-      <form className="essay-form" onSubmit={handleEssaySubmit}>
-        <div className="essay-instruction">
-          <div dangerouslySetInnerHTML={{ __html: assignment.essayDescription }} />
+      <form className="tz-ap-essay-form" onSubmit={handleEssaySubmit}>
+        <div className="tz-ap-instruction">
+          <h3 className="tz-ap-inst-title">Yêu cầu đề bài</h3>
+          <div className="tz-ap-inst-content" dangerouslySetInnerHTML={{ __html: assignment.essayDescription }} />
         </div>
         
-        <div className="form-group">
-          <label>Nhập nội dung trả lời:</label>
+        <div className="tz-ap-form-group">
+          <label>Nhập nội dung bài làm:</label>
           <textarea 
-            rows="8" 
-            placeholder="Gõ câu trả lời của bạn ở đây..." 
+            className="tz-ap-textarea"
+            rows="10" 
+            placeholder="Gõ nội dung bài viết của bạn vào đây..." 
             value={textContent}
             onChange={e => setTextContent(e.target.value)}
           ></textarea>
         </div>
 
-        <div className="form-group">
-          <label>Hoặc nộp file đính kèm (Word/Ảnh/PDF):</label>
-          <input type="file" ref={fileInputRef} />
+        <div className="tz-ap-form-group">
+          <label>Hoặc nộp file đính kèm (Word/PDF/Ảnh):</label>
+          <div className="tz-ap-file-upload">
+            <input type="file" ref={fileInputRef} id="file-upload" className="tz-ap-file-input" />
+            <label htmlFor="file-upload" className="tz-ap-file-label">
+              <IconUpload /> Chọn tệp từ máy tính
+            </label>
+            <span className="tz-ap-file-hint">Hỗ trợ .doc, .pdf, .jpg, .png</span>
+          </div>
         </div>
 
-        <button type="submit" className="btn-submit-assignment" disabled={submitting}>
-          {submitting ? "Đang nộp..." : "Nộp bài tự luận"}
-        </button>
+        <div className="tz-ap-action-bar">
+          <div className="tz-ap-action-content">
+            <span>Hãy kiểm tra kỹ bài làm trước khi nộp nhé!</span>
+            <button type="submit" className="tz-ap-btn-submit" disabled={submitting}>
+              {submitting ? "Đang tải lên..." : "Nộp bài tự luận"}
+            </button>
+          </div>
+        </div>
       </form>
     );
   };
 
   return (
-    <div className="assignment-page">
-      <div className="assignment-header">
-        <Link to={`/learn/${courseId}`} className="back-link">← Quay lại Bài học</Link>
-        <h1>{assignment.title}</h1>
-        <div className="assignment-meta">
-          <span className={`badge ${assignment.type === 'quiz' ? 'badge-quiz' : 'badge-essay'}`}>
-            {assignment.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
-          </span>
-          {assignment.dueDate && (
-            <span className="due-date">Hạn nộp: {new Date(assignment.dueDate).toLocaleString('vi-VN')}</span>
-          )}
-        </div>
-      </div>
+    <div className="tz-assignment-page">
+      <div className="tz-ap-container">
+        <Link to={`/learn/${courseId}`} className="tz-ap-back">
+          <IconArrowLeft /> Quay lại không gian học
+        </Link>
 
-      <div className="assignment-body">
-        {assignment.type === "quiz" ? renderQuizMode() : renderEssayMode()}
+        <div className="tz-ap-header">
+          <div className="tz-ap-header-meta">
+            <span className={`tz-ap-badge ${assignment.type === 'quiz' ? 'bg-orange' : 'bg-blue'}`}>
+              {assignment.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
+            </span>
+            {assignment.dueDate && (
+              <span className="tz-ap-due-date">
+                <IconClock /> Hạn nộp: {new Date(assignment.dueDate).toLocaleString('vi-VN')}
+              </span>
+            )}
+          </div>
+          <h1 className="tz-ap-title">{assignment.title}</h1>
+        </div>
+
+        <div className="tz-ap-body">
+          {assignment.type === "quiz" ? renderQuizMode() : renderEssayMode()}
+        </div>
       </div>
     </div>
   );
