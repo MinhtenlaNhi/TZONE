@@ -19,7 +19,7 @@ router.get("/", authMiddleware, async (req, res) => {
     const enrollments = await Enrollment.find({ user: req.user._id })
       .populate({
         path: "course",
-        select: "id title thumbnail instructor totalSessions sessionDuration",
+        select: "id title thumbnail instructor totalSessions sessionDuration sessions",
         populate: { path: "categoryRef", select: "name" }
       })
       .sort({ enrolledAt: -1 })

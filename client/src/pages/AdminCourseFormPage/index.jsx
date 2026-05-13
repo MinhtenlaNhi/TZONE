@@ -359,10 +359,7 @@ export default function AdminCourseFormPage() {
             <div className="tz-card-body">
               <div className="tz-form-group">
                 <label>Lịch khai giảng (chuỗi) <span className="text-danger">*</span></label>
-                <div className="tz-input-with-icon">
-                  <input type="text" name="startDate" value={formData.startDate} onChange={handleChange} placeholder="VD: 15/09/2024" />
-                  <svg className="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                </div>
+                <input type="text" name="startDate" value={formData.startDate} onChange={handleChange} placeholder="VD: 15/09/2024" />
               </div>
 
               <div className="tz-form-row">
@@ -402,17 +399,11 @@ export default function AdminCourseFormPage() {
               <div className="tz-form-row">
                 <div className="tz-form-group">
                   <label>Giờ bắt đầu *</label>
-                  <div className="tz-input-with-icon">
-                    <input type="time" name="startTime" value={formData.startTime} onChange={handleChange} />
-                    <svg className="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                  </div>
+                  <input type="time" name="startTime" value={formData.startTime} onChange={handleChange} />
                 </div>
                 <div className="tz-form-group">
                   <label>Giờ kết thúc *</label>
-                  <div className="tz-input-with-icon">
-                    <input type="time" name="endTime" value={formData.endTime} onChange={handleChange} />
-                    <svg className="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                  </div>
+                  <input type="time" name="endTime" value={formData.endTime} onChange={handleChange} />
                 </div>
               </div>
             </div>
@@ -428,17 +419,11 @@ export default function AdminCourseFormPage() {
               <div className="tz-form-row">
                 <div className="tz-form-group">
                   <label>Mở đăng ký (Ngày giờ)</label>
-                  <div className="tz-input-with-icon">
-                    <input type="datetime-local" name="enrollmentOpenDate" value={formData.enrollmentOpenDate} onChange={handleChange} />
-                    <svg className="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  </div>
+                  <input type="datetime-local" name="enrollmentOpenDate" value={formData.enrollmentOpenDate} onChange={handleChange} />
                 </div>
                 <div className="tz-form-group">
                   <label>Đóng đăng ký (Ngày giờ)</label>
-                  <div className="tz-input-with-icon">
-                    <input type="datetime-local" name="enrollmentCloseDate" value={formData.enrollmentCloseDate} onChange={handleChange} />
-                    <svg className="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                  </div>
+                  <input type="datetime-local" name="enrollmentCloseDate" value={formData.enrollmentCloseDate} onChange={handleChange} />
                 </div>
               </div>
 

@@ -140,3 +140,132 @@
     border-bottom: none;
   }
 }
+
+/* View Toggle */
+.schedule-page__header-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: -16px;
+  position: relative;
+  z-index: 10;
+}
+
+.schedule-page__view-toggle {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.tz-toggle-btn {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tz-toggle-btn:hover {
+  color: #111827;
+}
+
+.tz-toggle-btn.active {
+  background: #fff;
+  color: #2eb886;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Month Grid */
+.schedule-page__month-grid {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.schedule-page__month-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #fafafa;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.schedule-page__month-header-cell {
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  border-right: 1px solid #e5e7eb;
+}
+.schedule-page__month-header-cell:last-child {
+  border-right: none;
+}
+
+.schedule-page__month-body {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.schedule-page__month-cell {
+  min-height: 120px;
+  padding: 8px;
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+.schedule-page__month-cell:nth-child(7n) {
+  border-right: none;
+}
+.schedule-page__month-cell.empty {
+  background: #f9fafb;
+}
+.schedule-page__month-cell.today {
+  background: #f0fdf4;
+}
+
+.schedule-page__month-date {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  border-radius: 50%;
+}
+.schedule-page__month-cell.today .schedule-page__month-date {
+  background: #2eb886;
+  color: #fff;
+}
+
+.schedule-page__month-sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.schedule-page__month-slot {
+  font-size: 0.75rem;
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 4px 6px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+}
+.schedule-page__month-slot .time {
+  font-weight: 700;
+}
+.schedule-page__month-slot .title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

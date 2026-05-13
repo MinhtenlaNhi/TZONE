@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useCourses } from "../context/CoursesContext";
-import { initDemoEnrollmentOnce, getOngoingCourseIds } from "../auth/enrolledCoursesStorage";
-import { COL_LABELS, addDays, formatDayDM, formatSessionTime, startOfWeekMonday } from "../utils/courseSchedule";
+import { fetchMyEnrollments } from "../api/enrollmentsApi";
+import { COL_LABELS, addDays, formatDayDM, formatSessionTime, startOfWeekMonday, jsDayToCol } from "../utils/courseSchedule";
 import "./SchedulePage.css";
 
 function ChevronLeft() {
@@ -20,33 +19,35 @@ function ChevronRight() {
   );
 }
 
+function isSameCalendarDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
 export default function SchedulePage() {
-  const { getCoursesByIds } = useCourses();
-  const [weekOffset, setWeekOffset] = useState(0);
-  const [enrolledVersion, setEnrolledVersion] = useState(0);
+  const [enrollments, setEnrollments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [viewMode, setViewMode] = useState("week"); // "week" | "month"
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
-    initDemoEnrollmentOnce();
-    setEnrolledVersion((v) => v + 1);
+    fetchMyEnrollments().then(res => {
+      if (res.success) {
+        setEnrollments(res.enrollments);
+      }
+      setLoading(false);
+    });
   }, []);
 
-  useEffect(() => {
-    function onCoursesChanged() {
-      setEnrolledVersion((v) => v + 1);
-    }
-    window.addEventListener("tzone-courses-changed", onCoursesChanged);
-    return () => window.removeEventListener("tzone-courses-changed", onCoursesChanged);
-  }, []);
+  const enrolledCourses = useMemo(() => {
+    return enrollments.map(e => e.course).filter(Boolean);
+  }, [enrollments]);
 
-  const enrolledCourses = useMemo(
-    () => getCoursesByIds(getOngoingCourseIds()),
-    [enrolledVersion, getCoursesByIds]
-  );
-
-  const { weekLabel, columns } = useMemo(() => {
+  // Tính toán dữ liệu tuần
+  const weekData = useMemo(() => {
     const base = new Date();
     const mon = startOfWeekMonday(base);
-    mon.setDate(mon.getDate() + weekOffset * 7);
+    mon.setDate(mon.getDate() + offset * 7);
     const sun = addDays(mon, 6);
     const y = mon.getFullYear();
     const label = `Tuần ${formatDayDM(mon)} - ${formatDayDM(sun)}, ${y}`;
@@ -63,12 +64,45 @@ export default function SchedulePage() {
       const header = isToday ? `${name} - Hôm nay / ${formatDayDM(d)}` : `${name} / ${formatDayDM(d)}`;
       cols.push({ col, header, date: d });
     }
-    return { monday: mon, weekLabel: label, columns: cols };
-  }, [weekOffset]);
+    return { label, columns: cols };
+  }, [offset]);
 
-  /** Các buổi học hiển thị trong cột col */
+  // Tính toán dữ liệu tháng
+  const monthData = useMemo(() => {
+    const base = new Date();
+    base.setMonth(base.getMonth() + offset);
+    base.setDate(1);
+    const month = base.getMonth();
+    const year = base.getFullYear();
+    const label = `Tháng ${month + 1}, ${year}`;
+
+    const firstCol = jsDayToCol(base);
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    
+    const days = [];
+    for (let i = 0; i < firstCol; i++) {
+      days.push({ empty: true, key: `empty-start-${i}` });
+    }
+    for (let d = 1; d <= lastDay; d++) {
+      const date = new Date(year, month, d);
+      days.push({ 
+        empty: false, 
+        date: d, 
+        col: jsDayToCol(date),
+        key: `day-${d}`,
+        isToday: isSameCalendarDay(date, new Date())
+      });
+    }
+    const remainder = days.length % 7;
+    if (remainder > 0) {
+      for (let i = 0; i < 7 - remainder; i++) {
+        days.push({ empty: true, key: `empty-end-${i}` });
+      }
+    }
+    return { label, days };
+  }, [offset]);
+
   const sessionsByCol = useMemo(() => {
-    /** @type {Record<number, { title: string, timeStr: string }[]>} */
     const map = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
     for (const course of enrolledCourses) {
       for (const s of course.sessions || []) {
@@ -82,26 +116,38 @@ export default function SchedulePage() {
     return map;
   }, [enrolledCourses]);
 
+  const handlePrev = () => setOffset(o => o - 1);
+  const handleNext = () => setOffset(o => o + 1);
+
+  if (loading) {
+    return <div style={{padding: '40px', textAlign: 'center'}}>Đang tải lịch học...</div>;
+  }
+
   return (
     <div className="schedule-page">
-      <h1 className="schedule-page__title visually-hidden">Lịch học</h1>
+      <div className="schedule-page__header-actions">
+        <h1 className="schedule-page__title visually-hidden">Lịch học</h1>
+        
+        <div className="schedule-page__view-toggle">
+          <button 
+            className={`tz-toggle-btn ${viewMode === 'week' ? 'active' : ''}`}
+            onClick={() => { setViewMode('week'); setOffset(0); }}
+          >Tuần</button>
+          <button 
+            className={`tz-toggle-btn ${viewMode === 'month' ? 'active' : ''}`}
+            onClick={() => { setViewMode('month'); setOffset(0); }}
+          >Tháng</button>
+        </div>
+      </div>
 
       <div className="schedule-page__week-nav">
-        <button
-          type="button"
-          className="schedule-page__week-btn"
-          aria-label="Tuần trước"
-          onClick={() => setWeekOffset((w) => w - 1)}
-        >
+        <button type="button" className="schedule-page__week-btn" onClick={handlePrev}>
           <ChevronLeft />
         </button>
-        <span className="schedule-page__week-label">{weekLabel}</span>
-        <button
-          type="button"
-          className="schedule-page__week-btn"
-          aria-label="Tuần sau"
-          onClick={() => setWeekOffset((w) => w + 1)}
-        >
+        <span className="schedule-page__week-label">
+          {viewMode === "week" ? weekData.label : monthData.label}
+        </span>
+        <button type="button" className="schedule-page__week-btn" onClick={handleNext}>
           <ChevronRight />
         </button>
       </div>
@@ -111,21 +157,50 @@ export default function SchedulePage() {
           Bạn không có khóa nào đang học. Đăng ký khóa ở Tổng quan hoặc xem mục Các khóa học của bạn.
         </p>
       ) : (
-        <div className="schedule-page__grid" role="grid" aria-label="Lịch học theo tuần">
-          {columns.map(({ col, header }) => (
-            <div key={col} className="schedule-page__col" role="columnheader">
-              <div className="schedule-page__col-head">{header}</div>
-              <div className="schedule-page__col-body">
-                {(sessionsByCol[col] || []).map((item, i) => (
-                  <div key={`${item.title}-${i}`} className="schedule-page__slot">
-                    <div className="schedule-page__slot-title">{item.title}</div>
-                    <div className="schedule-page__slot-time">{item.timeStr}</div>
-                  </div>
-                ))}
+        viewMode === "week" ? (
+          <div className="schedule-page__grid" role="grid" aria-label="Lịch học theo tuần">
+            {weekData.columns.map(({ col, header }) => (
+              <div key={col} className="schedule-page__col" role="columnheader">
+                <div className="schedule-page__col-head">{header}</div>
+                <div className="schedule-page__col-body">
+                  {(sessionsByCol[col] || []).map((item, i) => (
+                    <div key={`${item.title}-${i}`} className="schedule-page__slot">
+                      <div className="schedule-page__slot-title">{item.title}</div>
+                      <div className="schedule-page__slot-time">{item.timeStr}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="schedule-page__month-grid">
+            <div className="schedule-page__month-header">
+              {COL_LABELS.map(name => (
+                <div key={name} className="schedule-page__month-header-cell">{name}</div>
+              ))}
             </div>
-          ))}
-        </div>
+            <div className="schedule-page__month-body">
+              {monthData.days.map(day => (
+                <div key={day.key} className={`schedule-page__month-cell ${day.empty ? 'empty' : ''} ${day.isToday ? 'today' : ''}`}>
+                  {!day.empty && (
+                    <>
+                      <div className="schedule-page__month-date">{day.date}</div>
+                      <div className="schedule-page__month-sessions">
+                        {(sessionsByCol[day.col] || []).map((item, i) => (
+                          <div key={i} className="schedule-page__month-slot">
+                            <span className="time">{item.timeStr}</span>
+                            <span className="title">{item.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
       )}
     </div>
   );

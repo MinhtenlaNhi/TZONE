@@ -19,6 +19,7 @@ export default function CoursePublicDetailPage() {
   const [course, setCourse] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -54,6 +55,8 @@ export default function CoursePublicDetailPage() {
       return;
     }
     
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const res = await addToCart(course.id || course._id);
       if (res.success) {
@@ -64,6 +67,8 @@ export default function CoursePublicDetailPage() {
       }
     } catch (e) {
       toast.error("Lỗi khi thêm vào giỏ hàng");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -73,6 +78,8 @@ export default function CoursePublicDetailPage() {
       return;
     }
 
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       const res = await apiFetchJson(`/api/enrollments/course/${course.id || course._id}/trial`, {
         method: "POST"
@@ -86,6 +93,8 @@ export default function CoursePublicDetailPage() {
       }
     } catch (e) {
       toast.error("Lỗi đăng ký học thử");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -249,11 +258,11 @@ export default function CoursePublicDetailPage() {
                 <div className="cp-buy-actions">
                   {isEnrollmentOpen() ? (
                     <>
-                      <button className="cp-btn-enroll" onClick={handleEnroll}>
-                        Đăng ký học ngay <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                      <button className="cp-btn-enroll" onClick={handleEnroll} disabled={isSubmitting}>
+                        {isSubmitting ? "Đang xử lý..." : "Đăng ký học ngay"} <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                       </button>
-                      <button className="cp-btn-trial" onClick={handleTrial}>
-                        Học thử miễn phí <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
+                      <button className="cp-btn-trial" onClick={handleTrial} disabled={isSubmitting}>
+                        {isSubmitting ? "Đang xử lý..." : "Học thử miễn phí"} <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
                       </button>
                     </>
                   ) : (
