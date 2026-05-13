@@ -3,6 +3,7 @@ import { fetchTeacherCourses, fetchTeacherCourseStudents } from "../../api/teach
 import { Link, Navigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getAuth } from "../../auth/auth";
+import { apiPath } from "../../api/base";
 import "./TeacherCourses.css";
 
 // --- SVG Icons ---
@@ -296,15 +297,22 @@ export default function TeacherCoursesPage() {
               return (
                 <div key={course._id} className="tz-tc-card">
                   {/* Cover */}
-                  <div className={`tz-tc-cover ${colorClass}`}>
-                    <span className="tz-tc-badge-light">MÃ LỚP: {course.id}</span>
-                    <div className="tz-tc-cover-content">
-                      <div className="tz-tc-cover-text">{coverText}</div>
-                      <div className="tz-tc-cover-graphic">
-                        {getCoverGraphic(catName, course.id)}
+                  {course.thumbnail ? (
+                    <div className="tz-tc-cover" style={{ padding: 0, background: '#f1f5f9' }}>
+                      <img src={apiPath(course.thumbnail)} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <span className="tz-tc-badge-light" style={{ position: 'absolute', top: '16px', left: '16px', background: 'rgba(255,255,255,0.9)', color: '#0f172a', margin: 0 }}>MÃ LỚP: {course.id}</span>
+                    </div>
+                  ) : (
+                    <div className={`tz-tc-cover ${colorClass}`}>
+                      <span className="tz-tc-badge-light">MÃ LỚP: {course.id}</span>
+                      <div className="tz-tc-cover-content">
+                        <div className="tz-tc-cover-text">{coverText}</div>
+                        <div className="tz-tc-cover-graphic">
+                          {getCoverGraphic(catName, course.id)}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Body */}
                   <div className="tz-tc-body">
