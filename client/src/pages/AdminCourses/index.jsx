@@ -256,7 +256,7 @@ export default function AdminCoursesPage() {
                     <td>
                       <div className="tz-course-cell">
                         {course.thumbnail ? (
-                          <img src={`${import.meta.env.VITE_API_URL || ""}${course.thumbnail}`} alt={course.title} className="tz-course-thumb" />
+                          <img src={`${apiPath(course.thumbnail)}`} alt={course.title} className="tz-course-thumb" />
                         ) : (
                           <div className={`tz-course-thumb-placeholder ${getCategoryColor(catName)}`}>
                             {course.title.substring(0, 2).toUpperCase()}

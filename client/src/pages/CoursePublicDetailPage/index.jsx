@@ -210,7 +210,7 @@ export default function CoursePublicDetailPage() {
                     <div key={rev._id} className="cp-review-card">
                       <div className="reviewer-info">
                         <img 
-                          src={rev.userRef?.avatar ? `${import.meta.env.VITE_API_URL || ""}${rev.userRef.avatar}` : "/default-avatar.png"} 
+                          src={rev.userRef?.avatar ? apiPath(rev.userRef.avatar) : "/default-avatar.png"} 
                           alt="avatar" 
                           className="reviewer-avatar" 
                           onError={(e) => { e.target.src = "https://ui-avatars.com/api/?name=" + (rev.userRef?.name || "U"); }}
@@ -237,7 +237,7 @@ export default function CoursePublicDetailPage() {
               <div className="cp-buy-img-wrap">
                 <span className="cp-buy-status-badge">Còn chỗ</span>
                 {course.thumbnail ? (
-                  <img src={`${import.meta.env.VITE_API_URL || ""}${course.thumbnail}`} alt={course.title} />
+                  <img src={apiPath(course.thumbnail)} alt={course.title} />
                 ) : (
                   <div className="cp-buy-img-placeholder">TZONE</div>
                 )}

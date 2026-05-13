@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchMyEnrollments } from "../api/enrollmentsApi";
 import { getAuth } from "../auth/auth";
+import { apiPath } from "../api/base";
 import "./DashboardHome.css";
 
 // --- SVG Icons to match the design ---
@@ -187,7 +188,7 @@ export default function DashboardHome() {
                 <div key={enr._id} className="tz-do-course-card">
                   <div className="tz-doc-cover">
                     {course.thumbnail ? (
-                      <img src={`${import.meta.env.VITE_API_URL || ""}${course.thumbnail}`} alt={course.title} />
+                      <img src={apiPath(course.thumbnail)} alt={course.title} />
                     ) : (
                       <div className="tz-doc-placeholder">
                         <span className="tz-doc-placeholder-text">{course.title}</span>

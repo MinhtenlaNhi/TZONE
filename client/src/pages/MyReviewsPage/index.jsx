@@ -69,7 +69,7 @@ export default function MyReviewsPage() {
                   <div className="mr-course-img-wrapper">
                     {course.thumbnail ? (
                       <img 
-                        src={`${import.meta.env.VITE_API_URL || ""}${course.thumbnail}`} 
+                        src={`${apiPath(course.thumbnail)}`} 
                         alt={course.title} 
                       />
                     ) : (

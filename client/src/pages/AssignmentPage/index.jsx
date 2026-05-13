@@ -267,7 +267,7 @@ export default function AssignmentPage() {
               <div className="tz-ap-sub-text">{submission.textContent}</div>
             )}
             {submission.fileUrl && (
-              <a href={`${import.meta.env.VITE_API_URL || ""}${submission.fileUrl}`} target="_blank" rel="noreferrer" className="tz-ap-sub-file">
+              <a href={`${apiPath(submission.fileUrl)}`} target="_blank" rel="noreferrer" className="tz-ap-sub-file">
                 <IconUpload /> Tải file đính kèm đã nộp
               </a>
             )}

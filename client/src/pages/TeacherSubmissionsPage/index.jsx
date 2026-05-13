@@ -147,7 +147,7 @@ export default function TeacherSubmissionsPage() {
                             {sub.type === "essay" ? (
                               <>
                                 {sub.fileUrl && (
-                                  <a href={`${import.meta.env.VITE_API_URL || ""}${sub.fileUrl}`} target="_blank" rel="noreferrer" className="tz-ts-file-link">
+                                  <a href={`${apiPath(sub.fileUrl)}`} target="_blank" rel="noreferrer" className="tz-ts-file-link">
                                     <IconFileText /> Tải file đính kèm
                                   </a>
                                 )}
@@ -214,7 +214,7 @@ export default function TeacherSubmissionsPage() {
                       <div className="tz-ts-work-empty">Học viên không nhập văn bản.</div>
                     )}
                     {activeSub.fileUrl && (
-                      <a href={`${import.meta.env.VITE_API_URL || ""}${activeSub.fileUrl}`} target="_blank" rel="noreferrer" className="tz-ts-work-file">
+                      <a href={`${apiPath(activeSub.fileUrl)}`} target="_blank" rel="noreferrer" className="tz-ts-work-file">
                         <IconFileText /> Tải file đính kèm của học viên
                       </a>
                     )}

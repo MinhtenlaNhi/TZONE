@@ -113,7 +113,7 @@ export default function AdminCourseFormPage() {
               endTime: enTime,
               thumbnail: null
             });
-            setThumbnailPreview(course.thumbnail ? `${import.meta.env.VITE_API_URL || ""}${course.thumbnail}` : null);
+            setThumbnailPreview(course.thumbnail ? `${apiPath(course.thumbnail)}` : null);
           } else {
             toast.error("Không tìm thấy khóa học");
             navigate("/admin/courses");

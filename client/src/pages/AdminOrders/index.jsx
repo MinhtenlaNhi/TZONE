@@ -220,7 +220,7 @@ export default function AdminOrdersPage() {
                         <button 
                           className="ao-receipt-btn"
                           title="Xem minh chứng"
-                          onClick={() => setSelectedReceipt(`${import.meta.env.VITE_API_URL || ""}${o.transferReceipt}`)}
+                          onClick={() => setSelectedReceipt(`${apiPath(o.transferReceipt)}`)}
                         >
                           <FiImage />
                         </button>

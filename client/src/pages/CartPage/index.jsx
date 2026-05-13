@@ -103,7 +103,7 @@ export default function CartPage() {
                 <div className="cart-item" key={course._id}>
                   <div className="cart-item__img">
                     {course.thumbnail ? (
-                      <img src={`${import.meta.env.VITE_API_URL || ""}${course.thumbnail}`} alt={course.title} />
+                      <img src={`${apiPath(course.thumbnail)}`} alt={course.title} />
                     ) : (
                       <div className="cart-item__placeholder">TZONE</div>
                     )}

@@ -209,7 +209,7 @@ export default function AdminUsersPage() {
                     <td>
                       <div className="tz-user-profile">
                         {user.avatar ? (
-                          <img src={`${import.meta.env.VITE_API_URL || ""}${user.avatar}`} alt="avatar" className="tz-avatar-img" />
+                          <img src={`${apiPath(user.avatar)}`} alt="avatar" className="tz-avatar-img" />
                         ) : (
                           <div className={`tz-avatar-initials ${isStudent ? 'bg-blue-light' : isTeacher ? 'bg-orange-light' : 'bg-purple-light'}`}>
                             {initials}
