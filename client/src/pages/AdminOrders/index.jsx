@@ -223,7 +223,7 @@ export default function AdminOrdersPage() {
                           title="Xem minh chứng"
                           onClick={() => setSelectedReceipt(`${apiPath(o.transferReceipt)}`)}
                         >
-                          <FiImage />
+                          <img src={apiPath(o.transferReceipt)} alt="Receipt Thumbnail" className="ao-receipt-thumb" />
                         </button>
                       ) : "-"}
                     </td>

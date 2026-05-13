@@ -24,7 +24,18 @@ const updateCourseRating = async (courseId) => {
 // 1. Lấy danh sách reviews công khai của khóa học
 router.get("/course/:courseId", async (req, res) => {
   try {
-    const reviews = await Review.find({ courseRef: req.params.courseId, isHidden: false })
+    let courseRefId = req.params.courseId;
+
+    // Nếu courseId không phải là ObjectId (ví dụ: là slug "toeic-b-tb03")
+    if (!courseRefId.match(/^[0-9a-fA-F]{24}$/)) {
+      const course = await Course.findOne({ id: courseRefId }).select("_id").lean();
+      if (!course) {
+        return res.json({ success: true, reviews: [] });
+      }
+      courseRefId = course._id;
+    }
+
+    const reviews = await Review.find({ courseRef: courseRefId, isHidden: false })
       .populate("userRef", "name avatar")
       .sort({ createdAt: -1 })
       .lean();

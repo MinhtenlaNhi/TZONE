@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { apiFetchJson } from "../../api/base";
 import { fetchCategories } from "../../api/categories";
 import PublicHeader from "../../components/PublicHeader";
@@ -92,15 +92,26 @@ export default function AllCoursesPage() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [cartItemIds, setCartItemIds] = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
   const auth = getAuth();
 
   const [filters, setFilters] = useState({
-    search: "",
-    category: "",
+    search: searchParams.get("search") || "",
+    category: searchParams.get("category") || "",
     minPrice: "",
     maxPrice: "",
     sort: "createdAt_desc"
   });
+
+  // Sync state when URL params change
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      search: searchParams.get("search") || "",
+      category: searchParams.get("category") || ""
+    }));
+    setPage(1); // Reset page on new search
+  }, [searchParams]);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
