@@ -173,9 +173,9 @@ export default function CoursePublicDetailPage() {
             <span className="cp-hero-badge">{catName}</span>
             <h1 className="cp-hero-title">{course.title}</h1>
             <div className="cp-hero-rating">
-              <span className="score">{course.rating || "4.5"}</span>
-              <StarRating rating={Math.round(course.rating || 5)} />
-              <span className="count">({course.reviewCount || 10} đánh giá)</span>
+              <span className="score">{course.rating ? course.rating.toFixed(1) : "0.0"}</span>
+              <StarRating rating={Math.round(course.rating || 0)} />
+              <span className="count">({course.reviewCount || 0} đánh giá)</span>
             </div>
             <p className="cp-hero-desc">Khóa học {catName} chất lượng cao cùng {course.instructor}</p>
             <div className="cp-hero-meta">

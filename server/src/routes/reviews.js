@@ -6,18 +6,25 @@ const { authMiddleware } = require("../middlewares/auth");
 
 const router = express.Router();
 
+const mongoose = require("mongoose");
+
 // Helper: Tính lại rating trung bình và cập nhật vào Course
 const updateCourseRating = async (courseId) => {
-  const result = await Review.aggregate([
-    { $match: { courseRef: courseId, isHidden: false } },
-    { $group: { _id: "$courseRef", avgRating: { $avg: "$rating" }, count: { $sum: 1 } } }
-  ]);
+  try {
+    const objectId = new mongoose.Types.ObjectId(courseId);
+    const result = await Review.aggregate([
+      { $match: { courseRef: objectId, isHidden: false } },
+      { $group: { _id: "$courseRef", avgRating: { $avg: "$rating" }, count: { $sum: 1 } } }
+    ]);
 
-  if (result.length > 0) {
-    const { avgRating, count } = result[0];
-    await Course.findByIdAndUpdate(courseId, { rating: Number(avgRating.toFixed(1)), reviewCount: count });
-  } else {
-    await Course.findByIdAndUpdate(courseId, { rating: 0, reviewCount: 0 });
+    if (result.length > 0) {
+      const { avgRating, count } = result[0];
+      await Course.findByIdAndUpdate(courseId, { rating: Number(avgRating.toFixed(1)), reviewCount: count });
+    } else {
+      await Course.findByIdAndUpdate(courseId, { rating: 0, reviewCount: 0 });
+    }
+  } catch (err) {
+    console.error("Error updating course rating:", err);
   }
 };
 
