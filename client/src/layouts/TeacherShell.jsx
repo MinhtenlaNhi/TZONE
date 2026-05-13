@@ -11,11 +11,13 @@ const IconLink = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="non
 const IconSearch = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
 const IconBell = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>;
 const IconHeadset = () => <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>;
+const IconMenu = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>;
 
 export default function TeacherShell() {
   const navigate = useNavigate();
   const [user, setUser] = useState(() => getAuth());
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -37,21 +39,28 @@ export default function TeacherShell() {
 
   return (
     <div className="ts-layout">
+      {/* OVERLAY FOR MOBILE */}
+      <div 
+        className={`ts-overlay ${sidebarOpen ? "open" : ""}`}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
+      />
+
       {/* Sidebar */}
-      <aside className="ts-sidebar">
+      <aside className={`ts-sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="ts-logo">
           <h1>TZONE</h1>
           <p>Online Course Platform</p>
         </div>
         
         <nav className="ts-nav">
-          <NavLink to="/teacher/dashboard" className={({isActive}) => `ts-nav-item ${isActive ? 'active' : ''}`} end>
+          <NavLink to="/teacher/dashboard" onClick={() => setSidebarOpen(false)} className={({isActive}) => `ts-nav-item ${isActive ? 'active' : ''}`} end>
             <IconHome /> Tổng quan
           </NavLink>
-          <NavLink to="/teacher/courses" className={({isActive}) => `ts-nav-item ${isActive ? 'active' : ''}`}>
+          <NavLink to="/teacher/courses" onClick={() => setSidebarOpen(false)} className={({isActive}) => `ts-nav-item ${isActive ? 'active' : ''}`}>
             <IconList /> Quản lý Lớp học
           </NavLink>
-          <NavLink to="/teacher/course-links" className={({isActive}) => `ts-nav-item ${isActive ? 'active' : ''}`}>
+          <NavLink to="/teacher/course-links" onClick={() => setSidebarOpen(false)} className={({isActive}) => `ts-nav-item ${isActive ? 'active' : ''}`}>
             <IconLink /> Gắn link Meet
           </NavLink>
         </nav>
@@ -70,9 +79,18 @@ export default function TeacherShell() {
       <main className="ts-main">
         {/* Top Header */}
         <header className="ts-header">
-          <div className="ts-search-bar">
-            <IconSearch />
-            <input type="text" placeholder="Tìm kiếm khóa học, bài học..." />
+          <div className="ts-header-left">
+            <button 
+              className="ts-menu-btn" 
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Mở menu"
+            >
+              <IconMenu width="24" height="24" />
+            </button>
+            <div className="ts-search-bar">
+              <IconSearch />
+              <input type="text" placeholder="Tìm kiếm khóa học..." />
+            </div>
           </div>
           
           <div className="ts-header-right">

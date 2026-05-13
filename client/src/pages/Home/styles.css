@@ -25,13 +25,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .tz-nav-left {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .tz-logo {
@@ -161,7 +161,7 @@
 .tz-nav-right {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .tz-btn-cart {
@@ -660,12 +660,64 @@
 }
 
 @media (max-width: 768px) {
-  .tz-hero-container { grid-template-columns: 1fr; }
+  .tz-hero {
+    padding: 2rem 1.25rem;
+  }
+  .tz-hero-container { grid-template-columns: 1fr; gap: 2rem; }
+  .tz-hero-title {
+    font-size: 2.25rem;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+  .tz-hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .tz-hero-features {
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .tz-hero-features li {
+    font-size: 0.9rem;
+    align-items: flex-start;
+  }
+  .tz-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  .tz-btn-primary, .tz-btn-outline {
+    width: 100%;
+    justify-content: center;
+  }
   .tz-float-card { display: none; }
-  .tz-benefits-container { grid-template-columns: 1fr; }
+  .tz-benefits-container { grid-template-columns: 1fr; gap: 1.25rem; }
   .tz-category-tabs, .tz-course-cards { grid-template-columns: 1fr; }
   .tz-teacher-grid, .tz-review-grid { grid-template-columns: 1fr; }
   .tz-pf-container { grid-template-columns: 1fr; }
-  .tz-footer-container { grid-template-columns: 1fr; }
+  .tz-footer-container { grid-template-columns: 1fr; gap: 2rem; }
   .tz-nav-search { display: none; }
+  
+  .tz-nav-container {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+  .tz-nav-left {
+    gap: 0.75rem;
+  }
+  .tz-logo {
+    font-size: 1.25rem;
+    gap: 0.35rem;
+  }
+  .tz-logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .tz-btn-category span {
+    display: none; /* Ẩn chữ Danh mục trên mobile */
+  }
+  .tz-nav-right {
+    gap: 0.75rem;
+  }
 }
+
