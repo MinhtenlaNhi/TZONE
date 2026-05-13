@@ -3,6 +3,7 @@ const Course = require("../models/Course");
 const Enrollment = require("../models/Enrollment");
 const Section = require("../models/Lesson"); // Note: there is no Section model, sections are grouped by sectionIndex in Lesson
 const Lesson = require("../models/Lesson");
+const Assignment = require("../models/Assignment");
 const { authMiddleware } = require("../middlewares/auth");
 
 const router = express.Router();
@@ -59,9 +60,12 @@ router.get("/:id/lessons", authMiddleware, isTeacher, async (req, res) => {
     }
 
     const lessons = await Lesson.find({ courseRef: id }).sort({ sectionIndex: 1, order: 1 }).lean();
+    const assignments = await Assignment.find({ courseRef: id }).lean();
 
     const curriculum = [];
     lessons.forEach(lesson => {
+      lesson.assignments = assignments.filter(a => a.lessonRef.toString() === lesson._id.toString());
+
       let section = curriculum.find(sec => sec.sectionIndex === lesson.sectionIndex);
       if (!section) {
         section = {

@@ -40,6 +40,13 @@ export async function createLessonAssignment(lessonId, assignmentData) {
   });
 }
 
+export async function updateLessonAssignment(lessonId, assignmentId, assignmentData) {
+  return apiFetchJson(apiPath(`/api/teacher/lessons/${lessonId}/assignments/${assignmentId}`), {
+    method: "PUT",
+    body: JSON.stringify(assignmentData)
+  });
+}
+
 export async function fetchAssignmentSubmissions(assignmentId) {
   return apiFetchJson(apiPath(`/api/teacher/assignments/${assignmentId}/submissions`));
 }

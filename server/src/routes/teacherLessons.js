@@ -97,4 +97,33 @@ router.post("/:id/assignments", authMiddleware, isTeacher, verifyLessonOwnership
   }
 });
 
+// 3. PUT /api/teacher/lessons/:id/assignments/:assignmentId - Cập nhật bài tập
+router.put("/:id/assignments/:assignmentId", authMiddleware, isTeacher, verifyLessonOwnership, async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const { title, description, questions } = req.body;
+    
+    if (!title) {
+      return res.status(400).json({ success: false, message: "Thiếu tiêu đề bài tập." });
+    }
+
+    const assignment = await Assignment.findOne({ _id: assignmentId, lessonRef: req.lesson._id });
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy bài tập." });
+    }
+
+    assignment.title = title;
+    if (assignment.type === "essay") {
+      assignment.essayDescription = description;
+    } else if (assignment.type === "quiz") {
+      assignment.questions = questions;
+    }
+
+    await assignment.save();
+    res.json({ success: true, message: "Đã cập nhật bài tập.", assignment });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ." });
+  }
+});
+
 module.exports = router;

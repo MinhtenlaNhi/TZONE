@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiFetchJson, apiPath } from "../../api/base";
-import { createTeacherSection, createTeacherLesson, uploadLessonMaterial, createLessonAssignment } from "../../api/teacherApi";
+import { createTeacherSection, createTeacherLesson, uploadLessonMaterial, createLessonAssignment, updateLessonAssignment } from "../../api/teacherApi";
 import { toast } from "react-toastify";
 import "./TeacherLessons.css";
 
@@ -27,6 +27,12 @@ const IconPenTool = () => (
 const IconCheckSquare = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
 );
+const IconChevronRight = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+);
+const IconCheckCircleSolid = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="#10b981" stroke="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+);
 
 export default function TeacherLessonsPage() {
   const { courseId } = useParams();
@@ -48,7 +54,8 @@ export default function TeacherLessonsPage() {
   const [file, setFile] = useState(null);
 
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
-  const [assignmentData, setAssignmentData] = useState({ type: "essay", title: "", description: "" });
+  const [editingAssignmentId, setEditingAssignmentId] = useState(null);
+  const [assignmentData, setAssignmentData] = useState({ type: "essay", title: "", description: "", questions: [] });
 
   useEffect(() => {
     loadCourseData();
@@ -111,18 +118,67 @@ export default function TeacherLessonsPage() {
     } catch { toast.error("Lỗi upload"); }
   };
 
-  const handleCreateAssignment = async (e) => {
+  const handleSaveAssignment = async (e) => {
     e.preventDefault();
     try {
-      const res = await createLessonAssignment(activeLessonId, assignmentData);
-      if (res.success) {
-        toast.success("Tạo bài tập thành công");
-        setShowAssignmentModal(false);
-        setAssignmentData({ type: "essay", title: "", description: "" });
+      let res;
+      if (editingAssignmentId) {
+        res = await updateLessonAssignment(activeLessonId, editingAssignmentId, assignmentData);
       } else {
-        toast.error(res.message || "Lỗi tạo bài tập");
+        res = await createLessonAssignment(activeLessonId, assignmentData);
       }
-    } catch { toast.error("Lỗi tạo bài tập"); }
+      
+      if (res.success) {
+        toast.success(editingAssignmentId ? "Cập nhật bài tập thành công" : "Tạo bài tập thành công");
+        setShowAssignmentModal(false);
+        setAssignmentData({ type: "essay", title: "", description: "", questions: [] });
+        setEditingAssignmentId(null);
+        loadCourseData();
+      } else {
+        toast.error(res.message || "Lỗi lưu bài tập");
+      }
+    } catch { toast.error("Lỗi lưu bài tập"); }
+  };
+
+  const handleEditAssignment = (lessonId, assignment) => {
+    setActiveLessonId(lessonId);
+    setEditingAssignmentId(assignment._id);
+    setAssignmentData({
+      type: assignment.type,
+      title: assignment.title,
+      description: assignment.essayDescription || "",
+      questions: assignment.questions || []
+    });
+    setShowAssignmentModal(true);
+  };
+  
+  const openCreateAssignmentModal = (lessonId) => {
+    setActiveLessonId(lessonId);
+    setEditingAssignmentId(null);
+    setAssignmentData({ type: "essay", title: "", description: "", questions: [] });
+    setShowAssignmentModal(true);
+  };
+
+  const handleAddQuestion = () => {
+    setAssignmentData({
+      ...assignmentData,
+      questions: [
+        ...assignmentData.questions,
+        { questionText: "", options: ["", "", "", ""], correctAnswerIndex: 0 }
+      ]
+    });
+  };
+
+  const handleUpdateQuestion = (index, field, value) => {
+    const newQs = [...assignmentData.questions];
+    newQs[index][field] = value;
+    setAssignmentData({ ...assignmentData, questions: newQs });
+  };
+
+  const handleRemoveQuestion = (index) => {
+    const newQs = [...assignmentData.questions];
+    newQs.splice(index, 1);
+    setAssignmentData({ ...assignmentData, questions: newQs });
   };
 
   return (
@@ -177,32 +233,50 @@ export default function TeacherLessonsPage() {
                       <p className="tz-tl-no-lesson">Chưa có bài học nào trong chương này.</p>
                     ) : (
                       sec.lessons.map(lesson => (
-                        <div key={lesson._id} className="tz-tl-lesson-card">
-                          <div className="tz-tl-lesson-main">
-                            <div className="tz-tl-lesson-icon"><IconFileText /></div>
-                            <div className="tz-tl-lesson-info">
-                              <span className="tz-tl-lesson-name">Bài {lesson.order}: {lesson.title}</span>
-                              <div className="tz-tl-lesson-tags">
-                                {lesson.isFreePreview && <span className="tz-tl-tag bg-orange">Học thử</span>}
-                                {lesson.meetUrl && <span className="tz-tl-tag bg-blue"><IconVideo /> Google Meet</span>}
-                                {lesson.materials && lesson.materials.length > 0 && <span className="tz-tl-tag bg-gray">Có tài liệu</span>}
+                        <div key={lesson._id} className="tz-tl-lesson-group">
+                          <div className="tz-tl-lesson-card">
+                            <div className="tz-tl-lesson-main">
+                              <div className="tz-tl-lesson-icon"><IconFileText /></div>
+                              <div className="tz-tl-lesson-info">
+                                <span className="tz-tl-lesson-name">Bài {lesson.order}: {lesson.title}</span>
+                                <div className="tz-tl-lesson-tags">
+                                  {lesson.isFreePreview && <span className="tz-tl-tag bg-orange">Học thử</span>}
+                                  {lesson.meetUrl && <span className="tz-tl-tag bg-blue"><IconVideo /> Google Meet</span>}
+                                  {lesson.materials && lesson.materials.length > 0 && <span className="tz-tl-tag bg-gray">Có tài liệu</span>}
+                                </div>
                               </div>
                             </div>
+                            <div className="tz-tl-lesson-actions">
+                              <Link to={`/teacher/course-links`} className="tz-tl-action-btn" title="Gắn link Meet">
+                                <IconVideo />
+                              </Link>
+                              <button onClick={() => { setActiveLessonId(lesson._id); setShowUploadModal(true); }} className="tz-tl-action-btn" title="Upload tài liệu">
+                                <IconUploadCloud />
+                              </button>
+                              <button onClick={() => openCreateAssignmentModal(lesson._id)} className="tz-tl-action-btn" title="Giao bài tập">
+                                <IconPenTool />
+                              </button>
+                              <Link to={`/teacher/lessons/${lesson._id}/submissions`} className="tz-tl-action-btn grading" title="Chấm bài">
+                                <IconCheckSquare /> Chấm bài
+                              </Link>
+                            </div>
                           </div>
-                          <div className="tz-tl-lesson-actions">
-                            <Link to={`/teacher/course-links`} className="tz-tl-action-btn" title="Gắn link Meet">
-                              <IconVideo />
-                            </Link>
-                            <button onClick={() => { setActiveLessonId(lesson._id); setShowUploadModal(true); }} className="tz-tl-action-btn" title="Upload tài liệu">
-                              <IconUploadCloud />
-                            </button>
-                            <button onClick={() => { setActiveLessonId(lesson._id); setShowAssignmentModal(true); }} className="tz-tl-action-btn" title="Giao bài tập">
-                              <IconPenTool />
-                            </button>
-                            <Link to={`/teacher/lessons/${lesson._id}/submissions`} className="tz-tl-action-btn grading" title="Chấm bài">
-                              <IconCheckSquare /> Chấm bài
-                            </Link>
-                          </div>
+                          {lesson.assignments && lesson.assignments.length > 0 && (
+                            <div className="tz-tl-lesson-assignments">
+                              {lesson.assignments.map(ass => (
+                                <div key={ass._id} className="tz-tl-assignment-item" onClick={() => handleEditAssignment(lesson._id, ass)}>
+                                  <div className="tz-tl-ass-icon"><IconCheckCircleSolid /></div>
+                                  <div className="tz-tl-ass-info">
+                                    <span className="tz-tl-ass-title">{ass.title}</span>
+                                    <span className={`tz-tl-tag ${ass.type === 'quiz' ? 'bg-orange' : 'bg-blue'}`}>
+                                      {ass.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
+                                    </span>
+                                  </div>
+                                  <div className="tz-tl-ass-arrow"><IconChevronRight /></div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
@@ -283,16 +357,16 @@ export default function TeacherLessonsPage() {
           <div className="tz-tl-modal-overlay">
             <div className="tz-tl-modal modal-large">
               <div className="tz-tl-modal-header">
-                <h2>Giao Bài Tập</h2>
+                <h2>{editingAssignmentId ? "Chỉnh sửa Bài Tập" : "Giao Bài Tập"}</h2>
                 <button onClick={() => setShowAssignmentModal(false)} className="tz-tl-modal-close">&times;</button>
               </div>
-              <form onSubmit={handleCreateAssignment} className="tz-tl-modal-body">
+              <form onSubmit={handleSaveAssignment} className="tz-tl-modal-body">
                 <div className="tz-tl-form-row">
                   <div className="tz-tl-form-group half">
                     <label>Loại bài tập</label>
-                    <select value={assignmentData.type} onChange={e => setAssignmentData({...assignmentData, type: e.target.value})}>
+                    <select value={assignmentData.type} onChange={e => setAssignmentData({...assignmentData, type: e.target.value})} disabled={!!editingAssignmentId}>
                       <option value="essay">Tự luận (Học viên nộp text/file)</option>
-                      <option value="quiz" disabled>Trắc nghiệm (Chưa khả dụng)</option>
+                      <option value="quiz">Trắc nghiệm (Hệ thống chấm tự động)</option>
                     </select>
                   </div>
                   <div className="tz-tl-form-group half">
@@ -300,17 +374,72 @@ export default function TeacherLessonsPage() {
                     <input type="text" required value={assignmentData.title} onChange={e => setAssignmentData({...assignmentData, title: e.target.value})} placeholder="VD: Bài tập cuối khóa" />
                   </div>
                 </div>
-                <div className="tz-tl-form-group">
-                  <label>Mô tả đề bài / Yêu cầu</label>
-                  <textarea 
-                    rows="6" 
-                    required 
-                    value={assignmentData.description} 
-                    onChange={e => setAssignmentData({...assignmentData, description: e.target.value})}
-                    placeholder="Nhập yêu cầu chi tiết của bài tập..."
-                  ></textarea>
-                </div>
-                <button type="submit" className="tz-tl-btn-primary full-width">Tạo Bài Tập</button>
+                
+                {assignmentData.type === "essay" ? (
+                  <div className="tz-tl-form-group">
+                    <label>Mô tả đề bài / Yêu cầu</label>
+                    <textarea 
+                      rows="6" 
+                      required 
+                      value={assignmentData.description} 
+                      onChange={e => setAssignmentData({...assignmentData, description: e.target.value})}
+                      placeholder="Nhập yêu cầu chi tiết của bài tập..."
+                    ></textarea>
+                  </div>
+                ) : (
+                  <div className="tz-tl-quiz-builder">
+                    <div className="tz-tl-qb-header">
+                      <label>Danh sách Câu hỏi ({assignmentData.questions.length})</label>
+                      <button type="button" className="tz-tl-btn-outline-sm" onClick={handleAddQuestion}>+ Thêm Câu Hỏi</button>
+                    </div>
+                    <div className="tz-tl-qb-list">
+                      {assignmentData.questions.length === 0 ? (
+                        <p className="tz-tl-qb-empty">Chưa có câu hỏi nào. Nhấn nút Thêm Câu Hỏi ở trên để bắt đầu.</p>
+                      ) : (
+                        assignmentData.questions.map((q, qIndex) => (
+                          <div key={qIndex} className="tz-tl-qb-item">
+                            <div className="tz-tl-qb-item-header">
+                              <h4>Câu {qIndex + 1}</h4>
+                              <button type="button" className="tz-tl-qb-remove" onClick={() => handleRemoveQuestion(qIndex)}>&times;</button>
+                            </div>
+                            <div className="tz-tl-form-group">
+                              <input type="text" placeholder="Nhập nội dung câu hỏi..." value={q.questionText} required onChange={e => handleUpdateQuestion(qIndex, "questionText", e.target.value)} />
+                            </div>
+                            <div className="tz-tl-qb-options">
+                              {q.options.map((opt, oIndex) => (
+                                <div key={oIndex} className="tz-tl-qb-option">
+                                  <input 
+                                    type="radio" 
+                                    name={`correct_${qIndex}`} 
+                                    checked={q.correctAnswerIndex === oIndex} 
+                                    onChange={() => handleUpdateQuestion(qIndex, "correctAnswerIndex", oIndex)} 
+                                    required
+                                    title="Chọn làm đáp án đúng"
+                                  />
+                                  <input 
+                                    type="text" 
+                                    placeholder={`Lựa chọn ${oIndex + 1}`} 
+                                    value={opt} 
+                                    required 
+                                    onChange={e => {
+                                      const newOpts = [...q.options];
+                                      newOpts[oIndex] = e.target.value;
+                                      handleUpdateQuestion(qIndex, "options", newOpts);
+                                    }} 
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <button type="submit" className="tz-tl-btn-primary full-width" disabled={assignmentData.type === 'quiz' && assignmentData.questions.length === 0}>
+                  {editingAssignmentId ? "Lưu Thay Đổi" : "Tạo Bài Tập"}
+                </button>
               </form>
             </div>
           </div>
