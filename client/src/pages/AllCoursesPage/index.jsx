@@ -6,6 +6,7 @@ import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import "../../pages/Home/styles.css";
 import "./AllCourses.css";
+import { apiPath } from "../../api/base";
 
 // --- SVG Icons ---
 function IconSearch() {
@@ -288,13 +289,23 @@ export default function AllCoursesPage() {
                   return (
                     <Link to={`/courses/${course.id}`} key={course._id} className="tz-course-card">
                       {/* Cover Area */}
-                      <div className={`tz-cc-cover-colored ${colorClass}`}>
-                        <div className="tz-cc-cover-text">{coverText}</div>
-                        <span className="tz-cc-badge-dark">{catName}</span>
-                        <button className="tz-cc-favorite-heart" onClick={(e) => e.preventDefault()}>
-                          <IconHeart />
-                        </button>
-                      </div>
+                      {course.thumbnail ? (
+                        <div className="tz-cc-cover-img" style={{ position: 'relative', width: '100%', height: '180px', overflow: 'hidden', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}>
+                          <img src={apiPath(course.thumbnail)} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <span className="tz-cc-badge-dark" style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '4px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: 'bold' }}>{catName}</span>
+                          <button className="tz-cc-favorite-heart" style={{ position: 'absolute', top: '12px', right: '12px', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }} onClick={(e) => e.preventDefault()}>
+                            <IconHeart />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className={`tz-cc-cover-colored ${colorClass}`}>
+                          <div className="tz-cc-cover-text">{coverText}</div>
+                          <span className="tz-cc-badge-dark">{catName}</span>
+                          <button className="tz-cc-favorite-heart" onClick={(e) => e.preventDefault()}>
+                            <IconHeart />
+                          </button>
+                        </div>
+                      )}
 
                       {/* Info Area */}
                       <div className="tz-cc-body">
