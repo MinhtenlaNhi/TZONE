@@ -64,25 +64,40 @@ function GoogleSignInButton() {
         if (!r.ok) throw new Error("userinfo");
         const profile = await r.json();
         const email = profile.email;
-        const role = resolveRole(email);
-        sessionStorage.setItem(
-          AUTH_STORAGE_KEY,
-          JSON.stringify({
-            provider: "google",
-            email,
-            name: profile.name,
-            picture: profile.picture,
-            role,
-            at: Date.now()
-          })
-        );
         try {
-          const { token } = await syncGoogleAccount({
+          const res = await syncGoogleAccount({
             email,
             name: profile.name,
             picture: profile.picture
           });
+          const { token, user } = res;
           setToken(token);
+          
+          const role = resolveRole(email) === "admin" ? "admin" : user.role;
+          
+          sessionStorage.setItem(
+            AUTH_STORAGE_KEY,
+            JSON.stringify({
+              provider: "google",
+              email: user.email,
+              name: user.name,
+              picture: profile.picture,
+              avatar: user.avatar || "",
+              role,
+              accountType: user.role,
+              at: Date.now()
+            })
+          );
+
+          if (role === "admin") {
+            clearPendingRegisterRole();
+            navigate("/admin");
+          } else if (!hasCompletedOnboarding(email)) {
+            navigate("/onboarding");
+          } else {
+            clearPendingRegisterRole();
+            navigate("/dashboard");
+          }
         } catch (err) {
           sessionStorage.removeItem(AUTH_STORAGE_KEY);
           if (err.code === "LOCAL_EMAIL_EXISTS") {
@@ -94,15 +109,6 @@ function GoogleSignInButton() {
             setGoogleErr(err.message || "Không thể đồng bộ tài khoản Google. Kiểm tra MongoDB.");
           }
           return;
-        }
-        if (role === "admin") {
-          clearPendingRegisterRole();
-          navigate("/admin");
-        } else if (!hasCompletedOnboarding(email)) {
-          navigate("/onboarding");
-        } else {
-          clearPendingRegisterRole();
-          navigate("/dashboard");
         }
       } catch {
         setGoogleErr("Không lấy được thông tin tài khoản Google.");
@@ -178,7 +184,8 @@ export default function LoginPage() {
     try {
       const { user, token } = await loginWithEmail({ email: em, password });
       setToken(token);
-      const role = resolveRole(user.email);
+      
+      const role = resolveRole(user.email) === "admin" ? "admin" : user.role;
       const payload = {
         provider: "email",
         email: user.email,
@@ -186,10 +193,10 @@ export default function LoginPage() {
         picture: user.picture || "",
         avatar: user.avatar || "",
         role,
-        accountType: user.accountRole,
+        accountType: user.role,
         at: Date.now()
       };
-      if (user.accountRole === "teacher") {
+      if (user.role === "teacher") {
         payload.teacherApprovalStatus = user.teacherApprovalStatus ?? "approved";
       }
       sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));

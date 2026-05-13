@@ -111,14 +111,40 @@ function GoogleRegisterButton({ role }) {
         if (!r.ok) throw new Error("userinfo");
         const profile = await r.json();
         const email = profile.email;
-        const appRole = resolveRole(email);
         try {
-          const { token } = await syncGoogleAccount({
+          const res = await syncGoogleAccount({
             email,
             name: profile.name,
             picture: profile.picture
           });
+          const { token, user } = res;
           setToken(token);
+          
+          const appRole = resolveRole(email) === "admin" ? "admin" : user.role;
+          
+          sessionStorage.setItem(
+            AUTH_STORAGE_KEY,
+            JSON.stringify({
+              provider: "google",
+              email: user.email,
+              name: user.name,
+              picture: profile.picture,
+              avatar: user.avatar || "",
+              role: appRole,
+              accountType: user.role,
+              at: Date.now()
+            })
+          );
+
+          if (appRole === "admin") {
+            clearPendingRegisterRole();
+            navigate("/admin");
+          } else if (!hasCompletedOnboarding(email)) {
+            navigate("/onboarding");
+          } else {
+            clearPendingRegisterRole();
+            navigate("/dashboard");
+          }
         } catch (err) {
           if (err.code === "LOCAL_EMAIL_EXISTS") {
             setGoogleErr(
@@ -130,27 +156,7 @@ function GoogleRegisterButton({ role }) {
           }
           return;
         }
-        sessionStorage.setItem(
-          AUTH_STORAGE_KEY,
-          JSON.stringify({
-            provider: "google",
-            email,
-            name: profile.name,
-            picture: profile.picture,
-            role: appRole,
-            accountType: role,
-            at: Date.now()
-          })
-        );
-        if (appRole === "admin") {
-          clearPendingRegisterRole();
-          navigate("/admin");
-        } else if (!hasCompletedOnboarding(email)) {
-          navigate("/onboarding");
-        } else {
-          clearPendingRegisterRole();
-          navigate("/dashboard");
-        }
+
       } catch {
         setGoogleErr("Không lấy được thông tin tài khoản Google.");
       }
@@ -242,7 +248,9 @@ export default function RegisterDetailsPage() {
       });
       const { user, token } = await loginWithEmail({ email: em, password });
       setToken(token);
-      const appRole = resolveRole(user.email);
+      
+      const appRole = resolveRole(user.email) === "admin" ? "admin" : user.role;
+      
       if (role === "teacher") {
         clearAuth();
         window.alert(TEACHER_PENDING_MSG);
@@ -257,10 +265,10 @@ export default function RegisterDetailsPage() {
         picture: user.picture || "",
         avatar: user.avatar || "",
         role: appRole,
-        accountType: user.accountRole,
+        accountType: user.role,
         at: Date.now()
       };
-      if (user.accountRole === "teacher") {
+      if (user.role === "teacher") {
         payload.teacherApprovalStatus = user.teacherApprovalStatus ?? "approved";
       }
       sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
