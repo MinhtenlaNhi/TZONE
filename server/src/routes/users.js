@@ -6,34 +6,7 @@ const { authMiddleware } = require("../middlewares/auth");
 
 const router = express.Router();
 
-/* ───── Multer config cho avatar ───── */
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const userDir = path.join(__dirname, `../media/profile/${req.user._id}`);
-    if (!fs.existsSync(userDir)) {
-      fs.mkdirSync(userDir, { recursive: true });
-    }
-    cb(null, userDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
-    cb(null, `avatar_${Date.now()}${ext}`);
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (req, file, cb) => {
-    const allowed = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (allowed.includes(ext)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Chỉ chấp nhận file ảnh (jpg, png, gif, webp)."));
-    }
-  }
-});
+const { upload } = require("../utils/cloudinary");
 
 /* ───── GET /api/users/me ───── */
 router.get("/me", authMiddleware, async (req, res) => {
@@ -85,14 +58,8 @@ router.post("/me/avatar", authMiddleware, (req, res) => {
     }
     try {
       const user = req.user;
-      // Xóa avatar cũ nếu có (chỉ xóa file local)
-      if (user.avatar && (user.avatar.startsWith("/uploads/") || user.avatar.startsWith("/media/"))) {
-        const oldPath = path.join(__dirname, "..", user.avatar);
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
-        }
-      }
-      user.avatar = `/media/profile/${req.user._id}/${req.file.filename}`;
+      // Cloudinary trả về URL file trên đám mây qua `req.file.path`
+      user.avatar = req.file.path;
       await user.save();
       return res.json({ success: true, avatar: user.avatar, user: user.toSafeObject() });
     } catch (e) {

@@ -9,20 +9,7 @@ const { authMiddleware } = require("../middlewares/auth");
 
 const router = express.Router();
 
-// --- Setup Multer cho Essay Upload ---
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = path.join(__dirname, "../uploads/submissions");
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "sub-" + uniqueSuffix + ext);
-  }
-});
-const upload = multer({ storage: storage });
+const { upload } = require("../utils/cloudinary");
 
 // Kiểm tra user có quyền làm bài tập trong course này không
 const checkEnrollment = async (req, courseId) => {
@@ -170,7 +157,7 @@ router.post("/:id/submit", authMiddleware, upload.single("file"), async (req, re
     } else {
       // Type: Essay
       const { textContent } = req.body;
-      const fileUrl = req.file ? `/uploads/submissions/${req.file.filename}` : "";
+      const fileUrl = req.file ? req.file.path : "";
 
       const sub = new Submission({
         assignmentRef: assignment._id,

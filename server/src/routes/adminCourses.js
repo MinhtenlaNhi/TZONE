@@ -11,32 +11,7 @@ const { verifyAdminFromRequestBody } = require("../utils/adminAuth");
 
 const router = express.Router();
 
-// Cấu hình Multer cho việc upload thumbnail khóa học
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dir = path.join(__dirname, "../uploads/courses");
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    cb(null, `course-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Chỉ chấp nhận file ảnh"), false);
-    }
-  }
-});
+const { upload } = require("../utils/cloudinary");
 
 const BADGE_BY_CAT = {
   "tap-su": "KHÓA TẬP SỰ",
@@ -169,7 +144,7 @@ router.post("/v2/courses", upload.single("thumbnail"), async (req, res) => {
     }
 
     if (req.file) {
-      docData.thumbnail = `/uploads/courses/${req.file.filename}`;
+      docData.thumbnail = req.file.path;
     }
 
     const doc = await Course.create(docData);
@@ -218,7 +193,7 @@ router.put("/v2/courses/:id", upload.single("thumbnail"), async (req, res) => {
     if (sessions) updateData.sessions = sessions;
     
     if (req.file) {
-      updateData.thumbnail = `/uploads/courses/${req.file.filename}`;
+      updateData.thumbnail = req.file.path;
     }
 
     // Xóa các field undefined để mongoose không ghi đè thành rỗng

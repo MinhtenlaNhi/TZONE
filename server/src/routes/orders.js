@@ -10,31 +10,7 @@ const { authMiddleware } = require("../middlewares/auth");
 
 const router = express.Router();
 
-// Cấu hình Multer để upload ảnh chuyển khoản
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, "../../uploads/receipts");
-    fs.mkdirSync(uploadPath, { recursive: true });
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "receipt-" + uniqueSuffix + ext);
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Chỉ hỗ trợ file ảnh!"));
-    }
-  }
-});
+const { upload } = require("../utils/cloudinary");
 
 // Helper: Phân tích giá tiền từ chuỗi (Vd: "3.200.000đ" -> 3200000)
 function parsePrice(priceStr) {
@@ -128,7 +104,7 @@ router.post("/", authMiddleware, upload.single("transferReceipt"), async (req, r
     // 3. Tạo đơn hàng
     let receiptPath = null;
     if (req.file) {
-      receiptPath = `/uploads/receipts/${req.file.filename}`;
+      receiptPath = req.file.path;
     }
 
     const newOrder = await Order.create({

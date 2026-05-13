@@ -16,23 +16,7 @@ const isTeacher = (req, res, next) => {
   next();
 };
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = path.join(__dirname, "../../uploads/materials");
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "mat-" + uniqueSuffix + ext);
-  }
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
-});
+const { upload } = require("../utils/cloudinary");
 
 // Middleware xác nhận GV có quyền với Lesson này không
 const verifyLessonOwnership = async (req, res, next) => {
@@ -58,7 +42,7 @@ router.post("/:id/materials", authMiddleware, isTeacher, verifyLessonOwnership, 
     if (!req.file) return res.status(400).json({ success: false, message: "Không tìm thấy file upload." });
     
     const { title } = req.body;
-    const fileUrl = `/uploads/materials/${req.file.filename}`;
+    const fileUrl = req.file.path;
 
     req.lesson.materials.push({
       title: title || req.file.originalname,
