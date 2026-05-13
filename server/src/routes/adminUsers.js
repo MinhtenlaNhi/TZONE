@@ -1,4 +1,5 @@
 const express = require("express");
+const bcrypt = require("bcryptjs");
 const { authMiddleware } = require("../middlewares/auth");
 const { isAdmin } = require("../middlewares/role");
 const User = require("../models/User");
@@ -38,6 +39,77 @@ router.get("/", authMiddleware, isAdmin, async (req, res) => {
       totalPages: Math.ceil(total / Number(limit))
     });
 
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+  }
+});
+
+// Thêm user mới
+router.post("/", authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: "Vui lòng nhập đủ tên, email, mật khẩu" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email đã tồn tại" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    const newUser = new User({
+      name,
+      email,
+      passwordHash,
+      role: role || "student",
+      teacherApprovalStatus: role === "teacher" ? "approved" : undefined
+    });
+
+    await newUser.save();
+    res.status(201).json({ success: true, message: "Tạo người dùng thành công", user: newUser.toSafeObject() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+  }
+});
+
+// Cập nhật thông tin user
+router.put("/:id", authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    const user = await User.findById(req.params.id);
+    
+    if (!user) return res.status(404).json({ success: false, message: "User không tồn tại" });
+
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) return res.status(400).json({ success: false, message: "Email đã tồn tại" });
+      user.email = email;
+    }
+
+    if (name) user.name = name;
+    if (role && ["student", "teacher", "admin"].includes(role)) {
+      if (user._id.toString() === req.user._id.toString() && role !== "admin") {
+        return res.status(403).json({ success: false, message: "Không thể tự hạ quyền của chính mình" });
+      }
+      user.role = role;
+      if (role === "teacher" && !user.teacherApprovalStatus) {
+        user.teacherApprovalStatus = "approved";
+      }
+    }
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      user.passwordHash = await bcrypt.hash(password, salt);
+    }
+
+    await user.save();
+    res.json({ success: true, message: "Cập nhật thành công", user: user.toSafeObject() });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Lỗi máy chủ" });

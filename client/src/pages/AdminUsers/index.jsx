@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchAdminUsers, toggleBlockUser, changeUserRole } from "../../api/adminApi";
+import { fetchAdminUsers, toggleBlockUser, changeUserRole, createUser, updateUser } from "../../api/adminApi";
 import { toast } from "react-toastify";
 import "./AdminUsers.css";
 import { apiPath } from "../../api/base";
@@ -14,6 +14,11 @@ export default function AdminUsersPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
+
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
+  const [formData, setFormData] = useState({ id: "", name: "", email: "", password: "", role: "student" });
 
   useEffect(() => {
     // Delay slightly to prevent too many API calls while typing
@@ -76,6 +81,45 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleOpenAdd = () => {
+    setModalMode("add");
+    setFormData({ id: "", name: "", email: "", password: "", role: "student" });
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (user) => {
+    setModalMode("edit");
+    setFormData({ id: user._id, name: user.name, email: user.email, password: "", role: user.role || "student" });
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (modalMode === "add") {
+        const res = await createUser(formData);
+        if (res.success) {
+          toast.success("Thêm người dùng thành công");
+          setShowModal(false);
+          loadUsers();
+        } else {
+          toast.error(res.message || "Lỗi khi thêm người dùng");
+        }
+      } else {
+        const res = await updateUser(formData.id, formData);
+        if (res.success) {
+          toast.success("Cập nhật người dùng thành công");
+          setShowModal(false);
+          loadUsers();
+        } else {
+          toast.error(res.message || "Lỗi khi cập nhật người dùng");
+        }
+      }
+    } catch (err) {
+      toast.error("Lỗi máy chủ");
+    }
+  };
+
   // Calculate stats from current loaded users (approximation if paginated)
   const studentCount = users.filter(u => u.role === "student" || !u.role).length;
   const teacherCount = users.filter(u => u.role === "teacher").length;
@@ -126,7 +170,7 @@ export default function AdminUsersPage() {
               <option value="admin">Quản trị viên</option>
             </select>
           </div>
-          <button className="tz-btn-add-user">
+          <button className="tz-btn-add-user" onClick={handleOpenAdd}>
             + Thêm người dùng
           </button>
         </div>
@@ -244,7 +288,7 @@ export default function AdminUsersPage() {
                     <td>{new Date(user.createdAt).toLocaleDateString("vi-VN")}</td>
                     <td className="text-right">
                       <div className="tz-actions">
-                        <button className="tz-btn-icon tz-btn-edit" title="Chỉnh sửa">
+                        <button className="tz-btn-icon tz-btn-edit" title="Chỉnh sửa" onClick={() => handleOpenEdit(user)}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button 
@@ -291,6 +335,67 @@ export default function AdminUsersPage() {
             <select disabled>
               <option>20 / trang</option>
             </select>
+          </div>
+        </div>
+      )}
+
+      {/* Modal User */}
+      {showModal && (
+        <div className="tz-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="tz-modal-content" onClick={e => e.stopPropagation()}>
+            <div className="tz-modal-header">
+              <h3>{modalMode === "add" ? "Thêm người dùng mới" : "Sửa người dùng"}</h3>
+              <button className="tz-modal-close" onClick={() => setShowModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleSubmit} className="tz-modal-form">
+              <div className="tz-form-group">
+                <label>Họ và tên <span className="text-red">*</span></label>
+                <input 
+                  type="text" 
+                  value={formData.name} 
+                  onChange={e => setFormData({...formData, name: e.target.value})} 
+                  required 
+                  placeholder="Nhập họ tên"
+                />
+              </div>
+              <div className="tz-form-group">
+                <label>Email <span className="text-red">*</span></label>
+                <input 
+                  type="email" 
+                  value={formData.email} 
+                  onChange={e => setFormData({...formData, email: e.target.value})} 
+                  required 
+                  placeholder="Nhập địa chỉ email"
+                />
+              </div>
+              <div className="tz-form-group">
+                <label>Mật khẩu {modalMode === "add" && <span className="text-red">*</span>}</label>
+                <input 
+                  type="password" 
+                  value={formData.password} 
+                  onChange={e => setFormData({...formData, password: e.target.value})} 
+                  required={modalMode === "add"}
+                  placeholder={modalMode === "add" ? "Nhập mật khẩu" : "Nhập mật khẩu mới (nếu muốn đổi)"}
+                />
+              </div>
+              <div className="tz-form-group">
+                <label>Vai trò</label>
+                <select 
+                  value={formData.role} 
+                  onChange={e => setFormData({...formData, role: e.target.value})}
+                >
+                  <option value="student">Học viên</option>
+                  <option value="teacher">Giảng viên</option>
+                  <option value="admin">Quản trị viên</option>
+                </select>
+              </div>
+              <div className="tz-modal-footer">
+                <button type="button" className="tz-btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
+                <button type="submit" className="tz-btn-submit">
+                  {modalMode === "add" ? "Thêm người dùng" : "Lưu thay đổi"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

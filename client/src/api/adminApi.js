@@ -18,6 +18,20 @@ export async function toggleBlockUser(userId) {
   });
 }
 
+export async function createUser(data) {
+  return apiFetchJson("/api/admin/users", {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
+}
+
+export async function updateUser(userId, data) {
+  return apiFetchJson(`/api/admin/users/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify(data)
+  });
+}
+
 export async function fetchUserOrders(userId) {
   return apiFetchJson(`/api/admin/users/${userId}/orders`);
 }
