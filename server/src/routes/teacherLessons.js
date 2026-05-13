@@ -126,4 +126,26 @@ router.put("/:id/assignments/:assignmentId", authMiddleware, isTeacher, verifyLe
   }
 });
 
+// 4. GET /api/teacher/lessons/:id/submissions - Lấy danh sách bài nộp của tất cả bài tập trong một bài học
+router.get("/:id/submissions", authMiddleware, isTeacher, verifyLessonOwnership, async (req, res) => {
+  try {
+    const Submission = require("../models/Submission");
+    
+    // Tìm tất cả các bài tập thuộc lesson này
+    const assignments = await Assignment.find({ lessonRef: req.lesson._id });
+    const assignmentIds = assignments.map(a => a._id);
+
+    // Lấy tất cả bài nộp thuộc các bài tập đó
+    const submissions = await Submission.find({ assignmentRef: { $in: assignmentIds } })
+      .populate("studentRef", "name email avatar")
+      .populate("assignmentRef", "title type")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, submissions });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ." });
+  }
+});
+
 module.exports = router;

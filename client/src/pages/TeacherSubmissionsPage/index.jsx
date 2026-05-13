@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchAssignmentSubmissions, gradeSubmission } from "../../api/teacherApi";
+import { fetchLessonSubmissions, gradeSubmission } from "../../api/teacherApi";
 import { toast } from "react-toastify";
 import "./TeacherSubmissions.css";
 
@@ -38,7 +38,7 @@ export default function TeacherSubmissionsPage() {
   const loadSubmissions = async () => {
     try {
       setLoading(true);
-      const res = await fetchAssignmentSubmissions(lessonId);
+      const res = await fetchLessonSubmissions(lessonId);
       if (res.success) {
         setSubmissions(res.submissions);
       }
@@ -138,6 +138,9 @@ export default function TeacherSubmissionsPage() {
                           <span className={`tz-ts-type-badge ${sub.type === 'essay' ? 'essay' : 'quiz'}`}>
                             {sub.type === "essay" ? "Tự luận" : "Trắc nghiệm"}
                           </span>
+                          <div style={{fontSize: "0.8rem", color: "#64748b", marginTop: "4px"}}>
+                            {sub.assignmentRef?.title}
+                          </div>
                         </td>
                         <td>
                           <div className="tz-ts-submission-preview">

@@ -51,6 +51,10 @@ export async function fetchAssignmentSubmissions(assignmentId) {
   return apiFetchJson(apiPath(`/api/teacher/assignments/${assignmentId}/submissions`));
 }
 
+export async function fetchLessonSubmissions(lessonId) {
+  return apiFetchJson(apiPath(`/api/teacher/lessons/${lessonId}/submissions`));
+}
+
 export async function gradeSubmission(submissionId, score, teacherComment) {
   return apiFetchJson(apiPath(`/api/teacher/submissions/${submissionId}/grade`), {
     method: "PUT",
