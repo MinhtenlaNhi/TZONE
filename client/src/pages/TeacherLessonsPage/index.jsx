@@ -12,23 +12,38 @@ const IconArrowLeft = () => (
 const IconFolder = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
 );
+const IconBookOpen = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+);
+const IconBook = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+);
+const IconPlus = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+);
 const IconFileText = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
 );
 const IconVideo = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
 );
 const IconUploadCloud = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline></svg>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
 );
-const IconPenTool = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+const IconTag = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
 );
 const IconCheckSquare = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
 );
 const IconChevronRight = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+);
+const IconChevronDown = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+);
+const IconChevronUp = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
 );
 const IconCheckCircleSolid = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="#10b981" stroke="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
@@ -39,6 +54,7 @@ export default function TeacherLessonsPage() {
   const [loading, setLoading] = useState(true);
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
+  const [expandedLessons, setExpandedLessons] = useState({});
   
   // Modals state
   const [showSecModal, setShowSecModal] = useState(false);
@@ -76,6 +92,13 @@ export default function TeacherLessonsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleLessonExpand = (lessonId) => {
+    setExpandedLessons(prev => ({
+      ...prev,
+      [lessonId]: !prev[lessonId]
+    }));
   };
 
   const handleAddSection = async (e) => {
@@ -185,16 +208,36 @@ export default function TeacherLessonsPage() {
     <div className="tz-tl-page">
       <div className="tz-tl-container">
         <Link to="/teacher/courses" className="tz-tl-back">
-          <IconArrowLeft /> Danh sách Khóa học
+          <IconArrowLeft /> Danh sách khóa học
         </Link>
 
-        <header className="tz-tl-header">
-          <div className="tz-tl-header-meta">Quản lý Giáo trình</div>
-          <div className="tz-tl-header-main">
-            <h1 className="tz-tl-title">{course?.title || "Đang tải..."}</h1>
-            <button onClick={() => setShowSecModal(true)} className="tz-tl-btn-primary">
-              <IconFolder /> Thêm Chương Mới
-            </button>
+        <header className="tz-tl-banner">
+          <div className="tz-tl-banner-left">
+            <div className="tz-tl-header-icon-box">
+              <IconBookOpen />
+            </div>
+            <div className="tz-tl-banner-content">
+              <div className="tz-tl-header-meta">QUẢN LÝ GIÁO TRÌNH</div>
+              <h1 className="tz-tl-title">{course?.title || "Đang tải..."}</h1>
+              <p className="tz-tl-header-desc">Quản lý nội dung, bài học và các hoạt động học tập</p>
+              <button onClick={() => setShowSecModal(true)} className="tz-tl-btn-primary tz-tl-add-chap-btn">
+                <IconPlus /> Thêm Chương Mới
+              </button>
+            </div>
+          </div>
+          <div className="tz-tl-banner-right">
+             <svg width="300" height="140" viewBox="0 0 300 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 140C20 140 60 40 180 40C300 40 300 140 300 140H20Z" fill="#f0fdf4"/>
+                <circle cx="250" cy="50" r="30" fill="#e6f6ee" />
+                <path d="M240 60 L240 40 L260 40" stroke="#a7f3d0" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                <rect x="200" y="100" width="80" height="12" rx="2" fill="#cbd5e1"/>
+                <rect x="195" y="115" width="90" height="12" rx="2" fill="#94a3b8"/>
+                <rect x="190" y="130" width="100" height="10" rx="2" fill="#64748b"/>
+                <path d="M150 140V100C150 90 160 75 170 80C175 85 180 90 185 105C190 120 190 140 190 140Z" fill="#10b981"/>
+                <path d="M150 140V100C150 90 140 85 130 90C125 95 120 100 115 110C110 125 110 140 110 140Z" fill="#34d399"/>
+                <rect x="145" y="120" width="10" height="20" fill="#059669"/>
+                <rect x="135" y="130" width="30" height="10" rx="2" fill="#e2e8f0"/>
+             </svg>
           </div>
         </header>
 
@@ -217,15 +260,20 @@ export default function TeacherLessonsPage() {
                 <div key={sec.sectionIndex} className="tz-tl-section">
                   <div className="tz-tl-sec-header">
                     <div className="tz-tl-sec-info">
-                      <span className="tz-tl-sec-badge">Chương {sec.sectionIndex}</span>
+                      <span className="tz-tl-sec-badge">CHƯƠNG {sec.sectionIndex}</span>
                       <h3 className="tz-tl-sec-title">{sec.sectionTitle}</h3>
                     </div>
-                    <button 
-                      onClick={() => { setActiveSecIdx(sec.sectionIndex); setShowLessonModal(true); }} 
-                      className="tz-tl-btn-outline-sm"
-                    >
-                      + Thêm Bài Học
-                    </button>
+                    <div className="tz-tl-sec-actions">
+                      <button className="tz-tl-btn-icon-more">
+                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                      </button>
+                      <button 
+                        onClick={() => { setActiveSecIdx(sec.sectionIndex); setShowLessonModal(true); }} 
+                        className="tz-tl-btn-outline-sm"
+                      >
+                        <IconPlus /> Thêm Bài Học
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="tz-tl-lessons-list">
@@ -236,6 +284,9 @@ export default function TeacherLessonsPage() {
                         <div key={lesson._id} className="tz-tl-lesson-group">
                           <div className="tz-tl-lesson-card">
                             <div className="tz-tl-lesson-main">
+                              <div className="tz-tl-lesson-drag-handle">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
+                              </div>
                               <div className="tz-tl-lesson-icon"><IconFileText /></div>
                               <div className="tz-tl-lesson-info">
                                 <span className="tz-tl-lesson-name">Bài {lesson.order}: {lesson.title}</span>
@@ -254,27 +305,35 @@ export default function TeacherLessonsPage() {
                                 <IconUploadCloud />
                               </button>
                               <button onClick={() => openCreateAssignmentModal(lesson._id)} className="tz-tl-action-btn" title="Giao bài tập">
-                                <IconPenTool />
+                                <IconTag />
                               </button>
                               <Link to={`/teacher/lessons/${lesson._id}/submissions`} className="tz-tl-action-btn grading" title="Chấm bài">
                                 <IconCheckSquare /> Chấm bài
                               </Link>
+                              {lesson.assignments && lesson.assignments.length > 0 && (
+                                <button className="tz-tl-action-btn expander" onClick={() => toggleLessonExpand(lesson._id)}>
+                                  {expandedLessons[lesson._id] ? <IconChevronUp /> : <IconChevronDown />}
+                                </button>
+                              )}
                             </div>
                           </div>
-                          {lesson.assignments && lesson.assignments.length > 0 && (
+                          {lesson.assignments && lesson.assignments.length > 0 && expandedLessons[lesson._id] && (
                             <div className="tz-tl-lesson-assignments">
-                              {lesson.assignments.map(ass => (
-                                <div key={ass._id} className="tz-tl-assignment-item" onClick={() => handleEditAssignment(lesson._id, ass)}>
-                                  <div className="tz-tl-ass-icon"><IconCheckCircleSolid /></div>
-                                  <div className="tz-tl-ass-info">
-                                    <span className="tz-tl-ass-title">{ass.title}</span>
-                                    <span className={`tz-tl-tag ${ass.type === 'quiz' ? 'bg-orange' : 'bg-blue'}`}>
-                                      {ass.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
-                                    </span>
+                              <div className="tz-tl-lesson-line"></div>
+                              <div className="tz-tl-lesson-ass-list">
+                                {lesson.assignments.map(ass => (
+                                  <div key={ass._id} className="tz-tl-assignment-item" onClick={() => handleEditAssignment(lesson._id, ass)}>
+                                    <div className="tz-tl-ass-icon"><IconCheckCircleSolid /></div>
+                                    <div className="tz-tl-ass-info">
+                                      <span className="tz-tl-ass-title">{ass.title}</span>
+                                      <span className={`tz-tl-tag ${ass.type === 'quiz' ? 'bg-orange' : 'bg-blue'}`}>
+                                        {ass.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
+                                      </span>
+                                    </div>
+                                    <div className="tz-tl-ass-arrow"><IconChevronRight /></div>
                                   </div>
-                                  <div className="tz-tl-ass-arrow"><IconChevronRight /></div>
-                                </div>
-                              ))}
+                                ))}
+                              </div>
                             </div>
                           )}
                         </div>

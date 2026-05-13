@@ -41,14 +41,50 @@
   color: #0f172a;
 }
 
-/* Header */
-.tz-tl-header {
+/* Header / Banner */
+.tz-tl-banner {
   background: white;
   border-radius: 16px;
-  padding: 32px;
+  padding: 0;
   box-shadow: 0 4px 15px rgba(0,0,0,0.02);
   margin-bottom: 32px;
   border: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+}
+
+.tz-tl-banner-left {
+  display: flex;
+  padding: 32px;
+  gap: 24px;
+  flex: 1;
+}
+
+.tz-tl-banner-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.tz-tl-banner-right {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.tz-tl-header-icon-box {
+  width: 80px;
+  height: 80px;
+  background-color: #f0fdf4;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00a260;
+  flex-shrink: 0;
 }
 
 .tz-tl-header-meta {
@@ -57,14 +93,21 @@
   color: #00a260;
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
-.tz-tl-header-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
+.tz-tl-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.tz-tl-header-desc {
+  color: #64748b;
+  margin: 8px 0 16px 0;
+  font-size: 0.95rem;
 }
 
 .tz-tl-title {
@@ -107,7 +150,7 @@
 }
 
 .tz-tl-btn-outline {
-  background: transparent;
+  background: white;
   color: #0f172a;
   border: 1px solid #cbd5e1;
   padding: 12px 24px;
@@ -120,11 +163,12 @@
 }
 
 .tz-tl-btn-outline-sm {
-  background: transparent;
-  color: #0f172a;
+  background: white;
+  color: #334155;
   border: 1px solid #e2e8f0;
-  padding: 6px 12px;
+  padding: 8px 16px;
   font-size: 0.85rem;
+  border-radius: 8px;
 }
 
 .tz-tl-btn-outline-sm:hover {
@@ -176,9 +220,9 @@
 }
 
 .tz-tl-sec-header {
-  background: #f8fafc;
+  background: white;
   padding: 20px 24px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -191,19 +235,42 @@
 }
 
 .tz-tl-sec-badge {
-  background: #e2e8f0;
-  color: #475569;
-  padding: 4px 10px;
-  border-radius: 6px;
+  background-color: #e6f6ee;
+  color: #00a260;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .tz-tl-sec-title {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 800;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tz-tl-sec-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tz-tl-btn-icon-more {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.tz-tl-btn-icon-more:hover {
   color: #0f172a;
 }
 
@@ -246,27 +313,53 @@
 
 .tz-tl-lesson-assignments {
   display: flex;
+  margin-left: 56px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.tz-tl-lesson-line {
+  position: absolute;
+  left: -28px;
+  top: 0;
+  bottom: 24px;
+  width: 2px;
+  background-color: #00a260;
+}
+
+.tz-tl-lesson-ass-list {
+  display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-left: 56px;
-  margin-bottom: 8px;
+  width: 100%;
 }
 
 .tz-tl-assignment-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 10px 16px;
+  gap: 16px;
+  background: white;
+  border: 1px solid #f1f5f9;
+  padding: 12px 20px;
   border-radius: 8px;
   transition: all 0.2s;
   cursor: pointer;
+  position: relative;
+}
+
+.tz-tl-assignment-item::before {
+  content: '';
+  position: absolute;
+  left: -28px;
+  top: 50%;
+  width: 28px;
+  height: 2px;
+  background-color: #00a260;
 }
 
 .tz-tl-assignment-item:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 .tz-tl-ass-icon {
@@ -300,12 +393,24 @@
   gap: 16px;
 }
 
+.tz-tl-lesson-drag-handle {
+  color: #cbd5e1;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tz-tl-lesson-drag-handle:active {
+  cursor: grabbing;
+}
+
 .tz-tl-lesson-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: #f1f5f9;
-  color: #64748b;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f0fdf4;
+  color: #00a260;
   display: flex;
   align-items: center;
   justify-content: center;

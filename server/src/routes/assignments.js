@@ -31,13 +31,22 @@ const checkEnrollment = async (req, courseId) => {
 };
 
 // 1. Lấy danh sách bài tập của 1 lesson
-router.get("/:lessonId", authMiddleware, async (req, res) => {
+router.get("/lesson/:lessonId", authMiddleware, async (req, res) => {
   try {
     const { lessonId } = req.params;
     const assignments = await Assignment.find({ lessonRef: lessonId }).lean();
     
+    const assignmentIds = assignments.map(a => a._id);
+    const submissions = await Submission.find({ 
+      studentRef: req.user._id, 
+      assignmentRef: { $in: assignmentIds } 
+    }).lean();
+
     // Xóa correctAnswerIndex để tránh bị lộ ở list
     const safeAssignments = assignments.map(a => {
+      const sub = submissions.find(s => s.assignmentRef.toString() === a._id.toString());
+      a.mySubmission = sub || null;
+
       if (a.type === "quiz") {
         a.questions = a.questions.map(q => {
           const { correctAnswerIndex, explanation, ...rest } = q;

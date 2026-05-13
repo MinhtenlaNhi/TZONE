@@ -30,53 +30,116 @@
   padding: 40px;
 }
 
+.tz-tc-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #00a260;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
 /* Header Banner */
-.tz-tc-header {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  border-radius: 20px;
-  padding: 3rem 4rem;
-  color: white;
+.tz-tc-banner {
+  background: white;
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  margin-bottom: 32px;
+  border: 1px solid #f1f5f9;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  position: relative;
   overflow: hidden;
-  margin-bottom: 40px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
-}
-
-.tz-tc-header-content {
   position: relative;
-  z-index: 2;
-  max-width: 600px;
 }
 
-.tz-tc-header-content h1 {
-  font-size: 2.2rem;
+.tz-tc-banner-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px;
+  flex: 1;
+}
+
+.tz-tc-banner-content h1 {
+  font-size: 2rem;
   font-weight: 800;
-  margin: 0 0 1rem 0;
-  letter-spacing: -0.02em;
+  margin: 0 0 12px 0;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
-.tz-tc-header-content p {
-  font-size: 1.1rem;
-  opacity: 0.9;
+.tz-tc-banner-content p {
+  font-size: 1.05rem;
+  color: #64748b;
   margin: 0;
-  line-height: 1.5;
 }
 
-.tz-tc-header-content strong {
-  color: #34d399; /* Green accent for Teacher Banner */
+.tz-tc-text-green {
+  color: #00a260;
 }
 
-.tz-tc-header-graphic {
-  position: absolute;
-  right: 5%;
-  bottom: -20px;
-  width: 300px;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.9;
+.tz-tc-banner-right {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+/* Stats Bar */
+.tz-tc-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.tz-tc-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  border: 1px solid #f1f5f9;
+}
+
+.tz-tc-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tz-tc-stat-icon.green { background: #f0fdf4; color: #10b981; }
+.tz-tc-stat-icon.blue { background: #eff6ff; color: #3b82f6; }
+.tz-tc-stat-icon.purple { background: #faf5ff; color: #8b5cf6; }
+.tz-tc-stat-icon.orange { background: #fffbeb; color: #f59e0b; }
+
+.tz-tc-stat-info {
+  flex: 1;
+}
+
+.tz-tc-stat-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.tz-tc-stat-info p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.tz-tc-stat-sparkline {
+  width: 50px;
+  height: 20px;
 }
 
 /* Empty State */
@@ -117,6 +180,65 @@
   font-size: 1.05rem;
 }
 
+/* List Header */
+.tz-tc-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.tz-tc-list-header h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.tz-tc-list-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.tz-tc-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+}
+
+.tz-tc-view-toggle {
+  display: flex;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tz-tc-view-toggle button {
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tz-tc-view-toggle button.active {
+  background: #f0fdf4;
+  color: #10b981;
+}
+
 /* Grid Layout */
 .tz-tc-grid {
   display: grid;
@@ -146,29 +268,46 @@
   height: 140px;
   position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  padding: 16px;
+  overflow: hidden;
 }
 
-.tz-tc-cover-text {
-  font-size: 3.5rem;
-  font-weight: 900;
-  color: rgba(255, 255, 255, 0.9);
-  letter-spacing: 2px;
-}
+.tz-tc-cover.tz-cover-orange { background: #f59e0b; }
+.tz-tc-cover.tz-cover-green { background: #10b981; }
+.tz-tc-cover.tz-cover-blue { background: #3b82f6; }
+.tz-tc-cover.tz-cover-darkblue { background: #2563eb; }
 
-.tz-tc-badge-dark {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: rgba(0, 0, 0, 0.25);
+.tz-tc-badge-light {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.2);
   color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   backdrop-filter: blur(4px);
+  margin-bottom: auto;
+}
+
+.tz-tc-cover-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.tz-tc-cover-text {
+  font-size: 3rem;
+  font-weight: 900;
+  color: white;
+  line-height: 1;
+}
+
+.tz-tc-cover-graphic {
+  color: white;
+  margin-right: -10px;
+  margin-bottom: -10px;
 }
 
 /* Card Body */

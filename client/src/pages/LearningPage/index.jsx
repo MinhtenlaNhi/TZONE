@@ -154,6 +154,8 @@ export default function LearningPage() {
     );
   }
 
+  const progressPercent = Math.round(courseInfo?.progress || 0);
+
   return (
     <div className="tz-learning-layout">
       {/* Sidebar */}
@@ -283,16 +285,36 @@ export default function LearningPage() {
                   <h3 className="tz-lm-section-title"><IconEdit /> Bài tập về nhà</h3>
                   <div className="tz-lm-assignments-list">
                     {assignments.map(ass => (
-                      <div className="tz-lm-assignment-card" key={ass._id}>
-                        <div className="tz-lm-ass-info">
-                          <span className={`tz-lm-ass-type ${ass.type === 'quiz' ? 'bg-orange' : 'bg-blue'}`}>
-                            {ass.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
-                          </span>
-                          <span className="tz-lm-ass-title">{ass.title}</span>
+                      <div className="tz-lm-assignment-wrapper" key={ass._id}>
+                        <div className="tz-lm-assignment-card">
+                          <div className="tz-lm-ass-info">
+                            <span className={`tz-lm-ass-type ${ass.type === 'quiz' ? 'bg-orange' : 'bg-blue'}`}>
+                              {ass.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
+                            </span>
+                            <span className="tz-lm-ass-title">{ass.title}</span>
+                          </div>
+                          <Link to={`/learn/${courseId}/assignment/${ass._id}`} className={`tz-lm-btn-do-task ${ass.mySubmission ? 'done' : ''}`}>
+                            {ass.mySubmission ? "Xem lại bài" : "Làm bài ngay"}
+                          </Link>
                         </div>
-                        <Link to={`/learn/${courseId}/assignment/${ass._id}`} className="tz-lm-btn-do-task">
-                          Làm bài ngay
-                        </Link>
+                        {ass.mySubmission && (
+                          <div className="tz-lm-ass-status-bar">
+                            <IconCheckCircle checked={true} />
+                            {ass.type === 'quiz' ? (
+                              <span className="tz-lm-ass-status-text">
+                                Đã hoàn thành - <strong>Điểm: {ass.mySubmission.score}/100</strong>
+                              </span>
+                            ) : (
+                              <span className="tz-lm-ass-status-text">
+                                {ass.mySubmission.status === 'graded' ? (
+                                  <>Đã chấm điểm - <strong>Điểm: {ass.mySubmission.score}/100</strong></>
+                                ) : (
+                                  "Đã nộp bài - Đang chờ giảng viên chấm"
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -326,24 +348,32 @@ export default function LearningPage() {
                 <h3>Đánh giá khóa học</h3>
                 <p>Chia sẻ cảm nhận để giúp các bạn khác hiểu thêm về khóa học nhé!</p>
               </div>
-              <form onSubmit={handleReviewSubmit} className="tz-lm-review-form">
-                <div className="tz-lm-rating-row">
-                  <span className="tz-lm-rating-label">Mức độ hài lòng:</span>
-                  <StarRating rating={rating} setRating={setRating} interactive={true} />
+              
+              {progressPercent === 100 ? (
+                <form onSubmit={handleReviewSubmit} className="tz-lm-review-form">
+                  <div className="tz-lm-rating-row">
+                    <span className="tz-lm-rating-label">Mức độ hài lòng:</span>
+                    <StarRating rating={rating} setRating={setRating} interactive={true} />
+                  </div>
+                  <textarea 
+                    className="tz-lm-textarea"
+                    rows="4" 
+                    placeholder="Khóa học này như thế nào? Giảng viên dạy ra sao?..."
+                    value={comment}
+                    onChange={e => setComment(e.target.value)}
+                  ></textarea>
+                  <div className="tz-lm-review-actions">
+                    <button type="submit" className="tz-lm-btn-submit" disabled={submittingReview}>
+                      {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="tz-lm-review-locked">
+                  <div className="tz-lm-locked-icon">🔒</div>
+                  <p>Bạn cần hoàn thành <strong>100% lộ trình bài học</strong> để có thể đánh giá khóa học này. (Tiến độ hiện tại: {progressPercent}%)</p>
                 </div>
-                <textarea 
-                  className="tz-lm-textarea"
-                  rows="4" 
-                  placeholder="Khóa học này như thế nào? Giảng viên dạy ra sao?..."
-                  value={comment}
-                  onChange={e => setComment(e.target.value)}
-                ></textarea>
-                <div className="tz-lm-review-actions">
-                  <button type="submit" className="tz-lm-btn-submit" disabled={submittingReview}>
-                    {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
-                  </button>
-                </div>
-              </form>
+              )}
             </div>
           )}
         </div>
