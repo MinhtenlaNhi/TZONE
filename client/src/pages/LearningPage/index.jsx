@@ -3,7 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchCourseLessons, updateCourseProgress } from "../../api/enrollmentsApi";
 import { fetchAssignmentsByLesson } from "../../api/assignmentsApi";
+import { fetchCourseLinks } from "../../api/courseLinks";
 import { submitReview } from "../../api/reviewsApi";
+import { jsDayToCol, isSameCalendarDay, COL_LABELS } from "../../utils/courseSchedule";
 import StarRating from "../../components/StarRating";
 import "./LearningPage.css";
 
@@ -39,6 +41,7 @@ export default function LearningPage() {
   const { courseId } = useParams();
   const [courseInfo, setCourseInfo] = useState(null);
   const [curriculum, setCurriculum] = useState([]);
+  const [courseLinks, setCourseLinks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // States cho việc học
@@ -57,7 +60,11 @@ export default function LearningPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetchCourseLessons(courseId);
+        const [res, linksData] = await Promise.all([
+          fetchCourseLessons(courseId),
+          fetchCourseLinks(courseId).catch(() => ({ links: [] }))
+        ]);
+
         if (res.success) {
           setCourseInfo({
             title: res.courseTitle,
@@ -65,6 +72,9 @@ export default function LearningPage() {
             progress: res.progress || 0
           });
           setCurriculum(res.curriculum || []);
+          if (linksData && linksData.links) {
+            setCourseLinks(linksData.links);
+          }
           
           if (res.curriculum?.length > 0 && res.curriculum[0].lessons.length > 0) {
             setActiveLesson(res.curriculum[0].lessons[0]);
@@ -155,6 +165,27 @@ export default function LearningPage() {
   }
 
   const progressPercent = Math.round(courseInfo?.progress || 0);
+
+  // Tính toán link phòng học
+  let activeMeetUrl = null;
+  
+  if (courseLinks.length > 0) {
+    let linkObj = null;
+    if (activeLesson?.date) {
+      const lessonDate = new Date(activeLesson.date);
+      const col = jsDayToCol(lessonDate);
+      linkObj = courseLinks.find(l => l.weekdayCol === col);
+    }
+    
+    // Nếu chưa thiết lập đúng thứ, lấy tạm link đầu tiên của khóa học để học viên luôn thấy
+    if (!linkObj) {
+      linkObj = courseLinks[0];
+    }
+
+    if (linkObj && linkObj.meetUrl) {
+      activeMeetUrl = linkObj.meetUrl;
+    }
+  }
 
   return (
     <div className="tz-learning-layout">
@@ -248,12 +279,12 @@ export default function LearningPage() {
                   <div className="tz-lm-card-icon bg-green"><IconVideo /></div>
                   <div className="tz-lm-card-content">
                     <h3>Phòng học Trực tuyến</h3>
-                    {activeLesson.meetUrl ? (
-                      <a href={activeLesson.meetUrl} target="_blank" rel="noreferrer" className="tz-lm-btn-meet">
+                    {activeMeetUrl ? (
+                      <a href={activeMeetUrl} target="_blank" rel="noreferrer" className="tz-lm-btn-meet">
                         <IconVideo /> Vào lớp Google Meet
                       </a>
                     ) : (
-                      <p className="tz-lm-no-link">Giảng viên chưa mở link phòng học.</p>
+                      <p className="tz-lm-no-link">Giảng viên chưa thiết lập link phòng học cho buổi này.</p>
                     )}
                   </div>
                 </div>

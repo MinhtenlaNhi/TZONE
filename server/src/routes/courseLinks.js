@@ -1,6 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const Course = require("../models/Course");
 const CourseSessionLink = require("../models/CourseSessionLink");
 const { isDbReady } = require("../db");
 
@@ -46,10 +47,19 @@ function dbUnavailable(res) {
 router.get("/:courseId", async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
   try {
-    const courseId = String(req.params.courseId || "").trim();
+    let courseId = String(req.params.courseId || "").trim();
     if (!courseId) {
       return res.status(400).json({ success: false, message: "Thiếu mã khóa." });
     }
+
+    // Nếu param truyền lên là ObjectId (thường thấy ở URL LearningPage), chuyển đổi sang slug
+    if (courseId.match(/^[0-9a-fA-F]{24}$/)) {
+      const course = await Course.findById(courseId).select("id").lean();
+      if (course && course.id) {
+        courseId = course.id;
+      }
+    }
+
     const rows = await CourseSessionLink.find({ courseId }).lean();
     const links = rows.map((r) => ({
       weekdayCol: r.weekdayCol,
