@@ -7,6 +7,9 @@ import PublicFooter from "../../components/PublicFooter";
 import "../../pages/Home/styles.css";
 import "./AllCourses.css";
 import { apiPath } from "../../api/base";
+import { addToCart, fetchCart } from "../../api/cartApi";
+import { getAuth } from "../../auth/auth";
+import { toast } from "react-toastify";
 
 // --- SVG Icons ---
 function IconSearch() {
@@ -18,10 +21,20 @@ function IconSearch() {
   );
 }
 
-function IconHeart() {
+function IconCart() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+      <circle cx="9" cy="21" r="1"></circle>
+      <circle cx="20" cy="21" r="1"></circle>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+    </svg>
+  );
+}
+
+function IconCheck() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
   );
 }
@@ -78,6 +91,8 @@ export default function AllCoursesPage() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [cartItemIds, setCartItemIds] = useState([]);
+  const auth = getAuth();
 
   const [filters, setFilters] = useState({
     search: "",
@@ -95,6 +110,14 @@ export default function AllCoursesPage() {
     fetchCategories().then(res => {
       if (res.success) setCategories(res.categories);
     });
+
+    if (getAuth()) {
+      fetchCart().then(res => {
+        if (res.success && res.cart) {
+          setCartItemIds(res.cart.items.map(item => item.courseRef?.id || item.courseRef?._id || item.courseRef));
+        }
+      });
+    }
   }, []);
 
   const loadCourses = useCallback(async () => {
@@ -138,6 +161,29 @@ export default function AllCoursesPage() {
     e.preventDefault();
     setPage(1);
     loadCourses();
+  };
+
+  const handleAddToCart = async (e, courseId) => {
+    e.preventDefault(); // Ngăn sự kiện Link chuyển trang
+    e.stopPropagation();
+    
+    if (!auth) {
+      toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
+      return;
+    }
+
+    try {
+      const res = await addToCart(courseId);
+      if (res.success) {
+        toast.success("Đã thêm vào giỏ hàng!");
+        setCartItemIds(prev => [...prev, courseId]);
+        window.dispatchEvent(new Event('cartUpdated'));
+      } else {
+        toast.error(res.message || "Không thể thêm vào giỏ hàng.");
+      }
+    } catch (err) {
+      toast.error("Lỗi kết nối khi thêm vào giỏ.");
+    }
   };
 
   // Helper to extract large initials for the card cover
@@ -285,6 +331,8 @@ export default function AllCoursesPage() {
                   const catName = course.categoryRef?.name || course.categoryId;
                   const colorClass = getCoverColorClass(catName);
                   const coverText = getCoverInitials(catName, course.title);
+                  const courseId = course.id || course._id;
+                  const inCart = cartItemIds.includes(courseId) || cartItemIds.includes(course._id?.toString());
 
                   return (
                     <Link to={`/courses/${course.id}`} key={course._id} className="tz-course-card">
@@ -293,16 +341,26 @@ export default function AllCoursesPage() {
                         <div className="tz-cc-cover-img" style={{ position: 'relative', width: '100%', height: '180px', overflow: 'hidden', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}>
                           <img src={apiPath(course.thumbnail)} alt={course.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           <span className="tz-cc-badge-dark" style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '4px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: 'bold' }}>{catName}</span>
-                          <button className="tz-cc-favorite-heart" style={{ position: 'absolute', top: '12px', right: '12px', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }} onClick={(e) => e.preventDefault()}>
-                            <IconHeart />
+                          <button 
+                            className="tz-cc-favorite-heart tz-cc-cart-btn" 
+                            style={{ position: 'absolute', top: '12px', right: '12px', background: inCart ? '#10b981' : 'rgba(0,0,0,0.3)', border: 'none', color: 'white', cursor: inCart ? 'default' : 'pointer', padding: '6px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }} 
+                            onClick={inCart ? (e) => { e.preventDefault(); e.stopPropagation(); } : (e) => handleAddToCart(e, courseId)}
+                            title={inCart ? "Đã có trong giỏ hàng" : "Thêm vào giỏ hàng"}
+                          >
+                            {inCart ? <IconCheck /> : <IconCart />}
                           </button>
                         </div>
                       ) : (
                         <div className={`tz-cc-cover-colored ${colorClass}`}>
                           <div className="tz-cc-cover-text">{coverText}</div>
                           <span className="tz-cc-badge-dark">{catName}</span>
-                          <button className="tz-cc-favorite-heart" onClick={(e) => e.preventDefault()}>
-                            <IconHeart />
+                          <button 
+                            className="tz-cc-favorite-heart tz-cc-cart-btn" 
+                            style={{ background: inCart ? '#10b981' : 'transparent', borderRadius: '50%', padding: inCart ? '6px' : '0', color: 'white', border: 'none', cursor: inCart ? 'default' : 'pointer' }}
+                            onClick={inCart ? (e) => { e.preventDefault(); e.stopPropagation(); } : (e) => handleAddToCart(e, courseId)}
+                            title={inCart ? "Đã có trong giỏ hàng" : "Thêm vào giỏ hàng"}
+                          >
+                            {inCart ? <IconCheck /> : <IconCart />}
                           </button>
                         </div>
                       )}

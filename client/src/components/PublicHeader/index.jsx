@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { fetchCategories } from "../../api/categories";
+import { fetchCart } from "../../api/cartApi";
+import { getAuth } from "../../auth/auth";
 import UserNavMenu from "../UserNavMenu";
 
 const SearchIcon = () => (
@@ -17,12 +19,27 @@ export default function PublicHeader() {
   const navigate = useNavigate();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
   const dropdownRef = useRef(null);
+  const auth = getAuth();
 
   useEffect(() => {
     fetchCategories().then(res => {
       if (res.success) setCategories(res.categories);
     });
+
+    const loadCart = () => {
+      if (getAuth()) {
+        fetchCart().then(res => {
+          if (res.success && res.cart) {
+            setCartCount(res.cart.items.length);
+          }
+        });
+      }
+    };
+
+    loadCart();
+    window.addEventListener("cartUpdated", loadCart);
 
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -30,7 +47,10 @@ export default function PublicHeader() {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("cartUpdated", loadCart);
+    };
   }, []);
 
   const handleSearch = (e) => {
@@ -88,7 +108,7 @@ export default function PublicHeader() {
         <div className="tz-nav-right">
           <Link to="/cart" className="tz-btn-cart">
             <CartIcon />
-            <span className="tz-cart-badge">0</span>
+            <span className="tz-cart-badge">{cartCount}</span>
           </Link>
           <UserNavMenu />
         </div>
