@@ -343,7 +343,7 @@ export default function AllCoursesPage() {
                           <span className="tz-cc-badge-dark" style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '4px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: 'bold' }}>{catName}</span>
                           <button 
                             className="tz-cc-favorite-heart tz-cc-cart-btn" 
-                            style={{ position: 'absolute', top: '12px', right: '12px', background: inCart ? '#10b981' : 'rgba(0,0,0,0.3)', border: 'none', color: 'white', cursor: inCart ? 'default' : 'pointer', padding: '6px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }} 
+                            style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, background: inCart ? '#10b981' : 'rgba(0,0,0,0.3)', border: 'none', color: 'white', cursor: inCart ? 'default' : 'pointer', padding: '6px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }} 
                             onClick={inCart ? (e) => { e.preventDefault(); e.stopPropagation(); } : (e) => handleAddToCart(e, courseId)}
                             title={inCart ? "Đã có trong giỏ hàng" : "Thêm vào giỏ hàng"}
                           >
@@ -356,7 +356,7 @@ export default function AllCoursesPage() {
                           <span className="tz-cc-badge-dark">{catName}</span>
                           <button 
                             className="tz-cc-favorite-heart tz-cc-cart-btn" 
-                            style={{ background: inCart ? '#10b981' : 'transparent', borderRadius: '50%', padding: inCart ? '6px' : '0', color: 'white', border: 'none', cursor: inCart ? 'default' : 'pointer' }}
+                            style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, background: inCart ? '#10b981' : 'transparent', borderRadius: '50%', padding: inCart ? '6px' : '0', color: 'white', border: 'none', cursor: inCart ? 'default' : 'pointer' }}
                             onClick={inCart ? (e) => { e.preventDefault(); e.stopPropagation(); } : (e) => handleAddToCart(e, courseId)}
                             title={inCart ? "Đã có trong giỏ hàng" : "Thêm vào giỏ hàng"}
                           >

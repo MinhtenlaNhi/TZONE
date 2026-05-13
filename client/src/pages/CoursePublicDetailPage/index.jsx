@@ -135,6 +135,27 @@ export default function CoursePublicDetailPage() {
 
   const catName = course.categoryRef?.name || course.categoryId || "Khác";
 
+  const getCoverInitials = (catName, courseTitle) => {
+    const text = catName?.toUpperCase() || courseTitle?.toUpperCase() || "KH";
+    if (text.includes("TOEIC B")) return "TB";
+    if (text.includes("TOEIC A")) return "TA";
+    if (text.includes("TẬP SỰ")) return "TS";
+    if (text.includes("SPEAKING")) return "TS";
+    return text.substring(0, 2);
+  };
+
+  const getCoverColorClass = (catName) => {
+    const name = catName?.toUpperCase() || "";
+    if (name.includes("TOEIC B")) return "cp-cover-green";
+    if (name.includes("TOEIC A")) return "cp-cover-blue";
+    if (name.includes("TẬP SỰ")) return "cp-cover-orange";
+    if (name.includes("SPEAKING")) return "cp-cover-blue";
+    return "cp-cover-green"; // default original green
+  };
+
+  const colorClass = getCoverColorClass(catName);
+  const coverText = getCoverInitials(catName, course.title);
+
   return (
     <div className="course-public tz-home">
       <PublicHeader />
@@ -164,7 +185,7 @@ export default function CoursePublicDetailPage() {
             </div>
           </div>
           <div className="cp-hero-graphic">
-            <img src="/images/course-team-collab.png" alt="" onError={e => e.target.style.display = 'none'} />
+            <img src={course.thumbnail ? apiPath(course.thumbnail) : "/images/course-team-collab.png"} alt="" onError={e => e.target.style.display = 'none'} style={course.thumbnail ? { borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', maxHeight: '100%', transform: 'none' } : {}} />
           </div>
         </div>
 
@@ -239,7 +260,9 @@ export default function CoursePublicDetailPage() {
                 {course.thumbnail ? (
                   <img src={apiPath(course.thumbnail)} alt={course.title} />
                 ) : (
-                  <div className="cp-buy-img-placeholder">TZONE</div>
+                  <div className={`cp-buy-img-placeholder ${colorClass}`}>
+                    <span className="cp-buy-img-initials">{coverText}</span>
+                  </div>
                 )}
               </div>
 

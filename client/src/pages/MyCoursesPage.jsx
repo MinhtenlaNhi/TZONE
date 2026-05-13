@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchMyEnrollments } from "../api/enrollmentsApi";
+import { apiPath } from "../api/base";
 import "./MyCoursesPage.css";
 
 // SVG Icons
@@ -110,11 +111,18 @@ export default function MyCoursesPage() {
               return (
                 <div key={enr._id} className="tz-mc-card">
                   {/* Cover Area */}
-                  <div className={`tz-mc-cover ${colorClass}`}>
-                    <div className="tz-mc-cover-text">{coverText}</div>
-                    <span className="tz-mc-badge-dark">{catName || "Khóa học"}</span>
-                    {enr.isTrial && <span className="tz-mc-badge-trial">HỌC THỬ</span>}
-                  </div>
+                  {course.thumbnail ? (
+                    <div className="tz-mc-cover" style={{ backgroundImage: `url(${apiPath(course.thumbnail)})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+                      <span className="tz-mc-badge-dark" style={{ position: 'absolute', top: '12px', left: '12px' }}>{catName || "Khóa học"}</span>
+                      {enr.isTrial && <span className="tz-mc-badge-trial" style={{ position: 'absolute', top: '12px', right: '12px' }}>HỌC THỬ</span>}
+                    </div>
+                  ) : (
+                    <div className={`tz-mc-cover ${colorClass}`}>
+                      <div className="tz-mc-cover-text">{coverText}</div>
+                      <span className="tz-mc-badge-dark">{catName || "Khóa học"}</span>
+                      {enr.isTrial && <span className="tz-mc-badge-trial">HỌC THỬ</span>}
+                    </div>
+                  )}
 
                   {/* Info Area */}
                   <div className="tz-mc-body">

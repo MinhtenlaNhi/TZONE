@@ -81,6 +81,25 @@ export default function CartPage() {
 
   const totalAmount = calculateTotal();
 
+  // Helper to extract large initials for the placeholder
+  const getCoverInitials = (catName, courseTitle) => {
+    const text = catName?.toUpperCase() || courseTitle?.toUpperCase() || "KH";
+    if (text.includes("TOEIC B")) return "TB";
+    if (text.includes("TOEIC A")) return "TA";
+    if (text.includes("TẬP SỰ")) return "TS";
+    if (text.includes("SPEAKING")) return "TS";
+    return text.substring(0, 2);
+  };
+
+  const getCoverColorClass = (catName) => {
+    const name = catName?.toUpperCase() || "";
+    if (name.includes("TOEIC B")) return "cp-cover-green";
+    if (name.includes("TOEIC A")) return "cp-cover-blue";
+    if (name.includes("TẬP SỰ")) return "cp-cover-orange";
+    if (name.includes("SPEAKING")) return "cp-cover-blue";
+    return "cp-cover-blue";
+  };
+
   return (
     <div className="cart-page">
       <div className="cart-page__header">
@@ -100,13 +119,19 @@ export default function CartPage() {
               const course = item.courseRef;
               if (!course) return null;
 
+              const catName = course.categoryRef?.name || course.categoryId || "";
+              const coverText = getCoverInitials(catName, course.title);
+              const colorClass = getCoverColorClass(catName);
+
               return (
                 <div className="cart-item" key={course._id}>
                   <div className="cart-item__img">
                     {course.thumbnail ? (
                       <img src={`${apiPath(course.thumbnail)}`} alt={course.title} />
                     ) : (
-                      <div className="cart-item__placeholder">TZONE</div>
+                      <div className={`cart-item__placeholder ${colorClass}`}>
+                        <span className="cart-item__initials">{coverText}</span>
+                      </div>
                     )}
                   </div>
                   <div className="cart-item__info">

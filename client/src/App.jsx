@@ -1,5 +1,7 @@
 import { BrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { CoursesProvider } from "./context/CoursesContext";
 import AppRoutes from "./routes/AppRoutes";
 
@@ -15,6 +17,7 @@ function AppRoutesTree() {
     >
       <CoursesProvider>
         <AppRoutes />
+        <ToastContainer position="top-right" autoClose={3000} />
       </CoursesProvider>
     </BrowserRouter>
   );
