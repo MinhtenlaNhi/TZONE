@@ -79,6 +79,7 @@ function GoogleSignInButton() {
             AUTH_STORAGE_KEY,
             JSON.stringify({
               provider: "google",
+              _id: user._id,
               email: user.email,
               name: user.name,
               picture: profile.picture,
@@ -188,6 +189,7 @@ export default function LoginPage() {
       const role = resolveRole(user.email) === "admin" ? "admin" : user.role;
       const payload = {
         provider: "email",
+        _id: user._id,
         email: user.email,
         name: user.name,
         picture: user.picture || "",

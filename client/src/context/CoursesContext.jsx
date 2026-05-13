@@ -32,7 +32,8 @@ function normalizeRemoteCourse(doc) {
     rating: Math.min(5, Math.max(0, Number(doc.rating) || 0)),
     ratingLabel: doc.ratingLabel != null ? String(doc.ratingLabel) : "—",
     price: doc.price != null ? String(doc.price) : "",
-    instructor: doc.instructor != null ? String(doc.instructor) : ""
+    instructor: doc.instructor != null ? String(doc.instructor) : "",
+    instructorRef: doc.instructorRef ? String(doc.instructorRef) : null
   };
 }
 
@@ -68,9 +69,9 @@ export function CoursesProvider({ children }) {
   }, [refreshCourses]);
 
   const courses = useMemo(() => {
-    const staticIds = new Set(STATIC_COURSES.map((c) => String(c.id)));
-    const extra = remote.filter((c) => c.id && !staticIds.has(String(c.id)));
-    return [...STATIC_COURSES, ...extra];
+    const remoteIds = new Set(remote.map((c) => String(c.id)));
+    const extraStatic = STATIC_COURSES.filter((c) => !remoteIds.has(String(c.id)));
+    return [...remote, ...extraStatic];
   }, [remote]);
 
   const value = useMemo(

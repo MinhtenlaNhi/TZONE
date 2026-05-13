@@ -34,6 +34,7 @@ export default function AssignmentPage() {
   
   // States cho Essay
   const [textContent, setTextContent] = useState("");
+  const [selectedFileName, setSelectedFileName] = useState("");
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -298,11 +299,27 @@ export default function AssignmentPage() {
         <div className="tz-ap-form-group">
           <label>Hoặc nộp file đính kèm (Word/PDF/Ảnh):</label>
           <div className="tz-ap-file-upload">
-            <input type="file" ref={fileInputRef} id="file-upload" className="tz-ap-file-input" />
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              id="file-upload" 
+              className="tz-ap-file-input" 
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) setSelectedFileName(file.name);
+                else setSelectedFileName("");
+              }}
+            />
             <label htmlFor="file-upload" className="tz-ap-file-label">
-              <IconUpload /> Chọn tệp từ máy tính
+              <IconUpload /> {selectedFileName ? "Đổi tệp khác" : "Chọn tệp từ máy tính"}
             </label>
-            <span className="tz-ap-file-hint">Hỗ trợ .doc, .pdf, .jpg, .png</span>
+            {selectedFileName && (
+              <div className="tz-ap-selected-file">
+                <IconCheckCircle />
+                <strong>Đã đính kèm:</strong> {selectedFileName}
+              </div>
+            )}
+            {!selectedFileName && <span className="tz-ap-file-hint">Hỗ trợ .doc, .pdf, .jpg, .png</span>}
           </div>
         </div>
 

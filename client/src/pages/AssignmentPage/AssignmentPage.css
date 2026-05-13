@@ -425,6 +425,25 @@
   color: #64748b;
 }
 
+.tz-ap-selected-file {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #047857;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.tz-ap-selected-file strong {
+  color: #065f46;
+  font-weight: 700;
+}
+
 /* Essay Result */
 .tz-ap-status-banner {
   display: flex;

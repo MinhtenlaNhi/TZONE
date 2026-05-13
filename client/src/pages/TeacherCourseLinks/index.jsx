@@ -31,14 +31,19 @@ const IconSparkles = () => <svg width="20" height="20" viewBox="0 0 24 24" fill=
 export default function TeacherCourseLinksPage() {
   const auth = getAuth();
   const { courses } = useCourses();
+  
+  const myCourses = courses.filter(
+    (c) => auth?.role === "admin" || (c.instructorRef && c.instructorRef === auth?._id)
+  );
+
   const [courseId, setCourseId] = useState("");
 
   useEffect(() => {
-    if (!courses.length) return;
-    if (!courseId || !courses.some((c) => c.id === courseId)) {
-      setCourseId(courses[0].id);
+    if (!myCourses.length) return;
+    if (!courseId || !myCourses.some((c) => c.id === courseId)) {
+      setCourseId(myCourses[0].id);
     }
-  }, [courses, courseId]);
+  }, [myCourses, courseId]);
   
   const [weekdayCol, setWeekdayCol] = useState(1);
   const [meetUrl, setMeetUrl] = useState("");
@@ -145,10 +150,14 @@ export default function TeacherCourseLinksPage() {
                     <label>Khóa học</label>
                     <div className="tcl-input-wrapper">
                       <IconBook />
-                      <select value={courseId} onChange={(e) => setCourseId(e.target.value)}>
-                        {courses.map((c) => (
-                          <option key={c.id} value={c.id}>{c.title}</option>
-                        ))}
+                      <select value={courseId} onChange={(e) => setCourseId(e.target.value)} disabled={saving || myCourses.length === 0}>
+                        {myCourses.length === 0 ? (
+                          <option value="">Chưa được phân công khóa học nào</option>
+                        ) : (
+                          myCourses.map((c) => (
+                            <option key={c.id} value={c.id}>{c.title}</option>
+                          ))
+                        )}
                       </select>
                     </div>
                   </div>

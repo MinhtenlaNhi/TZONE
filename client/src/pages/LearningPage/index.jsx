@@ -44,6 +44,20 @@ export default function LearningPage() {
   const [courseLinks, setCourseLinks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper function to format long filenames
+  const formatFileName = (name) => {
+    if (!name) return "Tài liệu đính kèm";
+    if (name.length <= 30) return name;
+    
+    const extIndex = name.lastIndexOf('.');
+    if (extIndex !== -1 && name.length - extIndex <= 6) {
+      const ext = name.substring(extIndex);
+      const base = name.substring(0, extIndex);
+      return base.substring(0, 15) + "..." + base.substring(base.length - 5) + ext;
+    }
+    return name.substring(0, 25) + "...";
+  };
+
   // States cho việc học
   const [activeSection, setActiveSection] = useState(1);
   const [activeLesson, setActiveLesson] = useState(null);
@@ -301,7 +315,9 @@ export default function LearningPage() {
                           <IconFile />
                         </div>
                         <div className="tz-lm-material-info">
-                          <span className="tz-lm-material-name">{mat.title || "Tài liệu đính kèm"}</span>
+                          <span className="tz-lm-material-name" title={mat.title || "Tài liệu đính kèm"}>
+                            {formatFileName(mat.title)}
+                          </span>
                           <span className="tz-lm-material-action">Tải xuống</span>
                         </div>
                       </a>
