@@ -86,7 +86,7 @@ router.post("/:id/assignments", authMiddleware, isTeacher, verifyLessonOwnership
       lessonRef: req.lesson._id,
       type,
       title,
-      description,
+      essayDescription: type === "essay" ? description : undefined,
       questions: type === "quiz" ? questions : []
     });
 

@@ -145,11 +145,7 @@ function shortDisplayName(user, fallback) {
   return parts[0] || fallback;
 }
 
-const nav = [
-  { to: "/dashboard", label: "Tổng quan", Icon: IconOverview },
-  { to: "/schedule", label: "Lịch học", Icon: IconCalendar },
-  { to: "/my-courses", label: "Các khóa học của bạn", Icon: IconCourses }
-];
+// Removed static nav array
 
 export default function StudentShell() {
   const navigate = useNavigate();
@@ -221,6 +217,18 @@ export default function StudentShell() {
   function selectCategory(categoryId) {
     setCategoryOpen(false);
     navigate({ pathname: "/dashboard", search: `?category=${encodeURIComponent(categoryId)}` });
+  }
+
+  const isTeacherOrAdmin = canUseTeacherCourseLinkTools(user);
+  const nav = [
+    { to: "/dashboard", label: "Tổng quan", Icon: IconOverview },
+    { to: "/schedule", label: "Lịch học", Icon: IconCalendar },
+  ];
+
+  if (isTeacherOrAdmin) {
+    nav.push({ to: "/teacher/dashboard", label: "Workspace Giảng viên", Icon: IconCourses });
+  } else {
+    nav.push({ to: "/my-courses", label: "Các khóa học của bạn", Icon: IconCourses });
   }
 
   return (
@@ -296,21 +304,12 @@ export default function StudentShell() {
                   <div className="student-shell__dd-sep" role="separator" />
                   <Link
                     className="student-shell__dd-link"
-                    to="/teacher/courses"
+                    to="/teacher/dashboard"
                     role="menuitem"
                     onClick={() => setMenuOpen(false)}
                   >
                     <IconDdTests />
-                    Bảng điều khiển Giảng viên
-                  </Link>
-                  <Link
-                    className="student-shell__dd-link"
-                    to="/teacher/course-links"
-                    role="menuitem"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <IconDdTests />
-                    Gửi link buổi học
+                    Workspace Giảng viên
                   </Link>
                 </>
               ) : null}

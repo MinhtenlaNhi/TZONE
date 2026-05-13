@@ -35,6 +35,7 @@ import AdminReviewsPage from "../pages/AdminReviews";
 import AdminDashboardPage from "../pages/AdminDashboard";
 import AdminUsersPage from "../pages/AdminUsers";
 
+import TeacherDashboard from "../pages/TeacherDashboard";
 import TeacherCoursesPage from "../pages/TeacherCoursesPage";
 import TeacherLessonsPage from "../pages/TeacherLessonsPage";
 import TeacherSubmissionsPage from "../pages/TeacherSubmissionsPage";
@@ -75,6 +76,7 @@ function AppRoutes() {
       />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/register/details" element={<RegisterDetailsPage />} />
+      {/* Teacher Routes moved inside StudentShell */}
       <Route element={<PrivateRoute><StudentShell /></PrivateRoute>}>
         <Route path="/dashboard" element={<DashboardHome />} />
         <Route path="/schedule" element={<SchedulePage />} />
@@ -93,12 +95,12 @@ function AppRoutes() {
         <Route path="/reviews" element={<MyReviewsPage />} />
         <Route path="/tests" element={<MyTestsPage />} />
 
+        {/* Teacher Workspace Routes */}
+        <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+        <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
+        <Route path="/teacher/courses/:courseId/lessons" element={<TeacherLessonsPage />} />
+        <Route path="/teacher/lessons/:lessonId/submissions" element={<TeacherSubmissionsPage />} />
       </Route>
-      
-      {/* Teacher Routes */}
-      <Route path="/teacher/courses" element={<TeacherCoursesPage />} />
-      <Route path="/teacher/courses/:courseId/lessons" element={<TeacherLessonsPage />} />
-      <Route path="/teacher/lessons/:lessonId/submissions" element={<TeacherSubmissionsPage />} />
 
       <Route
         path="/admin"

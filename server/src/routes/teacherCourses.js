@@ -49,6 +49,37 @@ router.get("/:id/students", authMiddleware, isTeacher, async (req, res) => {
   }
 });
 
+// 2.5 GET /api/teacher/courses/:id/lessons - Lấy lộ trình bài học (Cho giáo viên)
+router.get("/:id/lessons", authMiddleware, isTeacher, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const course = await Course.findOne({ _id: id, instructorRef: req.user._id });
+    if (!course) {
+      return res.status(403).json({ success: false, message: "Khóa học không thuộc quyền quản lý của bạn." });
+    }
+
+    const lessons = await Lesson.find({ courseRef: id }).sort({ sectionIndex: 1, order: 1 }).lean();
+
+    const curriculum = [];
+    lessons.forEach(lesson => {
+      let section = curriculum.find(sec => sec.sectionIndex === lesson.sectionIndex);
+      if (!section) {
+        section = {
+          sectionIndex: lesson.sectionIndex,
+          sectionTitle: lesson.sectionTitle,
+          lessons: []
+        };
+        curriculum.push(section);
+      }
+      section.lessons.push(lesson);
+    });
+
+    res.json({ success: true, curriculum });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+  }
+});
+
 // 3. POST /api/teacher/courses/:id/sections - Thêm chương mới
 router.post("/:id/sections", authMiddleware, isTeacher, async (req, res) => {
   try {
