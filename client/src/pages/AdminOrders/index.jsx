@@ -6,6 +6,7 @@ import {
   FiSearch, FiCalendar, FiCheck, FiX, FiImage, FiTrash2
 } from "react-icons/fi";
 import "./AdminOrders.css";
+import { apiPath } from "../../api/base";
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([]);

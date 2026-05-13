@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchAdminUsers, toggleBlockUser, changeUserRole } from "../../api/adminApi";
 import { toast } from "react-toastify";
 import "./AdminUsers.css";
+import { apiPath } from "../../api/base";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);

@@ -8,6 +8,7 @@ import { fetchPublicInstructors } from "../../api/instructors";
 import { getAuth } from "../../auth/auth";
 import { COL_LABELS } from "../../utils/courseSchedule";
 import "./AdminCourseForm.css";
+import { apiPath } from "../../api/base";
 
 export default function AdminCourseFormPage() {
   const auth = getAuth();

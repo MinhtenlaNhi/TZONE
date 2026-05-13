@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { fetchAdminCoursesV2, deleteAdminCourseV2 } from "../../api/adminCoursesApi";
 import { getAuth } from "../../auth/auth";
 import "./AdminCourses.css";
+import { apiPath } from "../../api/base";
 
 export default function AdminCoursesPage() {
   const auth = getAuth();

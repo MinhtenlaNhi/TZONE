@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchAssignmentDetail, submitAssignment, fetchMySubmission } from "../../api/assignmentsApi";
 import "./AssignmentPage.css";
+import { apiPath } from "../../api/base";
 
 // SVG Icons
 const IconArrowLeft = () => (

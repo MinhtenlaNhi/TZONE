@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { fetchCart, removeFromCart } from "../../api/cartApi";
 import { getAuth } from "../../auth/auth";
 import "./CartPage.css";
+import { apiPath } from "../../api/base";
 
 export default function CartPage() {
   const auth = getAuth();

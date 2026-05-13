@@ -15,7 +15,7 @@ export default function CoursePublicDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const auth = getAuth();
-  
+
   const [course, setCourse] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +54,7 @@ export default function CoursePublicDetailPage() {
       navigate("/login", { state: { from: `/courses/${id}` } });
       return;
     }
-    
+
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
@@ -138,7 +138,7 @@ export default function CoursePublicDetailPage() {
   return (
     <div className="course-public tz-home">
       <PublicHeader />
-      
+
       <div className="cp-container">
         {/* Breadcrumb */}
         <div className="cp-breadcrumb">
@@ -164,7 +164,7 @@ export default function CoursePublicDetailPage() {
             </div>
           </div>
           <div className="cp-hero-graphic">
-            <img src="/images/course-team-collab.png" alt="" onError={e => e.target.style.display='none'} />
+            <img src="/images/course-team-collab.png" alt="" onError={e => e.target.style.display = 'none'} />
           </div>
         </div>
 
@@ -209,10 +209,10 @@ export default function CoursePublicDetailPage() {
                   {reviews.map(rev => (
                     <div key={rev._id} className="cp-review-card">
                       <div className="reviewer-info">
-                        <img 
-                          src={rev.userRef?.avatar ? apiPath(rev.userRef.avatar) : "/default-avatar.png"} 
-                          alt="avatar" 
-                          className="reviewer-avatar" 
+                        <img
+                          src={rev.userRef?.avatar ? apiPath(rev.userRef.avatar) : "/default-avatar.png"}
+                          alt="avatar"
+                          className="reviewer-avatar"
                           onError={(e) => { e.target.src = "https://ui-avatars.com/api/?name=" + (rev.userRef?.name || "U"); }}
                         />
                         <div className="reviewer-meta">
@@ -242,12 +242,12 @@ export default function CoursePublicDetailPage() {
                   <div className="cp-buy-img-placeholder">TZONE</div>
                 )}
               </div>
-              
+
               <div className="cp-buy-details">
                 <div className="cp-buy-price">
                   {course.price ? (course.price.toString().includes('đ') ? course.price : `${Number(course.price).toLocaleString()}đ`) : "Miễn phí"}
                 </div>
-                
+
                 <ul className="cp-buy-features">
                   <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Truy cập toàn bộ bài giảng trực tiếp</li>
                   <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg> {course.trialLessonCount || 2} buổi học thử miễn phí</li>
@@ -273,41 +273,8 @@ export default function CoursePublicDetailPage() {
             </div>
           </div>
         </div>
-
-        {/* Bottom Features Banner */}
-        <div className="cp-bottom-features">
-          <div className="cp-feature-item">
-            <div className="cp-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
-            <div className="cp-feature-text">
-              <h4>Hỗ trợ học viên 24/7</h4>
-              <p>Giải đáp mọi thắc mắc</p>
-            </div>
-          </div>
-          <div className="cp-feature-item">
-            <div className="cp-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg></div>
-            <div className="cp-feature-text">
-              <h4>Học lại miễn phí</h4>
-              <p>Nếu không đạt cam kết</p>
-            </div>
-          </div>
-          <div className="cp-feature-item">
-            <div className="cp-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
-            <div className="cp-feature-text">
-              <h4>Tài liệu độc quyền</h4>
-              <p>Chuẩn ETS cập nhật liên tục</p>
-            </div>
-          </div>
-          <div className="cp-feature-item">
-            <div className="cp-feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div>
-            <div className="cp-feature-text">
-              <h4>Thanh toán linh hoạt</h4>
-              <p>Nhiều phương thức tiện lợi</p>
-            </div>
-          </div>
-        </div>
-
       </div>
-      
+
       <PublicFooter />
     </div>
   );

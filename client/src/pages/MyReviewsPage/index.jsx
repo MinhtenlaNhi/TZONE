@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { FiStar } from "react-icons/fi";
 import { toast } from "react-toastify";
 import "./MyReviewsPage.css";
+import { apiPath } from "../../api/base";
 
 export default function MyReviewsPage() {
   const [reviews, setReviews] = useState([]);

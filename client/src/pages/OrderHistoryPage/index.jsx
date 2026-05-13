@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchMyOrders } from "../../api/ordersApi";
 import "./OrderHistory.css";
+import { apiPath } from "../../api/base";
 
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState([]);
