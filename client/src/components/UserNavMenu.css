@@ -239,3 +239,24 @@
 .auth-btn-register:hover {
   background: #059669;
 }
+
+@media (max-width: 768px) {
+  .auth-buttons {
+    gap: 0.5rem;
+  }
+  .auth-link {
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  .auth-btn-register {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  .user-nav__trigger {
+    padding: 4px;
+  }
+  .user-nav__name {
+    display: none;
+  }
+}

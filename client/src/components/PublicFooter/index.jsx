@@ -44,10 +44,18 @@ export default function PublicFooter() {
             <Link to="/" className="tz-footer-logo"><span className="tz-logo-icon">TZ</span> TZONE</Link>
             <p>Nền tảng học TOEIC online hàng đầu Việt Nam. Giải pháp chinh phục mục tiêu 800+ một cách dễ dàng.</p>
             <div className="tz-socials">
-              <a href="#fb" className="social-icon">f</a>
-              <a href="#yt" className="social-icon">y</a>
-              <a href="#tt" className="social-icon">t</a>
-              <a href="#ig" className="social-icon">i</a>
+              <a href="#fb" className="social-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+              </a>
+              <a href="#yt" className="social-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
+              </a>
+              <a href="#tt" className="social-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91.04.16 2.53 1.5 4.47 3.565 5.5v3.86c-1.74-.21-3.23-.9-4.52-1.95v7.26c-.05 3.9-3.2 7.07-7.1 7.06-3.83 0-6.95-3-7-6.85-.04-3.66 2.76-6.73 6.36-7V11.8c-1.8.06-3.32 1.44-3.5 3.25-.18 1.93 1.14 3.65 3.02 3.99 2.05.37 3.98-.89 4.38-2.91.07-.36.1-.73.1-1.1V.02z"/></svg>
+              </a>
+              <a href="#ig" className="social-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              </a>
             </div>
           </div>
 

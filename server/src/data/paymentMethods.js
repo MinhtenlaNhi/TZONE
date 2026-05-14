@@ -9,36 +9,12 @@ module.exports = [
     qrImage: "/images/payments/mb-qr.png"
   },
   {
-    id: "vcb",
-    accountNumber: "1012345678",
-    accountName: "CONG TY CO PHAN TZONE",
-    branch: "Chi nhánh TP.HCM",
-    note: "Nội dung CK: SĐT đăng ký + Họ tên",
-    qrImage: null
-  },
-  {
     id: "tcb",
     accountNumber: "1903 7467 4060 10",
     accountName: "PHAM DINH QUANG",
     branch: "Techcombank — VietQR / Napas 247",
     note: "Nội dung CK: SĐT đăng ký + Họ tên",
     qrImage: "/images/payments/tcb-qr.png"
-  },
-  {
-    id: "agri",
-    accountNumber: "1500 2015 67890",
-    accountName: "CONG TY CO PHAN TZONE",
-    branch: "Chi nhánh Cầu Giấy",
-    note: "Nội dung CK: SĐT đăng ký + Họ tên",
-    qrImage: null
-  },
-  {
-    id: "vib",
-    accountNumber: "012704060008914",
-    accountName: "CONG TY CO PHAN TZONE",
-    branch: "VIB Online",
-    note: "Nội dung CK: SĐT đăng ký + Họ tên",
-    qrImage: null
   },
   {
     id: "momo",

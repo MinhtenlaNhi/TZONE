@@ -238,10 +238,46 @@
   margin-bottom: 2rem;
 }
 
-.tz-hero-subtitle strong {
-  color: #1e293b;
+.tz-text-green { color: #10b981; }
+
+.tz-hero-stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.tz-hs-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 12px;
+}
+
+.tz-hs-icon {
+  color: #10b981;
+  background: #ecfdf5;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tz-hs-text strong {
   display: block;
-  margin-bottom: 0.25rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.tz-hs-text span {
+  font-size: 0.8rem;
+  color: #64748b;
+  white-space: nowrap;
 }
 
 .tz-hero-features {
@@ -357,7 +393,9 @@
 
 .tz-benefit-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
   gap: 1rem;
 }
 
@@ -373,7 +411,7 @@
 }
 
 .tz-benefit-text h4 { margin: 0 0 0.25rem 0; font-size: 1.05rem; font-weight: 700; }
-.tz-benefit-text p { margin: 0; font-size: 0.9rem; opacity: 0.9; }
+.tz-benefit-text p { margin: 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; }
 
 /* ==========================================================================
    Common Section Styles
@@ -547,12 +585,40 @@
 }
 
 .tz-cc-content { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; box-sizing: border-box; }
-.tz-cc-title { margin: 0 0 0.5rem; font-size: 1.05rem; font-weight: 700; color: #0f172a; }
-.tz-cc-schedule { margin: 0 0 1rem; font-size: 0.85rem; color: #3b82f6; font-weight: 600; }
+.tz-cc-title { margin: 0 0 1rem; font-size: 1.1rem; font-weight: 800; color: #0f172a; }
 
-.tz-cc-meta { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
-.tz-cc-meta span { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #64748b; }
-.tz-cc-meta svg { color: #94a3b8; }
+.tz-cc-startdate {
+  background: #ecfdf5;
+  color: #10b981;
+  padding: 0.35rem 0.75rem;
+  border-radius: 99px;
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  align-self: flex-start;
+}
+
+.tz-cc-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tz-cc-info-grid div {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.tz-cc-info-grid svg {
+  color: #94a3b8;
+}
 
 .tz-cc-bottom { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem; margin-top: auto;}
 .tz-cc-instructor { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 500;}
@@ -598,12 +664,22 @@
    Reviews
    ========================================================================== */
 .tz-review-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  overflow-x: auto;
   gap: 1.5rem;
+  padding-bottom: 1.5rem; /* Space for shadow/scroll */
+  scroll-snap-type: x mandatory;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.tz-review-grid::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .tz-review-card {
+  flex: 0 0 380px;
+  max-width: 85vw;
+  scroll-snap-align: start;
   background: white; border-radius: 16px; border: 1px solid #e2e8f0;
   padding: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
@@ -633,8 +709,8 @@
 .tz-col-brand p { font-size: 0.9rem; color: #a7f3d0; line-height: 1.6; margin-bottom: 1.5rem; }
 
 .tz-socials { display: flex; gap: 0.5rem; }
-.social-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: background 0.2s; font-weight: bold; }
-.social-icon:hover { background: #10b981; }
+.tz-footer-col .social-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: background 0.2s; font-weight: bold; margin-bottom: 0; }
+.tz-footer-col .social-icon:hover { background: #10b981; }
 
 .tz-footer-col h4 { font-size: 0.95rem; font-weight: 700; margin: 0 0 1.5rem 0; color: white; }
 .tz-footer-col a { display: block; color: #a7f3d0; text-decoration: none; margin-bottom: 0.75rem; font-size: 0.9rem; transition: color 0.2s; }
@@ -643,8 +719,8 @@
 .tz-col-contact p { display: flex; align-items: center; gap: 0.75rem; color: #a7f3d0; font-size: 0.9rem; margin-bottom: 0.75rem; }
 .tz-col-contact svg { color: #10b981; }
 
-.tz-pay-icons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-.tz-pay-icons img { width: 100%; height: 40px; object-fit: contain; background: white; border-radius: 4px; padding: 0.25rem; }
+.tz-pay-icons { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.tz-pay-icons img { height: 36px; width: auto; object-fit: contain; }
 
 .tz-footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding: 1.5rem 0; text-align: center; color: #a7f3d0; font-size: 0.85rem; }
 
@@ -692,10 +768,69 @@
   }
   .tz-float-card { display: none; }
   .tz-benefits-container { grid-template-columns: 1fr; gap: 1.25rem; }
-  .tz-category-tabs, .tz-course-cards { grid-template-columns: 1fr; }
-  .tz-teacher-grid, .tz-review-grid { grid-template-columns: 1fr; }
-  .tz-pf-container { grid-template-columns: 1fr; }
-  .tz-footer-container { grid-template-columns: 1fr; gap: 2rem; }
+  
+  .tz-category-tabs { 
+    display: flex; 
+    overflow-x: auto; 
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.5rem;
+    gap: 1rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .tz-category-tabs::-webkit-scrollbar { display: none; }
+  .tz-cat-tab {
+    flex: 0 0 280px;
+    max-width: 85vw;
+    scroll-snap-align: start;
+    padding: 1rem;
+  }
+  
+  .tz-category-detail-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .tz-section-header {
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  .tz-title-with-bar {
+    font-size: 1.1rem;
+    white-space: nowrap;
+  }
+  .tz-link-more {
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .tz-course-cards, .tz-teacher-grid { 
+    display: flex; 
+    overflow-x: auto; 
+    scroll-snap-type: x mandatory;
+    padding-bottom: 1rem;
+    gap: 1rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .tz-course-cards::-webkit-scrollbar, .tz-teacher-grid::-webkit-scrollbar { 
+    display: none; 
+  }
+  
+  .tz-course-card, .tz-teacher-card {
+    flex: 0 0 280px;
+    max-width: 85vw;
+    scroll-snap-align: start;
+  }
+
+  .tz-pf-container { grid-template-columns: 1fr; gap: 1.5rem; }
+  .tz-pre-footer { padding: 2rem 1.25rem; margin-top: 3rem; }
+  
+  .tz-footer { padding: 3rem 1.25rem 0; }
+  .tz-footer-container { grid-template-columns: 1fr; gap: 2.5rem; text-align: center; }
+  .tz-footer-logo { justify-content: center; }
+  .tz-socials { justify-content: center; }
+  .tz-col-contact p { justify-content: center; }
+  .tz-pay-icons { justify-content: center; }
   .tz-nav-search { display: none; }
   
   .tz-nav-container {

@@ -75,7 +75,7 @@ export default function PublicHeader() {
               className={`tz-btn-category ${isCategoryOpen ? 'active' : ''}`}
               onClick={() => setIsCategoryOpen(!isCategoryOpen)}
             >
-              <HamburgerIcon /> Danh mục
+              <HamburgerIcon /> <span>Danh mục</span>
             </button>
             
             {isCategoryOpen && (

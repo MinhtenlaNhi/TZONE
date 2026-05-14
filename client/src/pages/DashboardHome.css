@@ -457,6 +457,12 @@
   background: #e6f5ec;
 }
 
+@media (max-width: 1200px) {
+  .tz-do-course-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 992px) {
   .tz-do-stats {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -464,6 +470,10 @@
 }
 
 @media (max-width: 768px) {
+  .tz-dashboard-overview {
+    padding: 16px;
+  }
+  
   .tz-do-banner {
     flex-direction: column;
     text-align: center;
@@ -477,6 +487,19 @@
   .tz-do-banner-illustration img {
     height: 180px;
     margin-right: 0;
+  }
+
+  .tz-do-stats {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .tz-do-stat-card {
+    padding: 20px;
+  }
+
+  .tz-do-course-grid {
+    grid-template-columns: 1fr;
   }
 
   .tz-do-explore {

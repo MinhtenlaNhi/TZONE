@@ -1,13 +1,10 @@
 .tap-su-page--embedded {
   min-height: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
-  border: 1px solid #e5e7eb;
+  background: transparent;
 }
 
 .tap-su-page--embedded .tap-su-page__main {
-  padding-top: 20px;
+  padding: 0;
 }
 
 .tap-su-page {

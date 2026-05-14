@@ -4,6 +4,10 @@ export async function fetchMyOrders() {
   return apiFetchJson(apiPath("/api/orders"));
 }
 
+export async function fetchPaymentMethods() {
+  return apiFetchJson(apiPath("/api/payment-methods"));
+}
+
 export async function fetchOrderDetails(orderId) {
   return apiFetchJson(apiPath(`/api/orders/${orderId}`));
 }

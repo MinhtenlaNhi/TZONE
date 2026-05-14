@@ -28,6 +28,22 @@ const updateCourseRating = async (courseId) => {
   }
 };
 
+// 0. Lấy các review mới nhất cho trang chủ
+router.get("/latest", async (req, res) => {
+  try {
+    const reviews = await Review.find({ isHidden: false })
+      .populate("userRef", "name avatar")
+      .populate("courseRef", "title id")
+      .sort({ rating: -1, createdAt: -1 }) // Ưu tiên review 5 sao và mới nhất
+      .limit(6)
+      .lean();
+
+    res.json({ success: true, reviews });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+  }
+});
+
 // 1. Lấy danh sách reviews công khai của khóa học
 router.get("/course/:courseId", async (req, res) => {
   try {

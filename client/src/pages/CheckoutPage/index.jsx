@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchCart } from "../../api/cartApi";
-import { createOrder } from "../../api/ordersApi";
+import { createOrder, fetchPaymentMethods } from "../../api/ordersApi";
 import { getAuth } from "../../auth/auth";
 import "./CheckoutPage.css";
 
@@ -19,31 +19,34 @@ export default function CheckoutPage() {
   const [receiptPreview, setReceiptPreview] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Thông tin ngân hàng cứng (hoặc có thể load từ API)
-  const bankInfo = {
-    bankName: import.meta.env.VITE_BANK_NAME || "Techcombank",
-    accountNumber: import.meta.env.VITE_BANK_ACCOUNT || "190366668888",
-    accountName: import.meta.env.VITE_BANK_OWNER || "PHAM DINH QUANG"
-  };
+  const [paymentMethodsData, setPaymentMethodsData] = useState([]);
+  const [selectedBankId, setSelectedBankId] = useState("");
 
   useEffect(() => {
     if (!authEmail) {
       navigate("/login", { state: { from: "/checkout" } });
       return;
     }
-    const loadCart = async () => {
+    const loadData = async () => {
       try {
-        const res = await fetchCart();
-        if (res.success) {
-          setCart(res.cart);
+        const [resCart, resBanks] = await Promise.all([
+          fetchCart(),
+          fetchPaymentMethods()
+        ]);
+        if (resCart.success) {
+          setCart(resCart.cart);
+        }
+        if (resBanks.success && resBanks.data?.length > 0) {
+          setPaymentMethodsData(resBanks.data);
+          setSelectedBankId(resBanks.data[0].id);
         }
       } catch (e) {
-        toast.error("Không thể tải giỏ hàng.");
+        toast.error("Không thể tải dữ liệu thanh toán.");
       } finally {
         setLoading(false);
       }
     };
-    loadCart();
+    loadData();
   }, [authEmail, navigate]);
 
   const items = cart?.items || [];
@@ -58,6 +61,7 @@ export default function CheckoutPage() {
   };
 
   const totalAmount = calculateTotal();
+  const selectedBank = paymentMethodsData.find(b => b.id === selectedBankId);
 
   if (loading) {
     return <div className="checkout-loading">Đang tải thông tin...</div>;
@@ -138,29 +142,54 @@ export default function CheckoutPage() {
                   />
                   <span className="pm-label">Chuyển khoản ngân hàng</span>
                 </label>
-                
-                <label className={`pm-option ${paymentMethod === 'vnpay' ? 'active' : ''}`}>
-                  <input 
-                    type="radio" 
-                    name="paymentMethod" 
-                    value="vnpay" 
-                    checked={paymentMethod === "vnpay"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  <span className="pm-label">VNPAY (Sandbox)</span>
-                </label>
               </div>
             </div>
 
-            {paymentMethod === "transfer" && (
+            {paymentMethod === "transfer" && selectedBank && (
               <div className="checkout-section transfer-details">
                 <h2>2. Thông tin chuyển khoản</h2>
-                <div className="bank-info-card">
-                  <p><strong>Ngân hàng:</strong> {bankInfo.bankName}</p>
-                  <p><strong>Chủ tài khoản:</strong> {bankInfo.accountName}</p>
-                  <p><strong>Số tài khoản:</strong> <span className="highlight-account">{bankInfo.accountNumber}</span></p>
-                  <p><strong>Số tiền:</strong> <span className="highlight-amount">{totalAmount.toLocaleString("vi-VN")}đ</span></p>
-                  <p><strong>Nội dung CK:</strong> TZONE {auth.email}</p>
+                <div className="bank-selection mb-4">
+                  <p className="mb-2"><strong>Chọn ngân hàng / ví điện tử:</strong></p>
+                  <div className="bank-options" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '15px' }}>
+                    {paymentMethodsData.map(bank => (
+                      <label key={bank.id} className={`bank-option-btn ${selectedBankId === bank.id ? 'active' : ''}`} style={{ 
+                        padding: '8px 16px', 
+                        border: selectedBankId === bank.id ? '2px solid var(--primary-color)' : '1px solid #ccc',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        background: selectedBankId === bank.id ? 'rgba(var(--primary-color-rgb, 43, 108, 176), 0.1)' : '#fff'
+                      }}>
+                        <input 
+                          type="radio" 
+                          name="bankId" 
+                          value={bank.id} 
+                          checked={selectedBankId === bank.id}
+                          onChange={(e) => setSelectedBankId(e.target.value)}
+                          style={{ display: 'none' }}
+                        />
+                        <span style={{ fontWeight: selectedBankId === bank.id ? '600' : 'normal', color: selectedBankId === bank.id ? 'var(--primary-color)' : '#333' }}>
+                          {bank.id.toUpperCase()}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bank-info-card" style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'flex-start' }}>
+                  <div className="bank-info-text" style={{ flex: '1 1 300px' }}>
+                    <p><strong>Ngân hàng / Ví:</strong> {selectedBank.branch}</p>
+                    <p><strong>Chủ tài khoản:</strong> {selectedBank.accountName}</p>
+                    <p><strong>Số tài khoản:</strong> <span className="highlight-account">{selectedBank.accountNumber}</span></p>
+                    <p><strong>Số tiền:</strong> <span className="highlight-amount">{totalAmount.toLocaleString("vi-VN")}đ</span></p>
+                    <p><strong>Nội dung CK:</strong> {auth.email}</p>
+                    {selectedBank.note && <p><strong>Lưu ý:</strong> {selectedBank.note}</p>}
+                  </div>
+                  {selectedBank.qrImage && (
+                    <div className="bank-qr" style={{ width: '200px', textAlign: 'center' }}>
+                      <img src={selectedBank.qrImage} alt={`QR ${selectedBank.id}`} style={{ width: '100%', borderRadius: '8px', border: '1px solid #eee' }} />
+                      <p style={{ fontSize: '13px', marginTop: '8px', color: '#666' }}>Quét mã để thanh toán nhanh</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="upload-receipt-group">
@@ -181,12 +210,7 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {paymentMethod === "vnpay" && (
-              <div className="checkout-section vnpay-details">
-                <p>Hệ thống sẽ chuyển hướng bạn đến cổng thanh toán VNPAY an toàn.</p>
-                <p><em>Sau khi thanh toán thành công trên cổng VNPAY, đơn hàng của bạn sẽ được tự động kích hoạt.</em></p>
-              </div>
-            )}
+
 
             <div className="checkout-actions">
               <Link to="/cart" className="btn-cancel">← Quay lại giỏ hàng</Link>

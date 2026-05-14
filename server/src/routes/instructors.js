@@ -43,9 +43,11 @@ router.get("/", async (req, res) => {
       }
       const name = String(r.name || "").trim() || r.email;
       instructors.push({
+        id: r._id,
         teacherCode: code,
         name,
-        display: `${code} - ${name}`
+        display: `${code} - ${name}`,
+        avatar: r.avatar
       });
     }
 

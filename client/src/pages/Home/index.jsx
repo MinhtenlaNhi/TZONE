@@ -17,13 +17,28 @@ const HamburgerIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
 );
 const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
 );
 const PlayIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
 );
 const CartIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+);
+const DocumentIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+);
+const QuestionIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+);
+const UserGroupIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+);
+const ClockIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+);
+const CalendarIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
 );
 
 // Benefit Icons
@@ -93,6 +108,8 @@ export default function HomePage() {
   const categoryDetailRef = useRef(null);
   const [openCategoryId, setOpenCategoryId] = useState("tap-su"); // Default open
   const [dbCourses, setDbCourses] = useState([]);
+  const [dbTeachers, setDbTeachers] = useState([]);
+  const [dbReviews, setDbReviews] = useState([]);
 
   useEffect(() => {
     // Fetch real courses from DB for Home page
@@ -100,6 +117,24 @@ export default function HomePage() {
       .then(res => {
         if (res.success && res.courses && res.courses.length > 0) {
           setDbCourses(res.courses);
+        }
+      })
+      .catch(console.error);
+
+    // Fetch teachers
+    apiFetchJson('/api/instructors')
+      .then(res => {
+        if (res.success && res.instructors && res.instructors.length > 0) {
+          setDbTeachers(res.instructors);
+        }
+      })
+      .catch(console.error);
+
+    // Fetch reviews
+    apiFetchJson('/api/reviews/latest')
+      .then(res => {
+        if (res.success && res.reviews && res.reviews.length > 0) {
+          setDbReviews(res.reviews);
         }
       })
       .catch(console.error);
@@ -121,8 +156,10 @@ export default function HomePage() {
     levelLabel: c.categoryRef?.name || c.categoryId || "Khóa học",
     title: c.title,
     schedule: c.schedule || "Linh hoạt",
-    price: c.price ? (c.price.toString().includes('đ') ? c.price : `${Number(c.price).toLocaleString()}đ`) : "Miễn phí",
-    startDate: c.startDate || "Liên hệ",
+    duration: c.duration || "2 tháng",
+    sessions: c.totalSessions ? `${c.totalSessions} buổi` : "24 buổi",
+    price: c.price ? (c.price.toString().includes('đ') ? c.price : `${Number(c.price).toLocaleString()}đ`) : "2.500.000đ",
+    startDate: c.startDate || "10/06/2024",
     enrolled: `${c.enrolled || 0}/${c.capacity || 30}`,
     instructor: { 
       name: c.instructor || "TZONE", 
@@ -130,6 +167,24 @@ export default function HomePage() {
     },
     image: c.thumbnail ? apiPath(c.thumbnail) : "/images/course-team-collab.png"
   })) : courses;
+
+  const displayTeachers = dbTeachers.length > 0 ? dbTeachers.slice(0, 3).map(t => ({
+    id: t.id,
+    name: t.name,
+    score: "Giảng viên chuyên môn",
+    rating: 5.0,
+    desc: `Đồng hành cùng học viên tại TZONE (${t.teacherCode})`,
+    image: t.avatar ? apiPath(t.avatar) : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=420&q=80"
+  })) : teachers;
+
+  const displayReviews = dbReviews.length > 0 ? dbReviews.map(r => ({
+    id: r._id,
+    quote: `"${r.comment || 'Khóa học tuyệt vời, tôi rất hài lòng!'}"`,
+    name: r.userRef?.name || "Học viên",
+    classInfo: r.courseRef ? `Khóa ${r.courseRef.title}` : "Khóa học TZONE",
+    avatar: r.userRef?.avatar ? apiPath(r.userRef.avatar) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80",
+    rating: r.rating || 5
+  })) : reviews;
 
   return (
     <main id="top" className="tz-home">
@@ -140,17 +195,35 @@ export default function HomePage() {
         <div className="tz-hero-container">
           <div className="tz-hero-content">
             <span className="tz-hero-badge">KHÓA HỌC TOEIC</span>
-            <h1 className="tz-hero-title">Chinh Phục<br/>TOEIC 800+</h1>
+            <h1 className="tz-hero-title">Chinh Phục TOEIC <br/><span className="tz-text-green">800+</span></h1>
             <p className="tz-hero-subtitle">
-              <strong>20+ Bộ đề TOEIC chuẩn luyện thi thực tế mỗi ngày</strong><br/>
-              Cam kết đầu ra — Tăng điểm nhanh — Học là nhớ ngay!
+              20+ Bộ đề TOEIC chuẩn luyện thi hiệu quả nhất hiện nay
             </p>
             
+            <div className="tz-hero-stats">
+              <div className="tz-hs-item">
+                <div className="tz-hs-icon"><DocumentIcon /></div>
+                <div className="tz-hs-text"><strong>20+</strong><span>Bộ đề</span></div>
+              </div>
+              <div className="tz-hs-item">
+                <div className="tz-hs-icon"><QuestionIcon /></div>
+                <div className="tz-hs-text"><strong>1000+</strong><span>Câu hỏi</span></div>
+              </div>
+              <div className="tz-hs-item">
+                <div className="tz-hs-icon"><IconBenefitVideo /></div>
+                <div className="tz-hs-text"><strong>200+</strong><span>Video bài giảng</span></div>
+              </div>
+              <div className="tz-hs-item">
+                <div className="tz-hs-icon"><UserGroupIcon /></div>
+                <div className="tz-hs-text"><strong>10.000+</strong><span>Học viên</span></div>
+              </div>
+            </div>
+
             <ul className="tz-hero-features">
-              <li><CheckIcon /> Giảng viên TOEIC 900+ (Kinh nghiệm luyện thi thực chiến)</li>
-              <li><CheckIcon /> Lộ trình rõ ràng (Từ mất gốc đến 800+)</li>
-              <li><CheckIcon /> Trực tuyến linh hoạt (Mọi lúc mọi nơi)</li>
-              <li><CheckIcon /> Cam kết đầu ra (Không đạt học lại miễn phí)</li>
+              <li><CheckIcon /> Bám sát cấu trúc đề thi TOEIC mới nhất</li>
+              <li><CheckIcon /> Lộ trình học thông minh - Cá nhân hóa theo mục tiêu</li>
+              <li><CheckIcon /> Thực hành với kho đề phong phú, cập nhật liên tục</li>
+              <li><CheckIcon /> Giải thích chi tiết - Hướng dẫn từ A đến Z</li>
             </ul>
 
             <div className="tz-hero-actions">
@@ -256,11 +329,14 @@ export default function HomePage() {
               </div>
               <div className="tz-cc-content">
                 <h3 className="tz-cc-title">{c.title}</h3>
-                <p className="tz-cc-schedule">{c.schedule}</p>
                 
-                <div className="tz-cc-meta">
-                  <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Khai giảng: {c.startDate}</span>
-                  <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg> {c.enrolled}</span>
+                <div className="tz-cc-startdate">
+                  <span>Khai giảng: {c.startDate}</span>
+                </div>
+
+                <div className="tz-cc-info-grid">
+                  <div><ClockIcon/> {c.duration}</div>
+                  <div><CalendarIcon/> {c.sessions}</div>
                 </div>
 
                 <div className="tz-cc-bottom">
@@ -286,8 +362,8 @@ export default function HomePage() {
         </div>
         
         <div className="tz-teacher-grid">
-          {teachers.map(t => (
-            <div className="tz-teacher-card" key={t.name}>
+          {displayTeachers.map(t => (
+            <div className="tz-teacher-card" key={t.id || t.name}>
               <img src={t.image} alt={t.name} className="tz-tc-avatar" />
               <div className="tz-tc-info">
                 <h3>{t.name}</h3>
@@ -311,9 +387,9 @@ export default function HomePage() {
         </div>
 
         <div className="tz-review-grid">
-          {reviews.map(r => (
+          {displayReviews.map(r => (
             <div className="tz-review-card" key={r.id}>
-              <div className="tz-rc-stars">★★★★★</div>
+              <div className="tz-rc-stars">{"★".repeat(r.rating || 5)}{"☆".repeat(5 - (r.rating || 5))}</div>
               <p className="tz-rc-quote">{r.quote}</p>
               <div className="tz-rc-author">
                 <img src={r.avatar} alt={r.name} />
