@@ -24,7 +24,29 @@ router.get("/", authMiddleware, isTeacher, async (req, res) => {
       .populate("categoryRef", "name")
       .sort({ createdAt: -1 })
       .lean();
-    res.json({ success: true, courses });
+
+    const courseIds = courses.map(c => c._id);
+    
+    const enrollments = await Enrollment.find({ course: { $in: courseIds } }).lean();
+    const totalStudents = enrollments.length;
+    
+    let totalProgress = 0;
+    enrollments.forEach(e => {
+      totalProgress += (e.progress || 0);
+    });
+    const avgCompletionRate = totalStudents > 0 ? Math.round(totalProgress / totalStudents) : 0;
+
+    const totalLessons = await Lesson.countDocuments({ courseRef: { $in: courseIds } });
+
+    res.json({ 
+      success: true, 
+      courses, 
+      stats: {
+        totalStudents,
+        totalLessons,
+        avgCompletionRate
+      }
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: "Lỗi máy chủ" });
   }

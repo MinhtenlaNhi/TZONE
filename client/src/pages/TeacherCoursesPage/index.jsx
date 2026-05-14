@@ -73,6 +73,7 @@ const IconUserCircle = () => (
 export default function TeacherCoursesPage() {
   const auth = getAuth();
   const [courses, setCourses] = useState([]);
+  const [stats, setStats] = useState({ totalStudents: 0, totalLessons: 0, avgCompletionRate: 0 });
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [students, setStudents] = useState([]);
@@ -96,6 +97,7 @@ export default function TeacherCoursesPage() {
       const res = await fetchTeacherCourses();
       if (res.success) {
         setCourses(res.courses);
+        if (res.stats) setStats(res.stats);
       } else {
         toast.error("Lỗi lấy danh sách khóa học");
       }
@@ -226,7 +228,7 @@ export default function TeacherCoursesPage() {
               <IconUsers />
             </div>
             <div className="tz-tc-stat-info">
-              <h3>248</h3>
+              <h3>{stats.totalStudents}</h3>
               <p>Tổng học viên</p>
             </div>
             <div className="tz-tc-stat-sparkline"><svg viewBox="0 0 50 20"><polyline points="0,18 10,12 20,15 30,8 40,10 50,4" fill="none" stroke="#3b82f6" strokeWidth="2"/></svg></div>
@@ -236,7 +238,7 @@ export default function TeacherCoursesPage() {
               <IconMonitor />
             </div>
             <div className="tz-tc-stat-info">
-              <h3>102</h3>
+              <h3>{stats.totalLessons}</h3>
               <p>Bài học</p>
             </div>
             <div className="tz-tc-stat-sparkline"><svg viewBox="0 0 50 20"><polyline points="0,10 10,18 20,5 30,12 40,8 50,15" fill="none" stroke="#8b5cf6" strokeWidth="2"/></svg></div>
@@ -246,7 +248,7 @@ export default function TeacherCoursesPage() {
               <IconCheckCircle />
             </div>
             <div className="tz-tc-stat-info">
-              <h3>86%</h3>
+              <h3>{stats.avgCompletionRate}%</h3>
               <p>Tỷ lệ hoàn thành</p>
             </div>
             <div className="tz-tc-stat-sparkline"><svg viewBox="0 0 50 20"><polyline points="0,20 10,18 20,10 30,12 40,5 50,8" fill="none" stroke="#f59e0b" strokeWidth="2"/></svg></div>
