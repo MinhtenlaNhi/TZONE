@@ -136,7 +136,8 @@ router.post("/v2/courses", upload.single("thumbnail"), async (req, res) => {
       capacity: raw.capacity || "30",
       rating: Number(raw.rating) || 5,
       price: raw.price || "",
-      instructor: raw.instructor || ""
+      instructor: raw.instructor || "",
+      instructorRef: raw.instructorRef || null
     };
 
     if (sessions) {
@@ -185,7 +186,8 @@ router.put("/v2/courses/:id", upload.single("thumbnail"), async (req, res) => {
       capacity: raw.capacity,
       rating: raw.rating ? Number(raw.rating) : undefined,
       price: raw.price,
-      instructor: raw.instructor
+      instructor: raw.instructor,
+      instructorRef: raw.instructorRef || undefined
     };
 
     if (raw.categoryId) updateData.categoryId = raw.categoryId;

@@ -41,6 +41,7 @@ export default function AdminCourseFormPage() {
     rating: 5,
     price: "",
     instructor: "",
+    instructorRef: "",
     sessionCols: [],
     startTime: "18:00",
     endTime: "19:30",
@@ -109,6 +110,7 @@ export default function AdminCourseFormPage() {
               rating: course.rating || 5,
               price: course.price || "",
               instructor: course.instructor || "",
+              instructorRef: course.instructorRef?._id || course.instructorRef || "",
               sessionCols: cols,
               startTime: stTime,
               endTime: enTime,
@@ -291,9 +293,16 @@ export default function AdminCourseFormPage() {
               <div className="tz-form-row">
                 <div className="tz-form-group">
                   <label>Giảng viên <span className="text-danger">*</span></label>
-                  <select name="instructor" value={formData.instructor} onChange={handleChange}>
+                  <select name="instructorRef" value={formData.instructorRef} onChange={(e) => {
+                    const selInstructor = instructors.find(i => i.id === e.target.value);
+                    setFormData(prev => ({
+                      ...prev,
+                      instructorRef: e.target.value,
+                      instructor: selInstructor ? selInstructor.display : ""
+                    }));
+                  }}>
                     <option value="">Chọn giảng viên</option>
-                    {instructors.map((i, idx) => <option key={i.email || `inst-${idx}`} value={i.display}>{i.display}</option>)}
+                    {instructors.map((i, idx) => <option key={i.id || `inst-${idx}`} value={i.id}>{i.display}</option>)}
                   </select>
                 </div>
                 <div className="tz-form-group">
