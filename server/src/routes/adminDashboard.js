@@ -50,6 +50,41 @@ router.get("/", authMiddleware, isAdmin, async (req, res) => {
       });
     }
 
+    // Doanh thu theo 30 ngày gần nhất
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+    const dailyRevenue = await Order.aggregate([
+      { $match: { status: "paid", createdAt: { $gte: thirtyDaysAgo } } },
+      {
+        $group: {
+          _id: { 
+            day: { $dayOfMonth: "$createdAt" }, 
+            month: { $month: "$createdAt" }, 
+            year: { $year: "$createdAt" } 
+          },
+          total: { $sum: "$totalAmount" }
+        }
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }
+    ]);
+
+    const revenueByDay = [];
+    for (let i = 0; i < 30; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - (29 - i));
+      const day = d.getDate();
+      const month = d.getMonth() + 1;
+      const year = d.getFullYear();
+      
+      const found = dailyRevenue.find(r => r._id.day === day && r._id.month === month && r._id.year === year);
+      revenueByDay.push({
+        name: `${day}/${month}`,
+        revenue: found ? found.total : 0
+      });
+    }
+
     // Top 5 khóa học có số người enroll cao nhất
     const topCourses = await Course.find()
       .sort({ enrolled: -1 })
@@ -63,6 +98,7 @@ router.get("/", authMiddleware, isAdmin, async (req, res) => {
         totalCourses,
         totalRevenue,
         revenueByMonth,
+        revenueByDay,
         topCourses
       }
     });

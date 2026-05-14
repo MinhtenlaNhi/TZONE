@@ -7,6 +7,7 @@ import "./AdminDashboard.css";
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [chartView, setChartView] = useState("month"); // "month" or "day"
 
   useEffect(() => {
     loadStats();
@@ -143,16 +144,26 @@ export default function AdminDashboardPage() {
       <div className="tz-dashboard-layout">
         {/* 2. Main Chart */}
         <div className="tz-main-chart-card">
-          <div className="tz-chart-header">
-            <h3>Doanh thu 12 tháng gần nhất</h3>
-            <div className="tz-chart-legend">
-              <span className="legend-dot"></span> Doanh thu (đ)
+          <div className="tz-chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <h3>{chartView === "month" ? "Doanh thu 12 tháng gần nhất" : "Doanh thu 30 ngày gần nhất"}</h3>
+            <div className="tz-chart-controls" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+              <select 
+                value={chartView} 
+                onChange={(e) => setChartView(e.target.value)}
+                style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #ddd', outline: 'none', cursor: 'pointer', background: '#fff' }}
+              >
+                <option value="month">Theo tháng</option>
+                <option value="day">Theo ngày</option>
+              </select>
+              <div className="tz-chart-legend">
+                <span className="legend-dot"></span> Doanh thu (đ)
+              </div>
             </div>
           </div>
           
           <div className="tz-chart-wrapper">
             <ResponsiveContainer width="100%" height={280}>
-              <AreaChart data={stats.revenueByMonth} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <AreaChart data={chartView === "month" ? stats.revenueByMonth : (stats.revenueByDay || [])} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
@@ -222,35 +233,6 @@ export default function AdminDashboardPage() {
                 <h4>—%</h4>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* 3. Top Courses */}
-        <div className="tz-top-courses-card">
-          <div className="tz-top-courses-header">
-            <h3>Khóa học Bán chạy</h3>
-            <button className="tz-view-all">Xem tất cả <span>&rarr;</span></button>
-          </div>
-          
-          <div className="tz-courses-list">
-            {stats.topCourses.map((c, idx) => {
-              const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : idx === 3 ? 'rank-4' : 'rank-5';
-              return (
-                <div key={c._id} className="tz-course-item">
-                  <div className={`tz-course-rank ${rankClass}`}>
-                    #{idx + 1}
-                  </div>
-                  <div className="tz-course-info">
-                    <h4>{c.title}</h4>
-                    <p>{c.id || "CT3100"} • {c.price}</p>
-                  </div>
-                  <div className="tz-course-enrolled">
-                    <strong>{c.enrolled}</strong>
-                    <span>học viên</span>
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
