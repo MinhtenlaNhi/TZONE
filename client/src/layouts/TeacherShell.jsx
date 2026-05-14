@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import { getAuth, clearAuth } from "../auth/auth";
+import { getAuth, clearAuth, setAuth } from "../auth/auth";
+import { getCurrentUser } from "../api/auth";
 import { apiPath } from "../api/base";
 import "./TeacherShell.css";
 
@@ -26,6 +27,29 @@ export default function TeacherShell() {
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  // Sync latest user info (especially for teacher approval status changes)
+  useEffect(() => {
+    const fetchLatestUser = async () => {
+      try {
+        const data = await getCurrentUser();
+        if (data?.success && data?.user) {
+          // Merge old user state (which includes token if stored) with new user data
+          setUser((prev) => {
+            const nextUser = { ...prev, ...data.user };
+            setAuth(nextUser);
+            return nextUser;
+          });
+        }
+      } catch (error) {
+        console.error("Failed to sync user data:", error);
+      }
+    };
+
+    if (user?.role === "teacher") {
+      fetchLatestUser();
+    }
   }, []);
 
   const handleLogout = () => {
