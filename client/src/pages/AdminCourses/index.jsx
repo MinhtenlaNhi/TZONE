@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Navigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchAdminCoursesV2, deleteAdminCourseV2 } from "../../api/adminCoursesApi";
+import { fetchDashboardStats } from "../../api/adminApi";
 import { getAuth } from "../../auth/auth";
 import "./AdminCourses.css";
 import { apiPath } from "../../api/base";
@@ -11,6 +12,7 @@ export default function AdminCoursesPage() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [totalRevenue, setTotalRevenue] = useState(0);
   
   // Fake pagination and filters for UI
   const [page, setPage] = useState(1);
@@ -26,9 +28,16 @@ export default function AdminCoursesPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const coursesRes = await fetchAdminCoursesV2();
+      const [coursesRes, statsRes] = await Promise.all([
+        fetchAdminCoursesV2(),
+        fetchDashboardStats()
+      ]);
       if (coursesRes.success) {
         setCourses(coursesRes.courses || []);
+      }
+      if (statsRes.success) {
+        const currentMonthRev = statsRes.stats?.revenueByMonth?.[11]?.revenue || 0;
+        setTotalRevenue(currentMonthRev);
       }
     } catch (e) {
       toast.error("Lỗi kết nối máy chủ");
@@ -59,9 +68,7 @@ export default function AdminCoursesPage() {
   // Tính toán số liệu thống kê
   const totalCourses = courses.length;
   const publishedCourses = courses.filter(c => c.isPublished).length;
-  const draftCourses = totalCourses - publishedCourses;
-  // Giả lập doanh thu tháng này
-  const totalRevenue = 120000000; 
+  const draftCourses = totalCourses - publishedCourses; 
 
   // Lọc dữ liệu local
   const filteredCourses = courses.filter(c => {
