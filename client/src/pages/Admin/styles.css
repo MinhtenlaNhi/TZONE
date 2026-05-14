@@ -111,7 +111,7 @@
 }
 
 .admin-page__main--wide {
-  max-width: var(--layout-max);
+  max-width: 100%;
 }
 
 /* Khối chào mừng */

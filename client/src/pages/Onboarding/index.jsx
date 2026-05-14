@@ -57,7 +57,10 @@ export default function OnboardingPage() {
       /* ignore */
     }
 
-    if (accountType === "teacher" && auth?.provider === "email") {
+    if (
+      accountType === "teacher" &&
+      auth?.teacherApprovalStatus !== "approved"
+    ) {
       window.alert(
         "Tài khoản giáo viên của bạn đang chờ quản trị viên phê duyệt. Bạn sẽ được thông báo khi được duyệt."
       );
