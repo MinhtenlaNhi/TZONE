@@ -37,6 +37,30 @@ export default function TeacherShell() {
   const rawAvatar = user?.avatar || user?.picture || user?.googlePicture;
   const avatarUrl = rawAvatar ? (rawAvatar.startsWith("http") ? rawAvatar : apiPath(rawAvatar)) : null;
 
+  if (user?.role === "teacher" && user?.teacherApprovalStatus !== "approved") {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '20px', background: '#f8fafc' }}>
+        <div style={{ textAlign: 'center', maxWidth: '500px', padding: '40px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+          <h2 style={{ color: '#f59e0b', marginBottom: '15px', fontSize: '1.5rem' }}>Tài khoản đang chờ phê duyệt</h2>
+          <p style={{ color: '#4b5563', lineHeight: '1.6', marginBottom: '20px' }}>
+            Xin chào <strong>{displayName}</strong>, tài khoản giáo viên của bạn hiện đang trong trạng thái <strong style={{ color: user?.teacherApprovalStatus === 'rejected' ? '#ef4444' : '#f59e0b' }}>{user?.teacherApprovalStatus === 'rejected' ? 'bị từ chối' : 'chờ phê duyệt'}</strong>.
+          </p>
+          <p style={{ color: '#6b7280', fontSize: '0.95rem' }}>
+            Vui lòng liên hệ với Quản trị viên hệ thống để được xét duyệt quyền truy cập vào bảng điều khiển giáo viên.
+          </p>
+          <div style={{ marginTop: '25px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
+            <Link to="/dashboard" style={{ padding: '10px 24px', border: '1px solid #ddd', color: '#4b5563', borderRadius: '6px', textDecoration: 'none', fontWeight: '500' }}>
+              Trang học viên
+            </Link>
+            <button onClick={handleLogout} style={{ padding: '10px 24px', background: 'var(--primary-color, #10b981)', color: '#fff', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: '500' }}>
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="ts-layout">
       {/* OVERLAY FOR MOBILE */}
