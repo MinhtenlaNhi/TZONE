@@ -66,7 +66,11 @@ export default function OnboardingPage() {
       );
     }
 
-    navigate("/dashboard", { replace: true });
+    if (accountType === "teacher") {
+      navigate("/teacher/dashboard", { replace: true });
+    } else {
+      navigate("/dashboard", { replace: true });
+    }
   }
 
   return (

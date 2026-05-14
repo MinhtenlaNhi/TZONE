@@ -144,7 +144,11 @@ function GoogleRegisterButton({ role }) {
             navigate("/onboarding");
           } else {
             clearPendingRegisterRole();
-            navigate("/dashboard");
+            if (appRole === "teacher") {
+              navigate("/teacher/dashboard");
+            } else {
+              navigate("/dashboard");
+            }
           }
         } catch (err) {
           if (err.code === "LOCAL_EMAIL_EXISTS") {
@@ -281,7 +285,11 @@ export default function RegisterDetailsPage() {
         navigate("/onboarding");
       } else {
         clearPendingRegisterRole();
-        navigate("/dashboard");
+        if (appRole === "teacher") {
+          navigate("/teacher/dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (err) {
       if (err.code === "GOOGLE_EMAIL" || err.code === "REGISTERED") {

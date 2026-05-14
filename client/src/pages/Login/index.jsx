@@ -97,7 +97,11 @@ function GoogleSignInButton() {
             navigate("/onboarding");
           } else {
             clearPendingRegisterRole();
-            navigate("/dashboard");
+            if (role === "teacher") {
+              navigate("/teacher/dashboard");
+            } else {
+              navigate("/dashboard");
+            }
           }
         } catch (err) {
           sessionStorage.removeItem(AUTH_STORAGE_KEY);
@@ -209,7 +213,11 @@ export default function LoginPage() {
         navigate("/onboarding");
       } else {
         clearPendingRegisterRole();
-        navigate("/dashboard");
+        if (role === "teacher") {
+          navigate("/teacher/dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       }
     } catch (err) {
       setFormErr(err.message || "Đăng nhập thất bại.");
