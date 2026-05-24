@@ -1,12 +1,3 @@
-/**
- * Seed Database — TZONE Toeic
- *
- * Thêm danh mục và tài khoản mẫu (admin, giảng viên, học viên).
- *
- * Chạy:  node server/scripts/seed.js
- * Reset: node server/scripts/seed.js --reset  (xóa users + categories rồi seed lại)
- */
-
 require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
@@ -91,8 +82,6 @@ async function run() {
   console.log("════════════════════════════════════════════════");
   console.log(`\n🔐 Mật khẩu chung cho tất cả tài khoản seed: ${DEFAULT_PASSWORD}`);
   console.log("   Tài khoản admin: pdquang050203@gmail.com");
-  console.log("   Tài khoản GV:    hatrang.tzone@gmail.com, minhtuan.tzone@gmail.com, ...");
-  console.log("   Tài khoản HS:    nguyenvana.student@gmail.com, ...\n");
 
   await mongoose.disconnect();
 }
