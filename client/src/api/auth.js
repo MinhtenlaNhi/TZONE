@@ -62,11 +62,25 @@ export async function syncGoogleAccount({ email, name, picture }) {
 
 /* ───── FORGOT PASSWORD ───── */
 export async function forgotPassword(email) {
-  const res = await fetch(apiPath("/api/auth/forgot-password"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email })
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20_000);
+
+  let res;
+  try {
+    res = await fetch(apiPath("/api/auth/forgot-password"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+      signal: controller.signal
+    });
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error("Yêu cầu quá lâu. Kiểm tra server đang chạy rồi thử lại.");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.message || "Lỗi gửi yêu cầu.");

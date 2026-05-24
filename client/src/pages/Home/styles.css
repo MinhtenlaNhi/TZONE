@@ -690,6 +690,7 @@
 .tz-rc-author img { width: 48px; height: 48px; border-radius: 50%; }
 .tz-rc-author strong { display: block; font-size: 1rem; color: #0f172a; margin-bottom: 0.1rem; }
 .tz-rc-author span { color: #64748b; font-size: 0.85rem; }
+.tz-reviews-empty { color: #64748b; font-size: 1rem; margin: 0; padding: 1rem 0; }
 
 /* ==========================================================================
    Footer

@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const { isDbReady } = require("../db");
 const { generateToken } = require("../utils/jwt");
+const { sendResetPasswordEmail } = require("../utils/mailer");
 const { authMiddleware } = require("../middlewares/auth");
 
 const router = express.Router();
@@ -260,39 +261,13 @@ router.post("/forgot-password", async (req, res) => {
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 giờ
     await user.save();
 
-    // TODO: Gửi email thật bằng Nodemailer khi có SMTP config
-    // Tạm thời log ra console cho dev
     const resetUrl = `${req.headers.origin || "http://localhost:5173"}/reset-password/${resetToken}`;
     console.log(`[forgot-password] Reset URL for ${email}: ${resetUrl}`);
 
-    // Nếu có SMTP config, gửi email
-    try {
-      const nodemailer = require("nodemailer");
-      const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
-      const smtpUser = process.env.SMTP_USER || process.env.EMAIL_USER;
-      const smtpPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
-      if (smtpHost && smtpUser && smtpPass) {
-        const transporter = nodemailer.createTransport({
-          host: smtpHost,
-          port: Number(process.env.SMTP_PORT) || 587,
-          secure: (process.env.SMTP_PORT || "587") === "465",
-          auth: { user: smtpUser, pass: smtpPass }
-        });
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || smtpUser,
-          to: email,
-          subject: "TZONE Toeic — Đặt lại mật khẩu",
-          html: `
-            <h2>Đặt lại mật khẩu</h2>
-            <p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấn vào link bên dưới (có hiệu lực trong 1 giờ):</p>
-            <a href="${resetUrl}">${resetUrl}</a>
-            <p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
-          `
-        });
-      }
-    } catch (emailErr) {
+    // Gửi email nền — không chặn response (tránh treo "Đang gửi..." khi SMTP chậm/lỗi)
+    sendResetPasswordEmail(email, resetUrl).catch((emailErr) => {
       console.error("[forgot-password] Email send error:", emailErr.message);
-    }
+    });
 
     return res.json({ success: true, message: "Nếu email tồn tại, bạn sẽ nhận được email hướng dẫn đặt lại mật khẩu." });
   } catch (e) {

@@ -32,9 +32,9 @@ const updateCourseRating = async (courseId) => {
 router.get("/latest", async (req, res) => {
   try {
     const reviews = await Review.find({ isHidden: false })
-      .populate("userRef", "name avatar")
-      .populate("courseRef", "title id")
-      .sort({ rating: -1, createdAt: -1 }) // Ưu tiên review 5 sao và mới nhất
+      .populate("userRef", "name avatar googlePicture")
+      .populate("courseRef", "title id startDate")
+      .sort({ rating: -1, createdAt: -1 })
       .limit(6)
       .lean();
 

@@ -98,10 +98,19 @@ const teachers = [
   { name: "Ms. Minh Hạnh", score: "TOEIC 990/990", rating: 5.0, desc: "Giảng viên TOEIC 990 tuyệt đối. Đào tạo nhiều thế hệ học viên đạt 800+.", image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=420&q=80" }
 ];
 
-const reviews = [
-  { id: 1, quote: '"Giáo viên giảng dạy rất dễ hiểu, bài học sát đề thi và có lộ trình rõ ràng."', name: "Linh Chi", classInfo: "Lớp TOEIC A — Khai giảng 03/2025", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80" },
-  { id: 2, quote: '"Sau khóa học mình tăng từ 550 lên 805 điểm. Tzone hỗ trợ rất nhiệt tình!"', name: "Hoàng Nam", classInfo: "Lớp TOEIC B — Khai giảng 12/2024", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80" }
-];
+function reviewAvatarUrl(userRef) {
+  const raw = userRef?.avatar || userRef?.googlePicture;
+  if (!raw) return null;
+  return raw.startsWith("http") ? raw : apiPath(raw);
+}
+
+function formatReviewClassInfo(courseRef) {
+  if (!courseRef?.title) return "Khóa học TZONE";
+  if (courseRef.startDate) {
+    return `Lớp ${courseRef.title} — Khai giảng ${courseRef.startDate}`;
+  }
+  return `Khóa ${courseRef.title}`;
+}
 
 export default function HomePage() {
   const location = useLocation();
@@ -110,6 +119,7 @@ export default function HomePage() {
   const [dbCourses, setDbCourses] = useState([]);
   const [dbTeachers, setDbTeachers] = useState([]);
   const [dbReviews, setDbReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
 
   useEffect(() => {
     // Fetch real courses from DB for Home page
@@ -130,14 +140,14 @@ export default function HomePage() {
       })
       .catch(console.error);
 
-    // Fetch reviews
-    apiFetchJson('/api/reviews/latest')
-      .then(res => {
-        if (res.success && res.reviews && res.reviews.length > 0) {
+    apiFetchJson("/api/reviews/latest")
+      .then((res) => {
+        if (res.success && Array.isArray(res.reviews)) {
           setDbReviews(res.reviews);
         }
       })
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setReviewsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -177,14 +187,14 @@ export default function HomePage() {
     image: t.avatar ? apiPath(t.avatar) : "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=420&q=80"
   })) : teachers;
 
-  const displayReviews = dbReviews.length > 0 ? dbReviews.map(r => ({
+  const displayReviews = dbReviews.map((r) => ({
     id: r._id,
-    quote: `"${r.comment || 'Khóa học tuyệt vời, tôi rất hài lòng!'}"`,
+    quote: r.comment ? `"${r.comment}"` : "",
     name: r.userRef?.name || "Học viên",
-    classInfo: r.courseRef ? `Khóa ${r.courseRef.title}` : "Khóa học TZONE",
-    avatar: r.userRef?.avatar ? apiPath(r.userRef.avatar) : "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80",
+    classInfo: formatReviewClassInfo(r.courseRef),
+    avatar: reviewAvatarUrl(r.userRef),
     rating: r.rating || 5
-  })) : reviews;
+  }));
 
   return (
     <main id="top" className="tz-home">
@@ -386,21 +396,37 @@ export default function HomePage() {
           <a href="#all-reviews" className="tz-link-more">Xem tất cả &gt;</a>
         </div>
 
-        <div className="tz-review-grid">
-          {displayReviews.map(r => (
-            <div className="tz-review-card" key={r.id}>
-              <div className="tz-rc-stars">{"★".repeat(r.rating || 5)}{"☆".repeat(5 - (r.rating || 5))}</div>
-              <p className="tz-rc-quote">{r.quote}</p>
-              <div className="tz-rc-author">
-                <img src={r.avatar} alt={r.name} />
-                <div>
-                  <strong>{r.name}</strong>
-                  <span>{r.classInfo}</span>
+        {reviewsLoading ? (
+          <p className="tz-reviews-empty">Đang tải đánh giá...</p>
+        ) : displayReviews.length === 0 ? (
+          <p className="tz-reviews-empty">Chưa có đánh giá nào từ học viên.</p>
+        ) : (
+          <div className="tz-review-grid">
+            {displayReviews.map((r) => (
+              <div className="tz-review-card" key={r.id}>
+                <div className="tz-rc-stars">
+                  {"★".repeat(r.rating)}
+                  {"☆".repeat(5 - r.rating)}
+                </div>
+                {r.quote && <p className="tz-rc-quote">{r.quote}</p>}
+                <div className="tz-rc-author">
+                  <img
+                    src={r.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(r.name)}`}
+                    alt={r.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(r.name)}`;
+                    }}
+                  />
+                  <div>
+                    <strong>{r.name}</strong>
+                    <span>{r.classInfo}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <PublicFooter />
