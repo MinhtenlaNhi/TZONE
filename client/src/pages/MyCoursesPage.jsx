@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { fetchMyEnrollments } from "../api/enrollmentsApi";
 import { apiPath } from "../api/base";
+import { getCourseLearnPath, getVisibleEnrollments } from "../utils/enrollments";
 import "./MyCoursesPage.css";
 
 // SVG Icons
@@ -59,6 +60,8 @@ export default function MyCoursesPage() {
     return "tz-cover-blue";
   };
 
+  const visibleEnrollments = getVisibleEnrollments(enrollments);
+
   if (loading) {
     return (
       <div className="tz-mc-loading">
@@ -90,7 +93,7 @@ export default function MyCoursesPage() {
           </div>
         </div>
 
-        {enrollments.length === 0 ? (
+        {visibleEnrollments.length === 0 ? (
           <div className="tz-mc-empty">
             <div className="tz-mc-empty-icon"><IconBook /></div>
             <h2>Bạn chưa tham gia khóa học nào</h2>
@@ -99,10 +102,8 @@ export default function MyCoursesPage() {
           </div>
         ) : (
           <div className="tz-mc-grid">
-            {enrollments.map(enr => {
+            {visibleEnrollments.map((enr) => {
               const course = enr.course;
-              if (!course) return null;
-
               const catName = course.categoryRef?.name || course.categoryId;
               const colorClass = getCoverColorClass(catName);
               const coverText = getCoverInitials(catName, course.title);
@@ -146,7 +147,7 @@ export default function MyCoursesPage() {
 
                   {/* Footer Area */}
                   <div className="tz-mc-footer">
-                    <button className="tz-mc-btn-learn" onClick={() => navigate(`/learn/${course._id}`)}>
+                    <button className="tz-mc-btn-learn" onClick={() => navigate(getCourseLearnPath(course))}>
                       <IconPlay /> Tiếp tục học
                     </button>
                   </div>

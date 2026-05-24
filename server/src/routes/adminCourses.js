@@ -8,6 +8,11 @@ const { isDbReady } = require("../db");
 const { authMiddleware } = require("../middlewares/auth");
 const { isAdmin } = require("../middlewares/role");
 const { verifyAdminFromRequestBody } = require("../utils/adminAuth");
+const { parseEnrollmentDatetime } = require("../utils/datetime");
+const {
+  findInstructorScheduleConflict,
+  buildInstructorConflictMessage
+} = require("../utils/scheduleConflict");
 
 const router = express.Router();
 
@@ -128,8 +133,8 @@ router.post("/v2/courses", upload.single("thumbnail"), async (req, res) => {
       totalSessions: Number(raw.totalSessions) || 0,
       sessionDuration: Number(raw.sessionDuration) || 90,
       startDate: raw.startDate || "",
-      enrollmentOpenDate: raw.enrollmentOpenDate ? new Date(raw.enrollmentOpenDate) : null,
-      enrollmentCloseDate: raw.enrollmentCloseDate ? new Date(raw.enrollmentCloseDate) : null,
+      enrollmentOpenDate: parseEnrollmentDatetime(raw.enrollmentOpenDate),
+      enrollmentCloseDate: parseEnrollmentDatetime(raw.enrollmentCloseDate),
       isPublished: raw.isPublished === "true" || raw.isPublished === true,
       trialLessonCount: Number(raw.trialLessonCount) || 2,
       enrolled: raw.enrolled || "0",
@@ -148,6 +153,20 @@ router.post("/v2/courses", upload.single("thumbnail"), async (req, res) => {
       docData.thumbnail = req.file.path;
     }
 
+    if (docData.instructorRef && docData.sessions?.length) {
+      const conflict = await findInstructorScheduleConflict(
+        Course,
+        docData.instructorRef,
+        docData.sessions
+      );
+      if (conflict) {
+        return res.status(409).json({
+          success: false,
+          message: buildInstructorConflictMessage(conflict)
+        });
+      }
+    }
+
     const doc = await Course.create(docData);
     return res.status(201).json({ success: true, message: "Đã tạo khóa học.", course: doc });
   } catch (e) {
@@ -163,6 +182,11 @@ router.post("/v2/courses", upload.single("thumbnail"), async (req, res) => {
 router.put("/v2/courses/:id", upload.single("thumbnail"), async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
   try {
+    const existing = await Course.findById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy khóa học" });
+    }
+
     const raw = req.body;
     let sessions = undefined;
     if (raw.sessions) {
@@ -178,8 +202,8 @@ router.put("/v2/courses/:id", upload.single("thumbnail"), async (req, res) => {
       totalSessions: raw.totalSessions ? Number(raw.totalSessions) : undefined,
       sessionDuration: raw.sessionDuration ? Number(raw.sessionDuration) : undefined,
       startDate: raw.startDate,
-      enrollmentOpenDate: raw.enrollmentOpenDate ? new Date(raw.enrollmentOpenDate) : null,
-      enrollmentCloseDate: raw.enrollmentCloseDate ? new Date(raw.enrollmentCloseDate) : null,
+      enrollmentOpenDate: parseEnrollmentDatetime(raw.enrollmentOpenDate),
+      enrollmentCloseDate: parseEnrollmentDatetime(raw.enrollmentCloseDate),
       isPublished: raw.isPublished === "true" || raw.isPublished === true,
       trialLessonCount: raw.trialLessonCount ? Number(raw.trialLessonCount) : undefined,
       enrolled: raw.enrolled,
@@ -200,6 +224,26 @@ router.put("/v2/courses/:id", upload.single("thumbnail"), async (req, res) => {
 
     // Xóa các field undefined để mongoose không ghi đè thành rỗng
     Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+    const instructorRef =
+      updateData.instructorRef !== undefined ? updateData.instructorRef : existing.instructorRef;
+    const sessionsToCheck =
+      sessions !== undefined ? sessions : existing.sessions;
+
+    if (instructorRef && sessionsToCheck?.length) {
+      const conflict = await findInstructorScheduleConflict(
+        Course,
+        instructorRef,
+        sessionsToCheck,
+        req.params.id
+      );
+      if (conflict) {
+        return res.status(409).json({
+          success: false,
+          message: buildInstructorConflictMessage(conflict)
+        });
+      }
+    }
 
     const doc = await Course.findByIdAndUpdate(req.params.id, updateData, { new: true }).populate("categoryRef", "name slug");
     if (!doc) {

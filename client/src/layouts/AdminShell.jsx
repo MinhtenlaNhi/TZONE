@@ -107,7 +107,7 @@ function IconLogout() {
 
 const navItems = [
   { to: "/admin/dashboard", label: "Tổng quan", Icon: IconDashboard },
-  { to: "/admin/users", label: "Học viên", Icon: IconUsers },
+  { to: "/admin/users", label: "Người dùng", Icon: IconUsers },
   { to: "/admin/teachers", label: "Giáo viên", Icon: IconTeachers },
   { to: "/admin/categories", label: "Danh mục", Icon: IconCategories },
   { to: "/admin/courses", label: "Khóa học", Icon: IconCourses },

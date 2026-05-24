@@ -27,6 +27,8 @@ function normalizeRemoteCourse(doc) {
     schedule: doc.schedule != null ? String(doc.schedule) : "",
     sessions,
     startDate: doc.startDate != null ? String(doc.startDate) : "",
+    totalSessions: Number(doc.totalSessions) || 0,
+    sessionDuration: Number(doc.sessionDuration) || 90,
     enrolled: doc.enrolled != null ? String(doc.enrolled) : "0",
     capacity: doc.capacity != null ? String(doc.capacity) : "30",
     rating: Math.min(5, Math.max(0, Number(doc.rating) || 0)),

@@ -9,6 +9,13 @@ const { authMiddleware } = require("../middlewares/auth");
 
 const router = express.Router();
 
+const isStudent = (req, res, next) => {
+  if (req.user.role !== "student") {
+    return res.status(403).json({ success: false, message: "Chỉ học viên mới được nộp bài tập." });
+  }
+  next();
+};
+
 const { upload } = require("../utils/cloudinary");
 
 // Kiểm tra user có quyền làm bài tập trong course này không
@@ -114,7 +121,7 @@ router.get("/my-submissions/all", authMiddleware, async (req, res) => {
 });
 
 // 4. Submit bài tập (dùng array answers cho quiz, và formData cho essay)
-router.post("/:id/submit", authMiddleware, upload.single("file"), async (req, res) => {
+router.post("/:id/submit", authMiddleware, isStudent, upload.single("file"), async (req, res) => {
   try {
     const assignment = await Assignment.findById(req.params.id);
     if (!assignment) return res.status(404).json({ success: false, message: "Bài tập không tồn tại" });

@@ -6,6 +6,7 @@ import { addToCart } from "../../api/cartApi";
 import { fetchCourseReviews } from "../../api/reviewsApi";
 import { getAuth } from "../../auth/auth";
 import StarRating from "../../components/StarRating";
+import { getEnrollmentStatus, getEnrollmentClosedButtonLabel, isEnrollmentOpen } from "../../utils/enrollment";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
 import "../../pages/Home/styles.css";
@@ -125,13 +126,8 @@ export default function CoursePublicDetailPage() {
     );
   }
 
-  const isEnrollmentOpen = () => {
-    if (!course.enrollmentOpenDate || !course.enrollmentCloseDate) return true;
-    const now = new Date();
-    const open = new Date(course.enrollmentOpenDate);
-    const close = new Date(course.enrollmentCloseDate);
-    return now >= open && now <= close;
-  };
+  const enrollmentStatus = getEnrollmentStatus(course);
+  const enrollmentOpen = isEnrollmentOpen(course);
 
   const catName = course.categoryRef?.name || course.categoryId || "Khác";
 
@@ -254,7 +250,9 @@ export default function CoursePublicDetailPage() {
           <div className="cp-sidebar-col">
             <div className="cp-buy-card">
               <div className="cp-buy-img-wrap">
-                <span className="cp-buy-status-badge">Còn chỗ</span>
+                <span className={`cp-buy-status-badge cp-buy-status-badge--${enrollmentStatus.badgeVariant}`}>
+                  {enrollmentStatus.badge}
+                </span>
                 {course.thumbnail ? (
                   <img src={apiPath(course.thumbnail)} alt={course.title} />
                 ) : (
@@ -276,8 +274,12 @@ export default function CoursePublicDetailPage() {
                   <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg> Tài liệu độc quyền TZONE</li>
                 </ul>
 
+                {enrollmentStatus.message ? (
+                  <p className="cp-buy-enrollment-note">{enrollmentStatus.message}</p>
+                ) : null}
+
                 <div className="cp-buy-actions">
-                  {isEnrollmentOpen() ? (
+                  {enrollmentOpen ? (
                     <>
                       <button className="cp-btn-enroll" onClick={handleEnroll} disabled={isSubmitting}>
                         {isSubmitting ? "Đang xử lý..." : "Đăng ký học ngay"} <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -287,7 +289,9 @@ export default function CoursePublicDetailPage() {
                       </button>
                     </>
                   ) : (
-                    <button className="cp-btn-closed" disabled>Đã đóng đăng ký</button>
+                    <button className="cp-btn-closed" disabled>
+                      {getEnrollmentClosedButtonLabel(enrollmentStatus)}
+                    </button>
                   )}
                 </div>
               </div>

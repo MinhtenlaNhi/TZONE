@@ -7,6 +7,10 @@ const Cart = require("../models/Cart");
 const Course = require("../models/Course");
 const Enrollment = require("../models/Enrollment");
 const { authMiddleware } = require("../middlewares/auth");
+const {
+  checkCoursePurchaseEligibility,
+  fulfillPaidEnrollment
+} = require("../utils/coursePurchase");
 
 const router = express.Router();
 
@@ -81,10 +85,13 @@ router.post("/", authMiddleware, upload.single("transferReceipt"), async (req, r
       const course = item.courseRef;
       if (!course) continue;
 
-      // Ktra xem user đã mua chưa
-      const enrolled = await Enrollment.findOne({ user: req.user._id, course: course._id, isTrial: false });
-      if (enrolled) {
-        return res.status(400).json({ success: false, message: `Bạn đã sở hữu khóa học ${course.title}` });
+      const enrolled = await Enrollment.findOne({ user: req.user._id, course: course._id });
+      const purchaseCheck = checkCoursePurchaseEligibility(course, enrolled);
+      if (!purchaseCheck.ok) {
+        return res.status(400).json({
+          success: false,
+          message: `${course.title}: ${purchaseCheck.message}`
+        });
       }
 
       const numPrice = parsePrice(course.price);
@@ -136,14 +143,10 @@ router.post("/", authMiddleware, upload.single("transferReceipt"), async (req, r
 
       // Tạo enrollment cho từng khóa học
       for (const item of orderItems) {
-        // Xóa enrollment trial nếu có
-        await Enrollment.deleteOne({ user: req.user._id, course: item.courseRef, isTrial: true });
-        
-        await Enrollment.create({
-          user: req.user._id,
-          course: item.courseRef,
-          order: newOrder._id,
-          isTrial: false
+        await fulfillPaidEnrollment(Enrollment, {
+          userId: req.user._id,
+          courseId: item.courseRef,
+          orderId: newOrder._id
         });
       }
     }

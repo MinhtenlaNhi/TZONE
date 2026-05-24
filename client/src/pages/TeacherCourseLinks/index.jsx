@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { putCourseSessionLink } from "../../api/courseLinks";
+import { fetchCourseLinks, putCourseMeetLink } from "../../api/courseLinks";
 import { getAuth } from "../../auth/auth";
 import { canUseTeacherCourseLinkTools } from "../../auth/teacherApproval";
 import { useCourses } from "../../context/CoursesContext";
-import { COL_LABELS } from "../../utils/courseSchedule";
 import "./TeacherCourseLinks.css";
 
 // SVG Icons
 const IconInfo = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>;
 const IconBook = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>;
-const IconCalendar = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>;
 const IconLink = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>;
 const IconLock = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>;
 const IconEye = ({ show, toggle }) => (
@@ -37,6 +35,13 @@ export default function TeacherCourseLinksPage() {
   );
 
   const [courseId, setCourseId] = useState("");
+  const [meetUrl, setMeetUrl] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [err, setErr] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [loadingLink, setLoadingLink] = useState(false);
 
   useEffect(() => {
     if (!myCourses.length) return;
@@ -44,14 +49,15 @@ export default function TeacherCourseLinksPage() {
       setCourseId(myCourses[0].id);
     }
   }, [myCourses, courseId]);
-  
-  const [weekdayCol, setWeekdayCol] = useState(1);
-  const [meetUrl, setMeetUrl] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [msg, setMsg] = useState(null);
-  const [err, setErr] = useState(null);
-  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!courseId) return;
+    setLoadingLink(true);
+    fetchCourseLinks(courseId)
+      .then((data) => setMeetUrl(data.meetUrl || ""))
+      .catch(() => setMeetUrl(""))
+      .finally(() => setLoadingLink(false));
+  }, [courseId]);
 
   if (!auth) {
     return <Navigate to="/login" replace />;
@@ -63,10 +69,10 @@ export default function TeacherCourseLinksPage() {
       return (
         <div className="tcl-page">
           <div className="tcl-container">
-            <h1 className="tcl-title">Gửi link buổi học trực tuyến</h1>
+            <h1 className="tcl-title">Gửi link lớp học trực tuyến</h1>
             <p className="tcl-lead">
               Tài khoản giáo viên của bạn <strong>đang chờ quản trị viên phê duyệt</strong>. Sau khi được duyệt, bạn có thể
-              cập nhật link buổi học tại đây. Nếu cần hỗ trợ, vui lòng liên hệ ban quản trị.
+              cập nhật link lớp học tại đây. Nếu cần hỗ trợ, vui lòng liên hệ ban quản trị.
             </p>
             <Link className="tcl-back" to="/dashboard">
               <IconArrowLeft /> Về Tổng quan
@@ -92,14 +98,13 @@ export default function TeacherCourseLinksPage() {
     }
     setSaving(true);
     try {
-      await putCourseSessionLink({
+      await putCourseMeetLink({
         courseId,
         email: auth.email,
         password,
-        weekdayCol: Number(weekdayCol),
         meetUrl: meetUrl.trim()
       });
-      setMsg("Đã lưu link. Học viên sẽ thấy khi đến đúng ngày và giờ buổi học.");
+      setMsg("Đã lưu link. Học viên sẽ dùng link này cho toàn bộ khóa học.");
       setPassword("");
     } catch (e2) {
       setErr(e2.message || "Không lưu được.");
@@ -132,8 +137,8 @@ export default function TeacherCourseLinksPage() {
               </svg>
             </div>
             <div className="tcl-header-content">
-              <h1>Gửi link buổi học trực tuyến</h1>
-              <p>Chọn khóa và <strong>thứ trong tuần</strong> tương ứng buổi học (khớp lịch cố định của khóa). Học viên chỉ thấy nút link trong đúng khung giờ đó.</p>
+              <h1>Gửi link lớp học trực tuyến</h1>
+              <p>Chọn khóa học và nhập <strong>một link cố định</strong> (Google Meet, Zoom…). Học viên dùng chung link này cho toàn bộ khóa.</p>
               <div className="tcl-alert">
                 <IconInfo />
                 <span>Yêu cầu tài khoản <strong>email + mật khẩu</strong> đã đăng ký với vai trò <strong>giáo viên</strong> (hoặc quản trị viên). Đăng nhập Google chưa hỗ trợ lưu link qua API này.</span>
@@ -145,46 +150,33 @@ export default function TeacherCourseLinksPage() {
             {/* Form Column */}
             <div className="tcl-form-col">
               <form className="tcl-form" onSubmit={handleSubmit}>
-                <div className="tcl-row">
-                  <div className="tcl-field">
-                    <label>Khóa học</label>
-                    <div className="tcl-input-wrapper">
-                      <IconBook />
-                      <select value={courseId} onChange={(e) => setCourseId(e.target.value)} disabled={saving || myCourses.length === 0}>
-                        {myCourses.length === 0 ? (
-                          <option value="">Chưa được phân công khóa học nào</option>
-                        ) : (
-                          myCourses.map((c) => (
-                            <option key={c.id} value={c.id}>{c.title}</option>
-                          ))
-                        )}
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="tcl-field">
-                    <label>Thứ (cố định lịch)</label>
-                    <div className="tcl-input-wrapper">
-                      <IconCalendar />
-                      <select value={weekdayCol} onChange={(e) => setWeekdayCol(Number(e.target.value))}>
-                        {COL_LABELS.map((label, col) => (
-                          <option key={label} value={col}>{label}</option>
-                        ))}
-                      </select>
-                    </div>
+                <div className="tcl-field">
+                  <label>Khóa học</label>
+                  <div className="tcl-input-wrapper">
+                    <IconBook />
+                    <select value={courseId} onChange={(e) => setCourseId(e.target.value)} disabled={saving || myCourses.length === 0}>
+                      {myCourses.length === 0 ? (
+                        <option value="">Chưa được phân công khóa học nào</option>
+                      ) : (
+                        myCourses.map((c) => (
+                          <option key={c.id} value={c.id}>{c.title}</option>
+                        ))
+                      )}
+                    </select>
                   </div>
                 </div>
 
                 <div className="tcl-field">
-                  <label>Link lớp (Google Meet)</label>
+                  <label>Link lớp (Google Meet / Zoom)</label>
                   <div className="tcl-input-wrapper">
                     <IconLink />
                     <input
                       type="url"
                       value={meetUrl}
                       onChange={(e) => setMeetUrl(e.target.value)}
-                      placeholder="https://meet.google.com/..."
+                      placeholder={loadingLink ? "Đang tải link hiện tại…" : "https://meet.google.com/..."}
                       autoComplete="off"
+                      disabled={loadingLink}
                     />
                   </div>
                 </div>
@@ -207,7 +199,7 @@ export default function TeacherCourseLinksPage() {
                 {err && <p className="tcl-msg error">{err}</p>}
                 {msg && <p className="tcl-msg success">{msg}</p>}
 
-                <button type="submit" className="tcl-btn-submit" disabled={saving}>
+                <button type="submit" className="tcl-btn-submit" disabled={saving || loadingLink}>
                   <IconSend /> {saving ? "Đang lưu…" : "Lưu link"}
                 </button>
               </form>
@@ -224,32 +216,30 @@ export default function TeacherCourseLinksPage() {
                 <li>
                   <div className="tcl-b-icon"><IconClock /></div>
                   <div className="tcl-b-text">
-                    <strong>Đúng giờ, đúng lớp</strong>
-                    <p>Học viên chỉ thấy link trong khung giờ cố định.</p>
+                    <strong>Một link cho cả khóa</strong>
+                    <p>Không cần gắn link riêng từng buổi — cập nhật một lần, dùng suốt khóa học.</p>
                   </div>
                 </li>
                 <li>
                   <div className="tcl-b-icon"><IconShield /></div>
                   <div className="tcl-b-text">
                     <strong>Bảo mật</strong>
-                    <p>Link chỉ hiển thị cho đúng lớp và thời gian.</p>
+                    <p>Chỉ giáo viên phụ trách khóa mới được cập nhật link.</p>
                   </div>
                 </li>
                 <li>
                   <div className="tcl-b-icon"><IconSparkles /></div>
                   <div className="tcl-b-text">
                     <strong>Dễ dàng sử dụng</strong>
-                    <p>Tạo và lưu link nhanh chóng, tiết kiệm thời gian.</p>
+                    <p>Học viên luôn tìm thấy link lớp ngay trong không gian học tập.</p>
                   </div>
                 </li>
               </ul>
 
               <div className="tcl-ill-footer">
                 <svg width="180" height="120" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* Simple plant */}
                   <path d="M40 100 Q 30 70 20 60 Q 30 50 40 70 Q 50 40 60 50 Q 50 70 40 100" fill="#34d399"/>
                   <rect x="30" y="100" width="20" height="20" rx="4" fill="#94a3b8"/>
-                  {/* Books */}
                   <rect x="80" y="90" width="90" height="10" rx="2" fill="#fcd34d" />
                   <rect x="80" y="100" width="90" height="10" rx="2" fill="#fbbf24" />
                   <rect x="75" y="80" width="95" height="10" rx="2" fill="#60a5fa" />

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { fetchCourseLinks } from "../../api/courseLinks";
 import { isCourseEnrolled } from "../../auth/enrolledCoursesStorage";
-import { COL_LABELS, addDays, formatDayDM, formatSessionTime, isSessionLiveOnDate, startOfWeekMonday } from "../../utils/courseSchedule";
+import { COL_LABELS, addDays, formatDayDM, formatSessionTime, getCourseSessionsForDate, isSessionLiveOnDate, startOfWeekMonday } from "../../utils/courseSchedule";
 import { useCourses } from "../../context/CoursesContext";
 import "./CourseDetailPage.css";
 
@@ -74,8 +74,8 @@ export default function CourseDetailPage() {
   const course = courseId ? getCourseById(courseId) : null;
   const [tab, setTab] = useState("schedule");
   const [weekOffset, setWeekOffset] = useState(0);
-  const [links, setLinks] = useState([]);
   const [linksErr, setLinksErr] = useState(null);
+  const [courseMeetUrl, setCourseMeetUrl] = useState("");
   const [, setTick] = useState(0);
 
   const loadLinks = useCallback(async () => {
@@ -83,10 +83,10 @@ export default function CourseDetailPage() {
     try {
       setLinksErr(null);
       const data = await fetchCourseLinks(courseId);
-      setLinks(data.links || []);
+      setCourseMeetUrl(data.meetUrl || "");
     } catch (e) {
       setLinksErr(e.message);
-      setLinks([]);
+      setCourseMeetUrl("");
     }
   }, [courseId]);
 
@@ -98,14 +98,6 @@ export default function CourseDetailPage() {
     const t = setInterval(() => setTick((x) => x + 1), 30_000);
     return () => clearInterval(t);
   }, []);
-
-  const urlByCol = useMemo(() => {
-    const m = {};
-    for (const l of links) {
-      if (l.weekdayCol != null && l.meetUrl) m[l.weekdayCol] = l.meetUrl;
-    }
-    return m;
-  }, [links]);
 
   const { weekLabel, columns } = useMemo(() => {
     const base = new Date();
@@ -149,8 +141,6 @@ export default function CourseDetailPage() {
   if (!isCourseEnrolled(course.id)) {
     return <Navigate to="/my-courses" replace />;
   }
-
-  const sessions = course.sessions || [];
 
   return (
     <div className="cdp">
@@ -204,14 +194,14 @@ export default function CourseDetailPage() {
 
               <div className="cdp__grid" role="grid" aria-label="Lịch học theo tuần">
                 {columns.map(({ col, header, date }) => {
-                  const daySessions = sessions.filter((s) => s.col === col);
+                  const daySessions = getCourseSessionsForDate(course, date);
                   return (
                     <div key={col} className="cdp__col">
                       <div className="cdp__col-head">{header}</div>
                       <div className="cdp__col-body">
                         {daySessions.map((s, i) => {
                           const live = isSessionLiveOnDate(date, s);
-                          const url = urlByCol[s.col];
+                          const url = live ? courseMeetUrl : null;
                           return (
                             <div key={`${s.col}-${s.startMin}-${i}`} className="cdp__slot">
                               <div className="cdp__slot-title">{course.title}</div>
@@ -232,8 +222,8 @@ export default function CourseDetailPage() {
                 })}
               </div>
               <p className="cdp__hint">
-                Link lớp chỉ hiện đúng <strong>ngày và giờ buổi học</strong>. Giáo viên cập nhật tại mục{" "}
-                <Link to="/teacher/course-links">Gửi link buổi học</Link>.
+                Link lớp chỉ hiện đúng <strong>ngày và giờ buổi học</strong>. Giáo viên cập nhật link cố định cho khóa tại mục{" "}
+                <Link to="/teacher/course-links">Gửi link lớp học</Link>.
               </p>
             </div>
           )}

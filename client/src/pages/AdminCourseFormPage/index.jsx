@@ -6,6 +6,7 @@ import { fetchAdminCoursesV2, createAdminCourseV2, updateAdminCourseV2 } from ".
 import { fetchCategories } from "../../api/categories";
 import { fetchPublicInstructors } from "../../api/instructors";
 import { getAuth } from "../../auth/auth";
+import { dateToDatetimeLocalVN } from "../../utils/datetime";
 import { COL_LABELS } from "../../utils/courseSchedule";
 import "./AdminCourseForm.css";
 import { apiPath } from "../../api/base";
@@ -101,8 +102,8 @@ export default function AdminCourseFormPage() {
               totalSessions: course.totalSessions || 0,
               sessionDuration: course.sessionDuration || 90,
               startDate: course.startDate || "",
-              enrollmentOpenDate: course.enrollmentOpenDate ? new Date(course.enrollmentOpenDate).toISOString().slice(0, 16) : "",
-              enrollmentCloseDate: course.enrollmentCloseDate ? new Date(course.enrollmentCloseDate).toISOString().slice(0, 16) : "",
+              enrollmentOpenDate: course.enrollmentOpenDate ? dateToDatetimeLocalVN(course.enrollmentOpenDate) : "",
+              enrollmentCloseDate: course.enrollmentCloseDate ? dateToDatetimeLocalVN(course.enrollmentCloseDate) : "",
               isPublished: course.isPublished || false,
               trialLessonCount: course.trialLessonCount || 2,
               enrolled: course.enrolled || "0",

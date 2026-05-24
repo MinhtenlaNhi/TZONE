@@ -98,6 +98,76 @@ export function isSameCalendarDay(a, b) {
 }
 
 /**
+ * Parse ngày khai giảng dạng dd/mm, dd/mm/yyyy hoặc dd-mm-yyyy.
+ * Nếu không có năm, dùng refYear (thường là năm đang xem trên lịch).
+ * @returns {Date | null}
+ */
+export function parseStartDate(str, refYear = new Date().getFullYear()) {
+  if (!str || typeof str !== "string") return null;
+  const parts = str.trim().split(/[/\-.]/).map((p) => parseInt(p, 10));
+  if (parts.length < 2 || parts.some((n) => !Number.isFinite(n))) return null;
+
+  const day = parts[0];
+  const month = parts[1] - 1;
+  let year = parts.length >= 3 ? parts[2] : refYear;
+  if (year < 100) year += 2000;
+
+  const d = new Date(year, month, day);
+  if (d.getDate() !== day || d.getMonth() !== month) return null;
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/** Đếm số buổi học (theo slots sessions) từ fromDate đến toDate (bao gồm cả hai đầu). */
+export function countSessionsInRange(course, fromDate, toDate) {
+  const slots = course.sessions || [];
+  if (!slots.length) return 0;
+
+  const start = new Date(fromDate);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(toDate);
+  end.setHours(0, 0, 0, 0);
+  if (end < start) return 0;
+
+  let count = 0;
+  const d = new Date(start);
+  while (d <= end) {
+    const col = jsDayToCol(d);
+    for (const s of slots) {
+      if (s.col === col) count++;
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
+/**
+ * Buổi học của khóa trên một ngày cụ thể (tôn trọng startDate + totalSessions).
+ * @param {{ sessions?: Array, startDate?: string, totalSessions?: number }} course
+ * @param {Date} date
+ */
+export function getCourseSessionsForDate(course, date) {
+  const slots = course.sessions || [];
+  if (!slots.length) return [];
+
+  const dayCol = jsDayToCol(date);
+  const daySlots = slots.filter((s) => s.col === dayCol);
+  if (!daySlots.length) return [];
+
+  const total = Number(course.totalSessions) || 0;
+  if (total <= 0) return daySlots;
+
+  const dayStart = new Date(date);
+  dayStart.setHours(0, 0, 0, 0);
+  const start = parseStartDate(course.startDate, dayStart.getFullYear());
+  if (!start) return daySlots;
+  if (dayStart < start) return [];
+
+  if (countSessionsInRange(course, start, dayStart) > total) return [];
+  return daySlots;
+}
+
+/**
  * Đang trong giờ học của buổi định kỳ (cột col khớp ngày `sessionDate`).
  * @param {Date} sessionDate — ngày của ô trên lịch tuần
  * @param {{ col: number, startMin: number, endMin: number }} session

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchMyEnrollments } from "../api/enrollmentsApi";
-import { COL_LABELS, addDays, formatDayDM, formatSessionTime, startOfWeekMonday, jsDayToCol } from "../utils/courseSchedule";
+import { COL_LABELS, addDays, formatDayDM, formatSessionTime, getCourseSessionsForDate, startOfWeekMonday, jsDayToCol } from "../utils/courseSchedule";
+import { getVisibleEnrollments } from "../utils/enrollments";
 import "./SchedulePage.css";
 
 function ChevronLeft() {
@@ -40,7 +41,7 @@ export default function SchedulePage() {
   }, []);
 
   const enrolledCourses = useMemo(() => {
-    return enrollments.map(e => e.course).filter(Boolean);
+    return getVisibleEnrollments(enrollments).map((e) => e.course);
   }, [enrollments]);
 
   // Tính toán dữ liệu tuần
@@ -84,13 +85,14 @@ export default function SchedulePage() {
       days.push({ empty: true, key: `empty-start-${i}` });
     }
     for (let d = 1; d <= lastDay; d++) {
-      const date = new Date(year, month, d);
+      const dateObj = new Date(year, month, d);
       days.push({ 
         empty: false, 
-        date: d, 
-        col: jsDayToCol(date),
+        date: d,
+        dateObj,
+        col: jsDayToCol(dateObj),
         key: `day-${d}`,
-        isToday: isSameCalendarDay(date, new Date())
+        isToday: isSameCalendarDay(dateObj, new Date())
       });
     }
     const remainder = days.length % 7;
@@ -102,19 +104,18 @@ export default function SchedulePage() {
     return { label, days };
   }, [offset]);
 
-  const sessionsByCol = useMemo(() => {
-    const map = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+  const getSessionsForDate = (date) => {
+    const items = [];
     for (const course of enrolledCourses) {
-      for (const s of course.sessions || []) {
-        if (!map[s.col]) map[s.col] = [];
-        map[s.col].push({
+      for (const s of getCourseSessionsForDate(course, date)) {
+        items.push({
           title: course.title,
           timeStr: formatSessionTime(s)
         });
       }
     }
-    return map;
-  }, [enrolledCourses]);
+    return items;
+  };
 
   const handlePrev = () => setOffset(o => o - 1);
   const handleNext = () => setOffset(o => o + 1);
@@ -159,11 +160,11 @@ export default function SchedulePage() {
       ) : (
         viewMode === "week" ? (
           <div className="schedule-page__grid" role="grid" aria-label="Lịch học theo tuần">
-            {weekData.columns.map(({ col, header }) => (
+            {weekData.columns.map(({ col, header, date }) => (
               <div key={col} className="schedule-page__col" role="columnheader">
                 <div className="schedule-page__col-head">{header}</div>
                 <div className="schedule-page__col-body">
-                  {(sessionsByCol[col] || []).map((item, i) => (
+                  {getSessionsForDate(date).map((item, i) => (
                     <div key={`${item.title}-${i}`} className="schedule-page__slot">
                       <div className="schedule-page__slot-title">{item.title}</div>
                       <div className="schedule-page__slot-time">{item.timeStr}</div>
@@ -187,7 +188,7 @@ export default function SchedulePage() {
                     <>
                       <div className="schedule-page__month-date">{day.date}</div>
                       <div className="schedule-page__month-sessions">
-                        {(sessionsByCol[day.col] || []).map((item, i) => (
+                        {getSessionsForDate(day.dateObj).map((item, i) => (
                           <div key={i} className="schedule-page__month-slot">
                             <span className="time">{item.timeStr}</span>
                             <span className="title">{item.title}</span>

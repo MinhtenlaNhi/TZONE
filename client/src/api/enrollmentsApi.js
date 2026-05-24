@@ -1,7 +1,12 @@
 import { apiFetchJson, apiPath } from "./base";
+import { syncEnrolledCoursesFromApi } from "../utils/enrollments";
 
 export async function fetchMyEnrollments() {
-  return apiFetchJson(apiPath("/api/enrollments"));
+  const data = await apiFetchJson(apiPath("/api/enrollments"));
+  if (data.success && Array.isArray(data.enrollments)) {
+    syncEnrolledCoursesFromApi(data.enrollments);
+  }
+  return data;
 }
 
 export async function fetchCourseLessons(courseId) {

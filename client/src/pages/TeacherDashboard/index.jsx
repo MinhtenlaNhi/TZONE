@@ -87,7 +87,7 @@ export default function TeacherDashboard() {
             <div className="tz-td-icon blue"><IconLink /></div>
             <div className="tz-td-info">
               <h2>Gắn Link Google Meet</h2>
-              <p>Gửi link phòng học trực tuyến (Google Meet, Zoom) cho học viên theo khung giờ học.</p>
+              <p>Gửi link phòng học trực tuyến (Google Meet, Zoom) — một link cố định cho cả khóa.</p>
               <span className="tz-td-action">Truy cập ngay →</span>
             </div>
           </Link>

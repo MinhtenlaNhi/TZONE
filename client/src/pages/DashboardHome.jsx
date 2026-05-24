@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { fetchMyEnrollments } from "../api/enrollmentsApi";
 import { getAuth } from "../auth/auth";
 import { apiPath } from "../api/base";
+import { getCourseLearnPath, getVisibleEnrollments } from "../utils/enrollments";
 import "./DashboardHome.css";
 
 // --- SVG Icons to match the design ---
@@ -84,14 +85,16 @@ export default function DashboardHome() {
     loadData();
   }, []);
 
-  const totalCourses = enrollments.length;
-  const completedCourses = enrollments.filter(e => e.progress >= 100).length;
-  const avgProgress = totalCourses > 0 
-    ? Math.round(enrollments.reduce((sum, e) => sum + e.progress, 0) / totalCourses) 
-    : 0;
+  const visibleEnrollments = getVisibleEnrollments(enrollments);
+  const totalCourses = visibleEnrollments.length;
+  const completedCourses = visibleEnrollments.filter((e) => e.progress >= 100).length;
+  const avgProgress =
+    totalCourses > 0
+      ? Math.round(visibleEnrollments.reduce((sum, e) => sum + e.progress, 0) / totalCourses)
+      : 0;
 
-  // Lấy khóa học đang học dở (progress > 0 và < 100) để gợi ý "Tiếp tục học ngay"
-  const activeCourse = enrollments.find(e => e.progress < 100) || enrollments[0];
+  const activeCourse =
+    visibleEnrollments.find((e) => e.progress < 100) || visibleEnrollments[0];
 
   if (loading) {
     return <div className="tz-dashboard-loading">Đang tải dữ liệu tổng quan...</div>;
@@ -108,10 +111,10 @@ export default function DashboardHome() {
           <button 
             className="tz-btn-primary tz-banner-btn"
             onClick={() => {
-              if (activeCourse?.course?._id) {
-                navigate(`/learn/${activeCourse.course._id}`);
+              if (activeCourse?.course) {
+                navigate(getCourseLearnPath(activeCourse.course));
               } else {
-                navigate('/courses');
+                navigate("/courses");
               }
             }}
           >
@@ -169,7 +172,7 @@ export default function DashboardHome() {
           <Link to="/my-courses" className="tz-link-more">Xem tất cả <IconArrowRight /></Link>
         </div>
         
-        {enrollments.length === 0 ? (
+        {visibleEnrollments.length === 0 ? (
           <div className="tz-do-empty">
             <div className="tz-do-empty-icon">📚</div>
             <h3>Bạn chưa có khóa học nào!</h3>
@@ -178,10 +181,8 @@ export default function DashboardHome() {
           </div>
         ) : (
           <div className="tz-do-course-grid">
-            {enrollments.slice(0, 4).map(enr => {
+            {visibleEnrollments.slice(0, 4).map((enr) => {
               const course = enr.course;
-              if (!course) return null;
-              
               const progressStr = `${Math.round(enr.progress)}%`;
 
               return (
@@ -215,7 +216,7 @@ export default function DashboardHome() {
 
                   <div className="tz-doc-footer">
                     <button 
-                      onClick={() => navigate(`/learn/${course._id}`)} 
+                      onClick={() => navigate(getCourseLearnPath(course))} 
                       className="tz-btn-continue"
                     >
                       <IconPlay /> Tiếp tục học

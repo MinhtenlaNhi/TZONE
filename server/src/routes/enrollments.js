@@ -3,7 +3,9 @@ const Enrollment = require("../models/Enrollment");
 const Lesson = require("../models/Lesson");
 const Course = require("../models/Course");
 const { authMiddleware } = require("../middlewares/auth");
+const { isEnrollmentOpen } = require("../utils/enrollment");
 const { buildCurriculum } = require("../utils/lessonHelpers");
+const { attachCoursesToEnrollments } = require("../utils/enrollmentHelpers");
 
 const router = express.Router();
 
@@ -17,14 +19,8 @@ async function findCourse(courseId) {
 // 1. Lấy danh sách khóa học user đang tham gia
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const enrollments = await Enrollment.find({ user: req.user._id })
-      .populate({
-        path: "course",
-        select: "id title thumbnail instructor totalSessions sessionDuration sessions",
-        populate: { path: "categoryRef", select: "name" }
-      })
-      .sort({ enrolledAt: -1 })
-      .lean();
+    const rows = await Enrollment.find({ user: req.user._id }).sort({ enrolledAt: -1 }).lean();
+    const enrollments = await attachCoursesToEnrollments(rows);
 
     return res.json({ success: true, enrollments });
   } catch (err) {
@@ -107,6 +103,10 @@ router.post("/course/:courseId/trial", authMiddleware, async (req, res) => {
     const course = await findCourse(req.params.courseId);
     if (!course) {
       return res.status(404).json({ success: false, message: "Không tìm thấy khóa học." });
+    }
+
+    if (!isEnrollmentOpen(course)) {
+      return res.status(400).json({ success: false, message: "Khóa học hiện không nhận đăng ký học thử." });
     }
 
     // Kiểm tra xem đã đăng ký khóa này chưa (cả trial lẫn chính thức)

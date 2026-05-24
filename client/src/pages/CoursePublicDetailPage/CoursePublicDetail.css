@@ -376,6 +376,21 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.cp-buy-status-badge--closed {
+  background: #ef4444;
+}
+
+.cp-buy-status-badge--pending {
+  background: #f59e0b;
+}
+
+.cp-buy-enrollment-note {
+  margin: -0.75rem 0 1.25rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
 .cp-buy-details {
   padding: 2rem;
 }

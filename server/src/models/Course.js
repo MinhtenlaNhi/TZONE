@@ -37,7 +37,9 @@ const courseSchema = new mongoose.Schema(
     ratingLabel: { type: String, default: "—" },
     price: { type: String, default: "" },
     instructor: { type: String, default: "" },
-    instructorRef: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null }
+    instructorRef: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    /** Link phòng học trực tuyến (Google Meet, Zoom…) — dùng chung cho cả khóa */
+    meetUrl: { type: String, default: "" }
   },
   { timestamps: true }
 );

@@ -6,6 +6,7 @@ import {
   addDays,
   formatDayDM,
   formatSessionTime,
+  getCourseSessionsForDate,
   startOfWeekMonday,
   jsDayToCol
 } from "../../utils/courseSchedule";
@@ -90,13 +91,14 @@ export default function TeacherSchedulePage() {
       days.push({ empty: true, key: `empty-start-${i}` });
     }
     for (let d = 1; d <= lastDay; d++) {
-      const date = new Date(year, month, d);
+      const dateObj = new Date(year, month, d);
       days.push({
         empty: false,
         date: d,
-        col: jsDayToCol(date),
+        dateObj,
+        col: jsDayToCol(dateObj),
         key: `day-${d}`,
-        isToday: isSameCalendarDay(date, new Date())
+        isToday: isSameCalendarDay(dateObj, new Date())
       });
     }
     const remainder = days.length % 7;
@@ -108,12 +110,11 @@ export default function TeacherSchedulePage() {
     return { label, days };
   }, [offset]);
 
-  const sessionsByCol = useMemo(() => {
-    const map = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+  const getSessionsForDate = (date) => {
+    const items = [];
     for (const course of coursesWithSessions) {
-      for (const s of course.sessions) {
-        if (!map[s.col]) map[s.col] = [];
-        map[s.col].push({
+      for (const s of getCourseSessionsForDate(course, date)) {
+        items.push({
           id: course._id,
           title: course.title,
           category: course.categoryRef?.name || course.categoryId || "",
@@ -121,11 +122,9 @@ export default function TeacherSchedulePage() {
         });
       }
     }
-    for (const col of Object.keys(map)) {
-      map[col].sort((a, b) => a.timeStr.localeCompare(b.timeStr, "vi"));
-    }
-    return map;
-  }, [coursesWithSessions]);
+    items.sort((a, b) => a.timeStr.localeCompare(b.timeStr, "vi"));
+    return items;
+  };
 
   if (loading) {
     return (
@@ -192,11 +191,11 @@ export default function TeacherSchedulePage() {
               </p>
             ) : viewMode === "week" ? (
               <div className="schedule-page__grid" role="grid" aria-label="Lịch giảng dạy theo tuần">
-                {weekData.columns.map(({ col, header }) => (
+                {weekData.columns.map(({ col, header, date }) => (
                   <div key={col} className="schedule-page__col" role="columnheader">
                     <div className="schedule-page__col-head">{header}</div>
                     <div className="schedule-page__col-body">
-                      {(sessionsByCol[col] || []).map((item, i) => (
+                      {getSessionsForDate(date).map((item, i) => (
                         <div key={`${item.id}-${i}`} className="schedule-page__slot tz-ts-slot">
                           <div className="schedule-page__slot-title">{item.title}</div>
                           {item.category ? <div className="tz-ts-slot-cat">{item.category}</div> : null}
@@ -224,7 +223,7 @@ export default function TeacherSchedulePage() {
                         <>
                           <div className="schedule-page__month-date">{day.date}</div>
                           <div className="schedule-page__month-sessions">
-                            {(sessionsByCol[day.col] || []).map((item, i) => (
+                            {getSessionsForDate(day.dateObj).map((item, i) => (
                               <div key={`${item.id}-${i}`} className="schedule-page__month-slot tz-ts-month-slot">
                                 <span className="time">{item.timeStr}</span>
                                 <span className="title">{item.title}</span>

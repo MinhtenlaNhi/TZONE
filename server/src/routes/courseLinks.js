@@ -43,30 +43,50 @@ function dbUnavailable(res) {
   });
 }
 
+async function findCourseByParam(courseId) {
+  const raw = String(courseId || "").trim();
+  if (!raw) return null;
+  if (raw.match(/^[0-9a-fA-F]{24}$/)) {
+    return Course.findOne({ $or: [{ _id: raw }, { id: raw }] })
+      .select("id meetUrl updatedAt")
+      .lean();
+  }
+  return Course.findOne({ id: raw }).select("id meetUrl updatedAt").lean();
+}
+
+/** Lấy link khóa học — ưu tiên Course.meetUrl, fallback bản ghi cũ theo thứ. */
+async function resolveCourseMeetUrl(course) {
+  if (!course) return { meetUrl: "", updatedAt: null };
+
+  if (course.meetUrl && String(course.meetUrl).trim()) {
+    return { meetUrl: String(course.meetUrl).trim(), updatedAt: course.updatedAt };
+  }
+
+  const legacy = await CourseSessionLink.findOne({
+    courseId: course.id,
+    meetUrl: { $regex: /\S/ }
+  })
+    .sort({ updatedAt: -1 })
+    .lean();
+
+  if (legacy?.meetUrl) {
+    return { meetUrl: String(legacy.meetUrl).trim(), updatedAt: legacy.updatedAt };
+  }
+
+  return { meetUrl: "", updatedAt: null };
+}
+
 /** Học viên / công khai: lấy link theo khóa */
 router.get("/:courseId", async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
   try {
-    let courseId = String(req.params.courseId || "").trim();
-    if (!courseId) {
-      return res.status(400).json({ success: false, message: "Thiếu mã khóa." });
+    const course = await findCourseByParam(req.params.courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy khóa học." });
     }
 
-    // Nếu param truyền lên là ObjectId (thường thấy ở URL LearningPage), chuyển đổi sang slug
-    if (courseId.match(/^[0-9a-fA-F]{24}$/)) {
-      const course = await Course.findById(courseId).select("id").lean();
-      if (course && course.id) {
-        courseId = course.id;
-      }
-    }
-
-    const rows = await CourseSessionLink.find({ courseId }).lean();
-    const links = rows.map((r) => ({
-      weekdayCol: r.weekdayCol,
-      meetUrl: r.meetUrl || "",
-      updatedAt: r.updatedAt
-    }));
-    return res.json({ success: true, links });
+    const { meetUrl, updatedAt } = await resolveCourseMeetUrl(course);
+    return res.json({ success: true, meetUrl, updatedAt });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ success: false, message: "Lỗi máy chủ." });
@@ -74,48 +94,49 @@ router.get("/:courseId", async (req, res) => {
 });
 
 /**
- * Giáo viên / admin: cập nhật link cho (courseId, weekdayCol).
- * Body: { email, password, weekdayCol, meetUrl }
+ * Giáo viên / admin: cập nhật link cố định cho cả khóa học.
+ * Body: { email, password, meetUrl }
  */
 router.put("/:courseId", async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
   try {
     const courseId = String(req.params.courseId || "").trim();
-    const { email, password, weekdayCol, meetUrl } = req.body || {};
+    const { email, password, meetUrl } = req.body || {};
     const em = normalizeEmail(email);
-    const col = Number(weekdayCol);
     const url = String(meetUrl || "").trim();
 
     if (!courseId || !em || !password) {
       return res.status(400).json({ success: false, message: "Thiếu thông tin đăng nhập hoặc mã khóa." });
-    }
-    if (!Number.isInteger(col) || col < 0 || col > 6) {
-      return res.status(400).json({ success: false, message: "weekdayCol phải từ 0 (Thứ 2) đến 6 (Chủ nhật)." });
     }
     if (url && !/^https?:\/\//i.test(url)) {
       return res.status(400).json({ success: false, message: "Link phải bắt đầu bằng http:// hoặc https://" });
     }
 
     const user = await User.findOne({ email: em });
-    if (!user || !(await bcrypt.compare(String(password), user.passwordHash))) {
-      return res.status(401).json({ success: false, message: "Email hoặc mật khẩu không đúng." });
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Mật khẩu không đúng." });
+    }
+    if (!user.passwordHash || !(await bcrypt.compare(String(password), user.passwordHash))) {
+      return res.status(401).json({ success: false, message: "Mật khẩu không đúng." });
     }
     if (!canManageLinks(user)) {
       return res.status(403).json({
         success: false,
-        message: "Chỉ giáo viên hoặc quản trị viên được cập nhật link buổi học."
+        message: "Chỉ giáo viên hoặc quản trị viên được cập nhật link lớp học."
       });
     }
 
-    const doc = await CourseSessionLink.findOneAndUpdate(
-      { courseId, weekdayCol: col },
-      { $set: { meetUrl: url } },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    ).lean();
+    const course = await findCourseByParam(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy khóa học." });
+    }
+
+    await Course.updateOne({ _id: course._id }, { $set: { meetUrl: url } });
 
     return res.json({
       success: true,
-      link: { weekdayCol: doc.weekdayCol, meetUrl: doc.meetUrl || "", updatedAt: doc.updatedAt }
+      meetUrl: url,
+      updatedAt: new Date()
     });
   } catch (e) {
     console.error(e);

@@ -597,8 +597,36 @@
   display: inline-block;
   font-size: 0.8rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   align-self: flex-start;
+}
+
+.tz-cc-enroll-note {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.tz-cc-enroll-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 0.3rem 0.65rem;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  z-index: 2;
+  background: #10b981;
+}
+
+.tz-cc-enroll-badge--closed {
+  background: #ef4444;
+}
+
+.tz-cc-enroll-badge--pending {
+  background: #f59e0b;
 }
 
 .tz-cc-info-grid {
@@ -635,6 +663,15 @@
   box-sizing: border-box;
 }
 .tz-btn-enroll:hover { background: #059669; }
+
+.tz-btn-enroll--closed {
+  background: #94a3b8;
+  cursor: default;
+}
+
+.tz-btn-enroll--closed:hover {
+  background: #94a3b8;
+}
 
 /* ==========================================================================
    Teachers

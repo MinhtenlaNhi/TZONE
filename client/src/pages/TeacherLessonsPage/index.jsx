@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiFetchJson, apiPath } from "../../api/base";
-import { createTeacherSection, updateTeacherSection, createTeacherLesson, updateTeacherLesson, uploadLessonMaterial, createLessonAssignment, updateLessonAssignment } from "../../api/teacherApi";
+import { createTeacherSection, updateTeacherSection, createTeacherLesson, updateTeacherLesson, uploadLessonMaterial, updateLessonMaterial, deleteLessonMaterial, createLessonAssignment, updateLessonAssignment } from "../../api/teacherApi";
 import { toast } from "react-toastify";
 import "./TeacherLessons.css";
 
@@ -48,6 +48,12 @@ const IconChevronUp = () => (
 const IconEdit = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
 );
+const IconEye = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+);
+const IconTrash = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+);
 const IconCheckCircleSolid = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="#10b981" stroke="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
 );
@@ -72,9 +78,13 @@ export default function TeacherLessonsPage() {
   const [lessonTitle, setLessonTitle] = useState("");
   const [isFreePreview, setIsFreePreview] = useState(false);
 
-  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showMaterialsModal, setShowMaterialsModal] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState(null);
-  const [file, setFile] = useState(null);
+  const [newMaterialTitle, setNewMaterialTitle] = useState("");
+  const [newMaterialFile, setNewMaterialFile] = useState(null);
+  const [editingMaterialId, setEditingMaterialId] = useState(null);
+  const [editMaterialTitle, setEditMaterialTitle] = useState("");
+  const [editMaterialFile, setEditMaterialFile] = useState(null);
 
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [editingAssignmentId, setEditingAssignmentId] = useState(null);
@@ -175,18 +185,88 @@ export default function TeacherLessonsPage() {
     } catch { toast.error("Lỗi lưu bài học"); }
   };
 
-  const handleUpload = async (e) => {
+  const activeLesson = useMemo(() => {
+    for (const sec of lessons) {
+      const found = sec.lessons?.find((l) => l._id === activeLessonId);
+      if (found) return found;
+    }
+    return null;
+  }, [lessons, activeLessonId]);
+
+  const openMaterialsModal = (lesson) => {
+    setActiveLessonId(lesson._id);
+    setNewMaterialTitle("");
+    setNewMaterialFile(null);
+    setEditingMaterialId(null);
+    setEditMaterialTitle("");
+    setEditMaterialFile(null);
+    setShowMaterialsModal(true);
+  };
+
+  const cancelMaterialEdit = () => {
+    setEditingMaterialId(null);
+    setEditMaterialTitle("");
+    setEditMaterialFile(null);
+  };
+
+  const startMaterialEdit = (material) => {
+    setEditingMaterialId(material._id);
+    setEditMaterialTitle(material.title || "");
+    setEditMaterialFile(null);
+  };
+
+  const handleAddMaterial = async (e) => {
     e.preventDefault();
-    if (!file) return toast.error("Chọn file");
+    if (!newMaterialFile) return toast.error("Chọn file tài liệu");
     try {
-      const res = await uploadLessonMaterial(activeLessonId, file);
+      const res = await uploadLessonMaterial(activeLessonId, newMaterialFile, newMaterialTitle);
       if (res.success) {
-        toast.success("Upload thành công");
-        setShowUploadModal(false);
-        setFile(null);
+        toast.success("Thêm tài liệu thành công");
+        setNewMaterialTitle("");
+        setNewMaterialFile(null);
         loadCourseData();
+      } else {
+        toast.error(res.message || "Lỗi upload");
       }
-    } catch { toast.error("Lỗi upload"); }
+    } catch {
+      toast.error("Lỗi upload");
+    }
+  };
+
+  const handleSaveMaterialEdit = async (e) => {
+    e.preventDefault();
+    if (!editMaterialTitle.trim()) return toast.error("Nhập tên tài liệu");
+    try {
+      const res = await updateLessonMaterial(activeLessonId, editingMaterialId, {
+        title: editMaterialTitle.trim(),
+        file: editMaterialFile || undefined
+      });
+      if (res.success) {
+        toast.success("Cập nhật tài liệu thành công");
+        cancelMaterialEdit();
+        loadCourseData();
+      } else {
+        toast.error(res.message || "Lỗi cập nhật");
+      }
+    } catch {
+      toast.error("Lỗi cập nhật");
+    }
+  };
+
+  const handleDeleteMaterial = async (materialId) => {
+    if (!window.confirm("Xóa tài liệu này?")) return;
+    try {
+      const res = await deleteLessonMaterial(activeLessonId, materialId);
+      if (res.success) {
+        toast.success("Đã xóa tài liệu");
+        if (editingMaterialId === materialId) cancelMaterialEdit();
+        loadCourseData();
+      } else {
+        toast.error(res.message || "Lỗi xóa");
+      }
+    } catch {
+      toast.error("Lỗi xóa");
+    }
   };
 
   const handleSaveAssignment = async (e) => {
@@ -362,15 +442,16 @@ export default function TeacherLessonsPage() {
                               <Link to={`/teacher/course-links`} className="tz-tl-action-btn" title="Gắn link Meet">
                                 <IconVideo />
                               </Link>
-                              <button onClick={() => { setActiveLessonId(lesson._id); setShowUploadModal(true); }} className="tz-tl-action-btn" title="Upload tài liệu">
+                              <button
+                                onClick={() => openMaterialsModal(lesson)}
+                                className={`tz-tl-action-btn ${lesson.materials?.length ? "has-materials" : ""}`}
+                                title={lesson.materials?.length ? "Quản lý tài liệu" : "Tải lên tài liệu"}
+                              >
                                 <IconUploadCloud />
                               </button>
                               <button onClick={() => openCreateAssignmentModal(lesson._id)} className="tz-tl-action-btn" title="Giao bài tập">
                                 <IconTag />
                               </button>
-                              <Link to={`/teacher/lessons/${lesson._id}/submissions`} className="tz-tl-action-btn grading" title="Chấm bài">
-                                <IconCheckSquare /> Chấm bài
-                              </Link>
                               {lesson.assignments && lesson.assignments.length > 0 && (
                                 <button className="tz-tl-action-btn expander" onClick={() => toggleLessonExpand(lesson._id)}>
                                   {expandedLessons[lesson._id] ? <IconChevronUp /> : <IconChevronDown />}
@@ -383,15 +464,28 @@ export default function TeacherLessonsPage() {
                               <div className="tz-tl-lesson-line"></div>
                               <div className="tz-tl-lesson-ass-list">
                                 {lesson.assignments.map(ass => (
-                                  <div key={ass._id} className="tz-tl-assignment-item" onClick={() => handleEditAssignment(lesson._id, ass)}>
-                                    <div className="tz-tl-ass-icon"><IconCheckCircleSolid /></div>
-                                    <div className="tz-tl-ass-info">
-                                      <span className="tz-tl-ass-title">{ass.title}</span>
-                                      <span className={`tz-tl-tag ${ass.type === 'quiz' ? 'bg-orange' : 'bg-blue'}`}>
-                                        {ass.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
-                                      </span>
+                                  <div key={ass._id} className="tz-tl-assignment-item">
+                                    <div
+                                      className="tz-tl-assignment-main"
+                                      onClick={() => handleEditAssignment(lesson._id, ass)}
+                                    >
+                                      <div className="tz-tl-ass-icon"><IconCheckCircleSolid /></div>
+                                      <div className="tz-tl-ass-info">
+                                        <span className="tz-tl-ass-title">{ass.title}</span>
+                                        <span className={`tz-tl-tag ${ass.type === 'quiz' ? 'bg-orange' : 'bg-blue'}`}>
+                                          {ass.type === 'quiz' ? 'Trắc nghiệm' : 'Tự luận'}
+                                        </span>
+                                      </div>
+                                      <div className="tz-tl-ass-arrow"><IconChevronRight /></div>
                                     </div>
-                                    <div className="tz-tl-ass-arrow"><IconChevronRight /></div>
+                                    <Link
+                                      to={`/teacher/assignments/${ass._id}/submissions`}
+                                      className="tz-tl-ass-grade-btn"
+                                      title="Chấm bài"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <IconCheckSquare /> Chấm bài
+                                    </Link>
                                   </div>
                                 ))}
                               </div>
@@ -455,23 +549,92 @@ export default function TeacherLessonsPage() {
           </div>
         )}
 
-        {/* Modal: Upload */}
-        {showUploadModal && (
+        {/* Modal: Quản lý tài liệu */}
+        {showMaterialsModal && (
           <div className="tz-tl-modal-overlay">
-            <div className="tz-tl-modal">
+            <div className="tz-tl-modal modal-large">
               <div className="tz-tl-modal-header">
-                <h2>Tải Lên Tài Liệu</h2>
-                <button onClick={() => setShowUploadModal(false)} className="tz-tl-modal-close">&times;</button>
+                <h2>Quản lý tài liệu bài học</h2>
+                <button onClick={() => setShowMaterialsModal(false)} className="tz-tl-modal-close">&times;</button>
               </div>
-              <form onSubmit={handleUpload} className="tz-tl-modal-body">
-                <div className="tz-tl-form-group">
-                  <label>Chọn file (Hỗ trợ PDF, DOCX, ZIP - Max 10MB)</label>
-                  <div className="tz-tl-file-upload">
-                    <input type="file" required onChange={e => setFile(e.target.files[0])} />
+              <div className="tz-tl-modal-body">
+                {activeLesson?.materials?.length > 0 ? (
+                  <div className="tz-tl-material-list">
+                    <h3 className="tz-tl-material-list-title">Tài liệu đã tải lên</h3>
+                    {activeLesson.materials.map((mat) => (
+                      <div key={mat._id} className="tz-tl-material-item">
+                        {editingMaterialId === mat._id ? (
+                          <form onSubmit={handleSaveMaterialEdit} className="tz-tl-material-edit-form">
+                            <div className="tz-tl-form-group">
+                              <label>Tên hiển thị</label>
+                              <input
+                                type="text"
+                                required
+                                value={editMaterialTitle}
+                                onChange={(e) => setEditMaterialTitle(e.target.value)}
+                              />
+                            </div>
+                            <div className="tz-tl-form-group">
+                              <label>Thay file mới (tùy chọn)</label>
+                              <input type="file" onChange={(e) => setEditMaterialFile(e.target.files[0] || null)} />
+                            </div>
+                            <div className="tz-tl-material-edit-actions">
+                              <button type="button" className="tz-tl-btn-outline-sm" onClick={cancelMaterialEdit}>Hủy</button>
+                              <button type="submit" className="tz-tl-btn-primary-sm">Lưu thay đổi</button>
+                            </div>
+                          </form>
+                        ) : (
+                          <>
+                            <div className="tz-tl-material-info">
+                              <IconFileText />
+                              <span className="tz-tl-material-name">{mat.title || "Tài liệu"}</span>
+                            </div>
+                            <div className="tz-tl-material-actions">
+                              <a
+                                href={apiPath(mat.url)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="tz-tl-btn-outline-sm"
+                                title="Xem / tải file"
+                              >
+                                <IconEye /> Xem
+                              </a>
+                              <button type="button" className="tz-tl-btn-outline-sm" onClick={() => startMaterialEdit(mat)}>
+                                <IconEdit /> Sửa
+                              </button>
+                              <button type="button" className="tz-tl-btn-outline-sm danger" onClick={() => handleDeleteMaterial(mat._id)}>
+                                <IconTrash /> Xóa
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <button type="submit" className="tz-tl-btn-primary full-width">Tải Lên</button>
-              </form>
+                ) : (
+                  <p className="tz-tl-material-empty">Chưa có tài liệu nào. Thêm file mới bên dưới.</p>
+                )}
+
+                <form onSubmit={handleAddMaterial} className="tz-tl-material-add">
+                  <h3 className="tz-tl-material-list-title">Thêm tài liệu mới</h3>
+                  <div className="tz-tl-form-group">
+                    <label>Tên hiển thị (tùy chọn)</label>
+                    <input
+                      type="text"
+                      value={newMaterialTitle}
+                      onChange={(e) => setNewMaterialTitle(e.target.value)}
+                      placeholder="VD: Slide bài 1, Giáo trình PDF..."
+                    />
+                  </div>
+                  <div className="tz-tl-form-group">
+                    <label>Chọn file (PDF, DOCX, ZIP — tối đa 10MB)</label>
+                    <div className="tz-tl-file-upload">
+                      <input type="file" required onChange={(e) => setNewMaterialFile(e.target.files[0] || null)} />
+                    </div>
+                  </div>
+                  <button type="submit" className="tz-tl-btn-primary full-width">Tải lên tài liệu</button>
+                </form>
+              </div>
             </div>
           </div>
         )}

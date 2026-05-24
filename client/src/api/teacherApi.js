@@ -43,7 +43,24 @@ export async function uploadLessonMaterial(lessonId, file, title = "") {
 
   return apiFetchJson(apiPath(`/api/teacher/lessons/${lessonId}/materials`), {
     method: "POST",
-    body: formData // auto set multipart/form-data
+    body: formData
+  });
+}
+
+export async function updateLessonMaterial(lessonId, materialId, { title, file } = {}) {
+  const formData = new FormData();
+  if (title) formData.append("title", title);
+  if (file) formData.append("file", file);
+
+  return apiFetchJson(apiPath(`/api/teacher/lessons/${lessonId}/materials/${materialId}`), {
+    method: "PUT",
+    body: formData
+  });
+}
+
+export async function deleteLessonMaterial(lessonId, materialId) {
+  return apiFetchJson(apiPath(`/api/teacher/lessons/${lessonId}/materials/${materialId}`), {
+    method: "DELETE"
   });
 }
 

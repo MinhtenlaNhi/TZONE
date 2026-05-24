@@ -3,6 +3,8 @@ const Cart = require("../models/Cart");
 const Course = require("../models/Course");
 const Enrollment = require("../models/Enrollment");
 const { authMiddleware } = require("../middlewares/auth");
+const { isEnrollmentOpen } = require("../utils/enrollment");
+const { checkCoursePurchaseEligibility } = require("../utils/coursePurchase");
 
 const router = express.Router();
 
@@ -44,14 +46,14 @@ router.post("/add", authMiddleware, async (req, res) => {
       return res.status(404).json({ success: false, message: "Không tìm thấy khóa học." });
     }
 
-    // 2. Kiểm tra xem user đã sở hữu khóa học này chưa
+    if (!isEnrollmentOpen(course)) {
+      return res.status(400).json({ success: false, message: "Khóa học hiện không nhận đăng ký." });
+    }
+
     const existingEnrollment = await Enrollment.findOne({ user: req.user._id, course: course._id });
-    if (existingEnrollment) {
-      if (existingEnrollment.isTrial) {
-        // Đã học thử -> Vẫn cho mua
-      } else {
-        return res.status(400).json({ success: false, message: "Bạn đã đăng ký khóa học này rồi." });
-      }
+    const purchaseCheck = checkCoursePurchaseEligibility(course, existingEnrollment);
+    if (!purchaseCheck.ok) {
+      return res.status(400).json({ success: false, message: purchaseCheck.message });
     }
 
     // 3. Tìm hoặc tạo giỏ hàng

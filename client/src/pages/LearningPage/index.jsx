@@ -5,7 +5,6 @@ import { fetchCourseLessons, updateCourseProgress } from "../../api/enrollmentsA
 import { fetchAssignmentsByLesson } from "../../api/assignmentsApi";
 import { fetchCourseLinks } from "../../api/courseLinks";
 import { submitReview } from "../../api/reviewsApi";
-import { jsDayToCol, isSameCalendarDay, COL_LABELS } from "../../utils/courseSchedule";
 import StarRating from "../../components/StarRating";
 import "./LearningPage.css";
 
@@ -41,7 +40,7 @@ export default function LearningPage() {
   const { courseId } = useParams();
   const [courseInfo, setCourseInfo] = useState(null);
   const [curriculum, setCurriculum] = useState([]);
-  const [courseLinks, setCourseLinks] = useState([]);
+  const [courseMeetUrl, setCourseMeetUrl] = useState("");
   const [loading, setLoading] = useState(true);
 
   // Helper function to format long filenames
@@ -86,8 +85,10 @@ export default function LearningPage() {
             progress: res.progress || 0
           });
           setCurriculum(res.curriculum || []);
-          if (linksData && linksData.links) {
-            setCourseLinks(linksData.links);
+          if (linksData?.meetUrl) {
+            setCourseMeetUrl(linksData.meetUrl);
+          } else {
+            setCourseMeetUrl("");
           }
           
           if (res.curriculum?.length > 0 && res.curriculum[0].lessons.length > 0) {
@@ -180,26 +181,7 @@ export default function LearningPage() {
 
   const progressPercent = Math.round(courseInfo?.progress || 0);
 
-  // Tính toán link phòng học
-  let activeMeetUrl = null;
-  
-  if (courseLinks.length > 0) {
-    let linkObj = null;
-    if (activeLesson?.date) {
-      const lessonDate = new Date(activeLesson.date);
-      const col = jsDayToCol(lessonDate);
-      linkObj = courseLinks.find(l => l.weekdayCol === col);
-    }
-    
-    // Nếu chưa thiết lập đúng thứ, lấy tạm link đầu tiên của khóa học để học viên luôn thấy
-    if (!linkObj) {
-      linkObj = courseLinks[0];
-    }
-
-    if (linkObj && linkObj.meetUrl) {
-      activeMeetUrl = linkObj.meetUrl;
-    }
-  }
+  const activeMeetUrl = courseMeetUrl || null;
 
   return (
     <div className="tz-learning-layout">
@@ -298,7 +280,7 @@ export default function LearningPage() {
                         <IconVideo /> Vào lớp Google Meet
                       </a>
                     ) : (
-                      <p className="tz-lm-no-link">Giảng viên chưa thiết lập link phòng học cho buổi này.</p>
+                      <p className="tz-lm-no-link">Giảng viên chưa thiết lập link phòng học cho khóa này.</p>
                     )}
                   </div>
                 </div>

@@ -7,6 +7,7 @@ import CourseCategoryToeicBPage from "../CourseCategoryToeicB";
 import CourseCategoryToeicSWPage from "../CourseCategoryToeicSW";
 import PublicHeader from "../../components/PublicHeader";
 import PublicFooter from "../../components/PublicFooter";
+import { getEnrollmentStatus, getEnrollmentClosedButtonLabel } from "../../utils/enrollment";
 import "./styles.css";
 
 // SVG Icons
@@ -167,6 +168,8 @@ export default function HomePage() {
     sessions: c.totalSessions ? `${c.totalSessions} buổi` : "24 buổi",
     price: c.price ? (c.price.toString().includes('đ') ? c.price : `${Number(c.price).toLocaleString()}đ`) : "2.500.000đ",
     startDate: c.startDate || "10/06/2024",
+    enrollmentOpenDate: c.enrollmentOpenDate,
+    enrollmentCloseDate: c.enrollmentCloseDate,
     instructor: { 
       name: c.instructor || "TZONE", 
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" 
@@ -326,11 +329,16 @@ export default function HomePage() {
         </div>
 
         <div className="tz-course-cards">
-          {displayCourses.map(c => (
+          {displayCourses.map(c => {
+            const enrollmentStatus = getEnrollmentStatus(c);
+            return (
             <div className="tz-course-card" key={c.id}>
               <div className="tz-cc-img-wrap">
                 <img src={c.image} alt={c.title} />
                 <span className="tz-cc-badge">{c.levelLabel}</span>
+                <span className={`tz-cc-enroll-badge tz-cc-enroll-badge--${enrollmentStatus.badgeVariant}`}>
+                  {enrollmentStatus.badge}
+                </span>
               </div>
               <div className="tz-cc-content">
                 <h3 className="tz-cc-title">{c.title}</h3>
@@ -338,6 +346,10 @@ export default function HomePage() {
                 <div className="tz-cc-startdate">
                   <span>Khai giảng: {c.startDate}</span>
                 </div>
+
+                {enrollmentStatus.message ? (
+                  <div className="tz-cc-enroll-note">{enrollmentStatus.message}</div>
+                ) : null}
 
                 <div className="tz-cc-info-grid">
                   <div><ClockIcon/> {c.duration}</div>
@@ -352,10 +364,16 @@ export default function HomePage() {
                   <div className="tz-cc-price">{c.price}</div>
                 </div>
                 
-                <Link to={`/courses/${c.id}`} className="tz-btn-enroll" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none'}}>Đăng ký ngay</Link>
+                {enrollmentStatus.isOpen ? (
+                  <Link to={`/courses/${c.id}`} className="tz-btn-enroll" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none'}}>Đăng ký ngay</Link>
+                ) : (
+                  <Link to={`/courses/${c.id}`} className="tz-btn-enroll tz-btn-enroll--closed" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none'}}>
+                    {getEnrollmentClosedButtonLabel(enrollmentStatus)}
+                  </Link>
+                )}
               </div>
             </div>
-          ))}
+          )})}
         </div>
       </section>
 

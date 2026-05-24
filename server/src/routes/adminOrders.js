@@ -1,8 +1,10 @@
 const express = require("express");
 const Order = require("../models/Order");
 const Enrollment = require("../models/Enrollment");
+const Course = require("../models/Course");
 const { authMiddleware } = require("../middlewares/auth");
 const { isAdmin } = require("../middlewares/role");
+const { checkCoursePurchaseEligibility, fulfillPaidEnrollment } = require("../utils/coursePurchase");
 
 const router = express.Router();
 
@@ -81,15 +83,17 @@ router.put("/:id/confirm", authMiddleware, isAdmin, async (req, res) => {
 
     // Tạo enrollment cho học viên
     for (const item of order.items) {
-      // Xóa trial nếu có
-      await Enrollment.deleteOne({ user: order.user, course: item.courseRef, isTrial: true });
-      
-      // Tạo mới
-      await Enrollment.create({
-        user: order.user,
-        course: item.courseRef,
-        order: order._id,
-        isTrial: false
+      const course = await Course.findById(item.courseRef);
+      const enrolled = await Enrollment.findOne({ user: order.user, course: item.courseRef });
+      const purchaseCheck = checkCoursePurchaseEligibility(course, enrolled);
+      if (!purchaseCheck.ok) {
+        return res.status(400).json({ success: false, message: purchaseCheck.message });
+      }
+
+      await fulfillPaidEnrollment(Enrollment, {
+        userId: order.user,
+        courseId: item.courseRef,
+        orderId: order._id
       });
     }
 

@@ -3,6 +3,8 @@ const router = express.Router();
 const { verifyVNPayReturn, verifyVNPayIpn } = require("../utils/vnpay");
 const Order = require("../models/Order");
 const Enrollment = require("../models/Enrollment");
+const Course = require("../models/Course");
+const { checkCoursePurchaseEligibility, fulfillPaidEnrollment } = require("../utils/coursePurchase");
 
 // 1. IPN Route (VNPay gọi server khi giao dịch hoàn tất)
 router.get("/vnpay_ipn", async (req, res) => {
@@ -29,12 +31,20 @@ router.get("/vnpay_ipn", async (req, res) => {
 
         // Tạo enrollment
         for (const item of order.items) {
-          await Enrollment.deleteOne({ user: order.user, course: item.courseRef, isTrial: true });
-          await Enrollment.create({
-            user: order.user,
-            course: item.courseRef,
-            order: order._id,
-            isTrial: false
+          const course = await Course.findById(item.courseRef);
+          const enrolled = await Enrollment.findOne({ user: order.user, course: item.courseRef });
+          const purchaseCheck = checkCoursePurchaseEligibility(course, enrolled);
+          if (!purchaseCheck.ok) {
+            order.status = "cancelled";
+            order.cancelReason = purchaseCheck.message;
+            await order.save();
+            return res.status(200).json({ RspCode: "02", Message: "Enrollment blocked" });
+          }
+
+          await fulfillPaidEnrollment(Enrollment, {
+            userId: order.user,
+            courseId: item.courseRef,
+            orderId: order._id
           });
         }
         return res.status(200).json({ RspCode: "00", Message: "Confirm Success" });

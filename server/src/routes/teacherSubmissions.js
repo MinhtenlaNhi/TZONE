@@ -3,6 +3,7 @@ const Assignment = require("../models/Assignment");
 const Submission = require("../models/Submission");
 const Course = require("../models/Course");
 const { authMiddleware } = require("../middlewares/auth");
+const { findStudentSubmissions } = require("../utils/submissionHelpers");
 
 const router = express.Router();
 
@@ -18,8 +19,11 @@ const verifyAssignmentOwnership = async (req, res, next) => {
   try {
     let assignmentId = id;
     if (req.method === "PUT") {
-      const sub = await Submission.findById(id);
+      const sub = await Submission.findById(id).populate("studentRef", "role");
       if (!sub) return res.status(404).json({ success: false, message: "Không tìm thấy bài nộp." });
+      if (!sub.studentRef || sub.studentRef.role !== "student") {
+        return res.status(403).json({ success: false, message: "Không thể chấm bài nộp của tài khoản không phải học viên." });
+      }
       assignmentId = sub.assignmentRef;
       req.submission = sub;
     }
@@ -41,11 +45,16 @@ const verifyAssignmentOwnership = async (req, res, next) => {
 // 1. GET /api/teacher/assignments/:id/submissions - Lấy danh sách bài nộp của một bài tập
 router.get("/:id/submissions", authMiddleware, isTeacher, verifyAssignmentOwnership, async (req, res) => {
   try {
-    const submissions = await Submission.find({ assignmentRef: req.assignment._id })
-      .populate("studentRef", "name email avatar")
-      .sort({ createdAt: -1 })
-      .lean();
-    res.json({ success: true, submissions });
+    const submissions = await findStudentSubmissions({ assignmentRef: req.assignment._id });
+    res.json({
+      success: true,
+      assignment: {
+        _id: req.assignment._id,
+        title: req.assignment.title,
+        type: req.assignment.type
+      },
+      submissions
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: "Lỗi máy chủ." });
   }

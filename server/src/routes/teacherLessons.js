@@ -6,6 +6,7 @@ const Lesson = require("../models/Lesson");
 const Course = require("../models/Course");
 const Assignment = require("../models/Assignment");
 const { authMiddleware } = require("../middlewares/auth");
+const { findStudentSubmissions } = require("../utils/submissionHelpers");
 
 const router = express.Router();
 
@@ -70,12 +71,49 @@ router.post("/:id/materials", authMiddleware, isTeacher, verifyLessonOwnership, 
     const fileUrl = req.file.path;
 
     req.lesson.materials.push({
-      title: title || req.file.originalname,
+      title: title?.trim() || req.file.originalname,
       url: fileUrl
     });
 
     await req.lesson.save();
     res.json({ success: true, message: "Upload tài liệu thành công.", materials: req.lesson.materials });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ." });
+  }
+});
+
+// 1.5 PUT /api/teacher/lessons/:id/materials/:materialId - Cập nhật tên / thay file tài liệu
+router.put("/:id/materials/:materialId", authMiddleware, isTeacher, verifyLessonOwnership, upload.single("file"), async (req, res) => {
+  try {
+    const { materialId } = req.params;
+    const material = req.lesson.materials.id(materialId);
+    if (!material) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy tài liệu." });
+    }
+
+    const { title } = req.body;
+    if (title?.trim()) material.title = title.trim();
+    if (req.file) material.url = req.file.path;
+
+    await req.lesson.save();
+    res.json({ success: true, message: "Đã cập nhật tài liệu.", materials: req.lesson.materials });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ." });
+  }
+});
+
+// 1.6 DELETE /api/teacher/lessons/:id/materials/:materialId - Xóa tài liệu
+router.delete("/:id/materials/:materialId", authMiddleware, isTeacher, verifyLessonOwnership, async (req, res) => {
+  try {
+    const { materialId } = req.params;
+    const material = req.lesson.materials.id(materialId);
+    if (!material) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy tài liệu." });
+    }
+
+    req.lesson.materials.pull(materialId);
+    await req.lesson.save();
+    res.json({ success: true, message: "Đã xóa tài liệu.", materials: req.lesson.materials });
   } catch (err) {
     res.status(500).json({ success: false, message: "Lỗi máy chủ." });
   }
@@ -138,18 +176,13 @@ router.put("/:id/assignments/:assignmentId", authMiddleware, isTeacher, verifyLe
 // 4. GET /api/teacher/lessons/:id/submissions - Lấy danh sách bài nộp của tất cả bài tập trong một bài học
 router.get("/:id/submissions", authMiddleware, isTeacher, verifyLessonOwnership, async (req, res) => {
   try {
-    const Submission = require("../models/Submission");
-    
-    // Tìm tất cả các bài tập thuộc lesson này
     const assignments = await Assignment.find({ lessonRef: req.lesson._id });
     const assignmentIds = assignments.map(a => a._id);
 
-    // Lấy tất cả bài nộp thuộc các bài tập đó
-    const submissions = await Submission.find({ assignmentRef: { $in: assignmentIds } })
-      .populate("studentRef", "name email avatar")
-      .populate("assignmentRef", "title type")
-      .sort({ createdAt: -1 })
-      .lean();
+    const submissions = await findStudentSubmissions(
+      { assignmentRef: { $in: assignmentIds } },
+      [{ path: "assignmentRef", select: "title type" }]
+    );
 
     res.json({ success: true, submissions });
   } catch (err) {

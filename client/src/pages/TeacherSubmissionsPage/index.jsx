@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchLessonSubmissions, gradeSubmission } from "../../api/teacherApi";
+import { fetchAssignmentSubmissions, fetchLessonSubmissions, gradeSubmission } from "../../api/teacherApi";
 import { toast } from "react-toastify";
 import "./TeacherSubmissions.css";
 import { apiPath } from "../../api/base";
@@ -23,8 +23,9 @@ const IconInbox = () => (
 );
 
 export default function TeacherSubmissionsPage() {
-  const { lessonId } = useParams();
+  const { lessonId, assignmentId } = useParams();
   const [submissions, setSubmissions] = useState([]);
+  const [assignment, setAssignment] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [showGradeModal, setShowGradeModal] = useState(false);
@@ -34,14 +35,17 @@ export default function TeacherSubmissionsPage() {
 
   useEffect(() => {
     loadSubmissions();
-  }, [lessonId]);
+  }, [lessonId, assignmentId]);
 
   const loadSubmissions = async () => {
     try {
       setLoading(true);
-      const res = await fetchLessonSubmissions(lessonId);
+      const res = assignmentId
+        ? await fetchAssignmentSubmissions(assignmentId)
+        : await fetchLessonSubmissions(lessonId);
       if (res.success) {
         setSubmissions(res.submissions);
+        setAssignment(res.assignment || null);
       }
     } catch (e) {
       toast.error("Lỗi lấy danh sách bài nộp");
@@ -72,16 +76,25 @@ export default function TeacherSubmissionsPage() {
         
         {/* Back Link */}
         <button onClick={() => window.history.back()} className="tz-ts-back">
-          <IconArrowLeft /> Quay lại Bài học
+          <IconArrowLeft /> Quay lại
         </button>
 
         {/* Header */}
         <header className="tz-ts-header">
           <div className="tz-ts-header-meta">
-            <span className="tz-ts-badge-blue">Bài Tập Của Học Viên</span>
+            <span className="tz-ts-badge-blue">
+              {assignment ? assignment.title : "Bài Tập Của Học Viên"}
+            </span>
+            {assignment && (
+              <span className={`tz-ts-type-badge ${assignment.type === "essay" ? "essay" : "quiz"}`}>
+                {assignment.type === "essay" ? "Tự luận" : "Trắc nghiệm"}
+              </span>
+            )}
           </div>
           <div className="tz-ts-header-main">
-            <h1 className="tz-ts-title">Quản lý chấm điểm</h1>
+            <h1 className="tz-ts-title">
+              {assignment ? `Chấm bài: ${assignment.title}` : "Quản lý chấm điểm"}
+            </h1>
             <div className="tz-ts-stats">
               <div className="tz-ts-stat-item">
                 <span className="label">Tổng bài nộp</span>
@@ -139,9 +152,11 @@ export default function TeacherSubmissionsPage() {
                           <span className={`tz-ts-type-badge ${sub.type === 'essay' ? 'essay' : 'quiz'}`}>
                             {sub.type === "essay" ? "Tự luận" : "Trắc nghiệm"}
                           </span>
-                          <div style={{fontSize: "0.8rem", color: "#64748b", marginTop: "4px"}}>
-                            {sub.assignmentRef?.title}
-                          </div>
+                          {!assignment && sub.assignmentRef?.title && (
+                            <div style={{fontSize: "0.8rem", color: "#64748b", marginTop: "4px"}}>
+                              {sub.assignmentRef.title}
+                            </div>
+                          )}
                         </td>
                         <td>
                           <div className="tz-ts-submission-preview">
