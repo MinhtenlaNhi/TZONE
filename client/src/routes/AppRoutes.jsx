@@ -29,7 +29,6 @@ import MyTestsPage from "../pages/MyTestsPage";
 
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
-import VnpayReturnPage from "../pages/VnpayReturnPage";
 import OrderHistoryPage from "../pages/OrderHistoryPage";
 import AdminOrdersPage from "../pages/AdminOrders";
 import AdminReviewsPage from "../pages/AdminReviews";
@@ -87,7 +86,6 @@ function AppRoutes() {
         {/* Cart & Orders */}
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
-        <Route path="/vnpay_return" element={<VnpayReturnPage />} />
         <Route path="/orders" element={<OrderHistoryPage />} />
 
         <Route path="/my-courses" element={<MyCoursesPage />} />
