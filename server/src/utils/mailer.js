@@ -1,5 +1,7 @@
 const nodemailer = require("nodemailer");
 
+const EMAIL_TIMEOUT_MS = 8_000;
+
 function getSmtpConfig() {
   const user = process.env.SMTP_USER || process.env.EMAIL_USER;
   const pass = String(process.env.SMTP_PASS || process.env.EMAIL_PASS || "").replace(/\s/g, "");
@@ -21,42 +23,110 @@ function getSmtpConfig() {
       port,
       secure: port === 465,
       auth: { user, pass },
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 15_000
+      connectionTimeout: EMAIL_TIMEOUT_MS,
+      greetingTimeout: EMAIL_TIMEOUT_MS,
+      socketTimeout: EMAIL_TIMEOUT_MS
     },
     from: process.env.SMTP_FROM || user
   };
 }
 
-async function sendResetPasswordEmail(to, resetUrl) {
-  const smtp = getSmtpConfig();
-  if (!smtp) {
-    console.warn("[mailer] EMAIL_USER / EMAIL_PASS chưa cấu hình — không gửi được email.");
-    return false;
+function buildResetEmailHtml(resetUrl) {
+  return `
+    <h2>Đặt lại mật khẩu</h2>
+    <p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấn vào link bên dưới (có hiệu lực trong 1 giờ):</p>
+    <p><a href="${resetUrl}">${resetUrl}</a></p>
+    <p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
+  `;
+}
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`${label} quá thời gian chờ (${ms}ms)`)), ms);
+    })
+  ]);
+}
+
+/** Resend dùng HTTPS — hoạt động trên Render (SMTP Gmail thường bị chặn). */
+async function sendViaResend(to, subject, html) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return false;
+
+  const from = process.env.RESEND_FROM || "TZONE <onboarding@resend.dev>";
+  const res = await withTimeout(
+    fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ from, to, subject, html })
+    }),
+    EMAIL_TIMEOUT_MS,
+    "Resend API"
+  );
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Resend ${res.status}: ${body || res.statusText}`);
   }
+
+  console.log(`[mailer] Resend: đã gửi email tới ${to}`);
+  return true;
+}
+
+async function sendViaSmtp(to, subject, html) {
+  const smtp = getSmtpConfig();
+  if (!smtp) return false;
 
   const transporter = nodemailer.createTransport({
     ...smtp.transport,
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 15_000
+    connectionTimeout: EMAIL_TIMEOUT_MS,
+    greetingTimeout: EMAIL_TIMEOUT_MS,
+    socketTimeout: EMAIL_TIMEOUT_MS
   });
 
-  await transporter.sendMail({
-    from: smtp.from,
-    to,
-    subject: "TZONE Toeic — Đặt lại mật khẩu",
-    html: `
-      <h2>Đặt lại mật khẩu</h2>
-      <p>Bạn đã yêu cầu đặt lại mật khẩu. Nhấn vào link bên dưới (có hiệu lực trong 1 giờ):</p>
-      <p><a href="${resetUrl}">${resetUrl}</a></p>
-      <p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
-    `
-  });
+  await withTimeout(
+    transporter.sendMail({ from: smtp.from, to, subject, html }),
+    EMAIL_TIMEOUT_MS,
+    "SMTP"
+  );
 
-  console.log(`[mailer] Đã gửi email đặt lại mật khẩu tới ${to}`);
+  console.log(`[mailer] SMTP: đã gửi email tới ${to}`);
   return true;
+}
+
+async function sendResetPasswordEmail(to, resetUrl) {
+  const subject = "TZONE Toeic — Đặt lại mật khẩu";
+  const html = buildResetEmailHtml(resetUrl);
+
+  try {
+    if (process.env.RESEND_API_KEY) {
+      const sent = await sendViaResend(to, subject, html);
+      if (sent) return true;
+    }
+
+    // Render chặn cổng SMTP 587/465 — không dùng Gmail SMTP trên production Render
+    if (process.env.RENDER) {
+      console.warn(
+        "[mailer] Render chặn SMTP. Đặt RESEND_API_KEY trên Render Environment để gửi email. Reset URL:",
+        resetUrl
+      );
+      return false;
+    }
+
+    const sent = await sendViaSmtp(to, subject, html);
+    if (!sent) {
+      console.warn("[mailer] EMAIL_USER / EMAIL_PASS chưa cấu hình — không gửi được email.");
+    }
+    return sent;
+  } catch (err) {
+    console.error("[mailer] Gửi email thất bại:", err.message);
+    console.error("[mailer] Reset URL (fallback):", resetUrl);
+    return false;
+  }
 }
 
 module.exports = { sendResetPasswordEmail, getSmtpConfig };

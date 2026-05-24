@@ -63,7 +63,7 @@ export async function syncGoogleAccount({ email, name, picture }) {
 /* ───── FORGOT PASSWORD ───── */
 export async function forgotPassword(email) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20_000);
+  const timeoutId = setTimeout(() => controller.abort(), 15_000);
 
   let res;
   try {

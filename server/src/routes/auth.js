@@ -20,6 +20,15 @@ function dbUnavailable(res) {
   });
 }
 
+function getAppBaseUrl(req) {
+  const configured =
+    process.env.APP_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    req.headers.origin ||
+    "http://localhost:5173";
+  return String(configured).replace(/\/$/, "");
+}
+
 /* ───────────────────────── CHECK EMAIL ───────────────────────── */
 
 router.post("/check-email", async (req, res) => {
@@ -249,27 +258,32 @@ router.post("/forgot-password", async (req, res) => {
       return res.status(400).json({ success: false, message: "Vui lòng nhập email." });
     }
 
-    const user = await User.findOne({ email, authProvider: "local" });
+    const user = await User.findOne({ email, authProvider: "local" }).maxTimeMS(10_000);
     if (!user) {
-      // Không tiết lộ email có tồn tại hay không
       return res.json({ success: true, message: "Nếu email tồn tại, bạn sẽ nhận được email hướng dẫn đặt lại mật khẩu." });
     }
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
     user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 giờ
-    await user.save();
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
+    await user.save({ maxTimeMS: 10_000 });
 
-    const resetUrl = `${req.headers.origin || "http://localhost:5173"}/reset-password/${resetToken}`;
+    const resetUrl = `${getAppBaseUrl(req)}/reset-password/${resetToken}`;
     console.log(`[forgot-password] Reset URL for ${email}: ${resetUrl}`);
 
-    // Gửi email nền — không chặn response (tránh treo "Đang gửi..." khi SMTP chậm/lỗi)
-    sendResetPasswordEmail(email, resetUrl).catch((emailErr) => {
-      console.error("[forgot-password] Email send error:", emailErr.message);
+    // Trả response ngay — email chạy nền (Render chặn SMTP, tránh treo UI)
+    res.json({
+      success: true,
+      message: "Nếu email tồn tại, bạn sẽ nhận được email hướng dẫn đặt lại mật khẩu."
     });
 
-    return res.json({ success: true, message: "Nếu email tồn tại, bạn sẽ nhận được email hướng dẫn đặt lại mật khẩu." });
+    setImmediate(() => {
+      sendResetPasswordEmail(email, resetUrl).catch((emailErr) => {
+        console.error("[forgot-password] Email send error:", emailErr.message);
+      });
+    });
+    return;
   } catch (e) {
     console.error(e);
     return res.status(500).json({ success: false, message: "Lỗi máy chủ." });
