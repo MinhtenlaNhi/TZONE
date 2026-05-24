@@ -3,6 +3,7 @@ const Enrollment = require("../models/Enrollment");
 const Lesson = require("../models/Lesson");
 const Course = require("../models/Course");
 const { authMiddleware } = require("../middlewares/auth");
+const { buildCurriculum } = require("../utils/lessonHelpers");
 
 const router = express.Router();
 
@@ -47,7 +48,7 @@ router.get("/:courseId/lessons", authMiddleware, async (req, res) => {
     }
 
     // Lấy bài học
-    let query = { courseRef: course._id };
+    let query = { courseRef: course._id, isSectionPlaceholder: { $ne: true } };
     
     // Nếu là học thử, chỉ trả về các bài học isFreePreview
     if (enrollment.isTrial) {
@@ -55,23 +56,9 @@ router.get("/:courseId/lessons", authMiddleware, async (req, res) => {
     }
 
     const lessons = await Lesson.find(query).sort({ sectionIndex: 1, order: 1 }).lean();
+    const curriculum = buildCurriculum(lessons);
 
-    // Nhóm lại theo Section
-    const curriculum = [];
-    lessons.forEach(lesson => {
-      let section = curriculum.find(sec => sec.sectionIndex === lesson.sectionIndex);
-      if (!section) {
-        section = {
-          sectionIndex: lesson.sectionIndex,
-          sectionTitle: lesson.sectionTitle,
-          lessons: []
-        };
-        curriculum.push(section);
-      }
-      section.lessons.push(lesson);
-    });
-
-    return res.json({ 
+    return res.json({
       success: true, 
       courseTitle: enrollment.course?.title,
       isTrial: enrollment.isTrial,

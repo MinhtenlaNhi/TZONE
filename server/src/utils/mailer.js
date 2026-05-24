@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-const EMAIL_TIMEOUT_MS = 8_000;
+const EMAIL_TIMEOUT_MS = 12_000;
 
 function getSmtpConfig() {
   const user = process.env.SMTP_USER || process.env.EMAIL_USER;
@@ -31,6 +31,20 @@ function getSmtpConfig() {
   };
 }
 
+function getSenderEmail() {
+  return (
+    process.env.BREVO_FROM ||
+    process.env.SENDGRID_FROM ||
+    process.env.EMAIL_USER ||
+    process.env.SMTP_USER ||
+    ""
+  ).trim();
+}
+
+function getSenderName() {
+  return process.env.BREVO_FROM_NAME || process.env.SENDGRID_FROM_NAME || "TZONE";
+}
+
 function buildResetEmailHtml(resetUrl) {
   return `
     <h2>Đặt lại mật khẩu</h2>
@@ -38,6 +52,10 @@ function buildResetEmailHtml(resetUrl) {
     <p><a href="${resetUrl}">${resetUrl}</a></p>
     <p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
   `;
+}
+
+function buildResetEmailText(resetUrl) {
+  return `Đặt lại mật khẩu TZONE\n\nLink (hiệu lực 1 giờ): ${resetUrl}\n\nNếu bạn không yêu cầu, hãy bỏ qua email này.`;
 }
 
 function withTimeout(promise, ms, label) {
@@ -49,7 +67,84 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
-/** Resend dùng HTTPS — hoạt động trên Render (SMTP Gmail thường bị chặn). */
+/** Brevo (HTTPS) — free 300 email/ngày, gửi mọi địa chỉ sau khi verify sender 1 lần. */
+async function sendViaBrevo(to, subject, html, text) {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) return false;
+
+  const fromEmail = getSenderEmail();
+  if (!fromEmail) {
+    throw new Error("Thiếu BREVO_FROM hoặc EMAIL_USER (email đã verify trên Brevo).");
+  }
+
+  const res = await withTimeout(
+    fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+        accept: "application/json"
+      },
+      body: JSON.stringify({
+        sender: { name: getSenderName(), email: fromEmail },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+        textContent: text
+      })
+    }),
+    EMAIL_TIMEOUT_MS,
+    "Brevo API"
+  );
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Brevo ${res.status}: ${body || res.statusText}`);
+  }
+
+  console.log(`[mailer] Brevo: đã gửi email tới ${to}`);
+  return true;
+}
+
+async function sendViaSendGrid(to, subject, html, text) {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  if (!apiKey) return false;
+
+  const fromEmail = getSenderEmail();
+  if (!fromEmail) {
+    throw new Error("Thiếu SENDGRID_FROM hoặc EMAIL_USER (email đã verify trên SendGrid).");
+  }
+
+  const res = await withTimeout(
+    fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: fromEmail, name: getSenderName() },
+        subject,
+        content: [
+          { type: "text/plain", value: text },
+          { type: "text/html", value: html }
+        ]
+      })
+    }),
+    EMAIL_TIMEOUT_MS,
+    "SendGrid API"
+  );
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`SendGrid ${res.status}: ${body || res.statusText}`);
+  }
+
+  console.log(`[mailer] SendGrid: đã gửi email tới ${to}`);
+  return true;
+}
+
 async function sendViaResend(to, subject, html) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return false;
@@ -77,7 +172,7 @@ async function sendViaResend(to, subject, html) {
   return true;
 }
 
-async function sendViaSmtp(to, subject, html) {
+async function sendViaSmtp(to, subject, html, text) {
   const smtp = getSmtpConfig();
   if (!smtp) return false;
 
@@ -89,7 +184,7 @@ async function sendViaSmtp(to, subject, html) {
   });
 
   await withTimeout(
-    transporter.sendMail({ from: smtp.from, to, subject, html }),
+    transporter.sendMail({ from: smtp.from, to, subject, text, html }),
     EMAIL_TIMEOUT_MS,
     "SMTP"
   );
@@ -98,28 +193,49 @@ async function sendViaSmtp(to, subject, html) {
   return true;
 }
 
+function getActiveProviders() {
+  const list = [];
+  if (process.env.BREVO_API_KEY) list.push("Brevo");
+  if (process.env.SENDGRID_API_KEY) list.push("SendGrid");
+  if (process.env.RESEND_API_KEY) list.push("Resend");
+  if (getSmtpConfig() && !process.env.RENDER) list.push("SMTP");
+  return list;
+}
+
 async function sendResetPasswordEmail(to, resetUrl) {
   const subject = "TZONE Toeic — Đặt lại mật khẩu";
   const html = buildResetEmailHtml(resetUrl);
+  const text = buildResetEmailText(resetUrl);
+
+  console.log(`[mailer] Gửi reset password → ${to} | providers: ${getActiveProviders().join(", ") || "none"}`);
 
   try {
+    if (process.env.BREVO_API_KEY) {
+      const sent = await sendViaBrevo(to, subject, html, text);
+      if (sent) return true;
+    }
+
+    if (process.env.SENDGRID_API_KEY) {
+      const sent = await sendViaSendGrid(to, subject, html, text);
+      if (sent) return true;
+    }
+
     if (process.env.RESEND_API_KEY) {
       const sent = await sendViaResend(to, subject, html);
       if (sent) return true;
     }
 
-    // Render chặn cổng SMTP 587/465 — không dùng Gmail SMTP trên production Render
     if (process.env.RENDER) {
       console.warn(
-        "[mailer] Render chặn SMTP. Đặt RESEND_API_KEY trên Render Environment để gửi email. Reset URL:",
+        "[mailer] Render chặn SMTP. Cần BREVO_API_KEY hoặc SENDGRID_API_KEY trên Environment. Reset URL:",
         resetUrl
       );
       return false;
     }
 
-    const sent = await sendViaSmtp(to, subject, html);
+    const sent = await sendViaSmtp(to, subject, html, text);
     if (!sent) {
-      console.warn("[mailer] EMAIL_USER / EMAIL_PASS chưa cấu hình — không gửi được email.");
+      console.warn("[mailer] Không có provider email nào được cấu hình.");
     }
     return sent;
   } catch (err) {
@@ -129,4 +245,4 @@ async function sendResetPasswordEmail(to, resetUrl) {
   }
 }
 
-module.exports = { sendResetPasswordEmail, getSmtpConfig };
+module.exports = { sendResetPasswordEmail, getSmtpConfig, getActiveProviders };

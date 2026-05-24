@@ -19,8 +19,13 @@ export default function OnboardingPage() {
   const [accountType, setAccountType] = useState("student");
 
   useEffect(() => {
-    // Ưu tiên vai trò đã lưu trong DB (đăng nhập email) — không để "pending" từ /register ghi đè.
-    const fromDb = getAuth()?.accountType;
+    const fromDbRole = auth?.role;
+    if (fromDbRole === "teacher") {
+      setAccountType("teacher");
+      clearPendingRegisterRole();
+      return;
+    }
+    const fromDb = auth?.accountType;
     if (fromDb === "student" || fromDb === "teacher") {
       setAccountType(fromDb);
       clearPendingRegisterRole();
@@ -28,7 +33,9 @@ export default function OnboardingPage() {
     }
     const pending = consumePendingRegisterRole();
     if (pending) setAccountType(pending);
-  }, []);
+  }, [auth?.role, auth?.accountType]);
+
+  const roleLocked = auth?.role === "teacher";
 
   function handleContinue(e) {
     e.preventDefault();
@@ -36,20 +43,26 @@ export default function OnboardingPage() {
       navigate("/login", { replace: true });
       return;
     }
+
+    const resolvedType = roleLocked ? "teacher" : accountType;
+
     markOnboardingComplete(auth.email);
     try {
       const next = {
         ...auth,
-        accountType,
+        role: resolvedType === "teacher" ? "teacher" : "student",
+        accountType: resolvedType,
         at: Date.now()
       };
-      if (accountType === "teacher") {
-        if (auth?.provider === "email") {
+      if (resolvedType === "teacher") {
+        if (auth?.provider === "email" || auth?.role === "teacher") {
+          next.role = "teacher";
           next.teacherApprovalStatus = auth.teacherApprovalStatus ?? "pending";
         } else {
           delete next.teacherApprovalStatus;
         }
       } else {
+        next.role = "student";
         delete next.teacherApprovalStatus;
       }
       sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(next));
@@ -58,7 +71,7 @@ export default function OnboardingPage() {
     }
 
     if (
-      accountType === "teacher" &&
+      resolvedType === "teacher" &&
       auth?.teacherApprovalStatus !== "approved"
     ) {
       window.alert(
@@ -66,7 +79,7 @@ export default function OnboardingPage() {
       );
     }
 
-    if (accountType === "teacher") {
+    if (resolvedType === "teacher") {
       navigate("/teacher/dashboard", { replace: true });
     } else {
       navigate("/dashboard", { replace: true });
@@ -98,13 +111,19 @@ export default function OnboardingPage() {
               className="onboarding__select"
               value={accountType}
               onChange={(e) => setAccountType(e.target.value)}
+              disabled={roleLocked}
             >
-              {ROLE_OPTIONS.map((o) => (
+              {ROLE_OPTIONS.filter((o) => !roleLocked || o.value === "teacher").map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
               ))}
             </select>
+            {roleLocked ? (
+              <p className="onboarding__hint" style={{ marginTop: "0.75rem", color: "#64748b", fontSize: "0.9rem" }}>
+                Tài khoản giáo viên đã được đăng ký — không thể chuyển sang vai trò học sinh.
+              </p>
+            ) : null}
             <button type="submit" className="onboarding__submit">
               Tiếp tục
             </button>

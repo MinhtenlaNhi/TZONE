@@ -19,9 +19,6 @@ const HamburgerIcon = () => (
 const CheckIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
 );
-const PlayIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-);
 const CartIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
 );
@@ -72,22 +69,22 @@ const categories = [
 const courses = [
   {
     id: 1, levelLabel: "Tập sự", title: "Tập sự A01", schedule: "Tối 3-5-7 | 20h-21h30", price: "2.500.000đ",
-    startDate: "07/05", enrolled: "20/23", instructor: { name: "Ms. Phương Anh", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" },
+    startDate: "07/05", instructor: { name: "Ms. Phương Anh", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" },
     image: "/images/course-team-collab.png"
   },
   {
     id: 2, levelLabel: "TOEIC A", title: "TOEIC A ST15", schedule: "Tối 2-4-6 | 18h-19h30", price: "3.200.000đ",
-    startDate: "08/05", enrolled: "10/23", instructor: { name: "Ms. Thu Linh", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80" },
+    startDate: "08/05", instructor: { name: "Ms. Thu Linh", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80" },
     image: "/images/course-library-student.png"
   },
   {
     id: 3, levelLabel: "TOEIC B", title: "TOEIC B S17", schedule: "Tối 3-5-7 | 17h30-19h30", price: "3.000.000đ",
-    startDate: "10/05", enrolled: "10/20", instructor: { name: "Ms. Minh Hạnh", avatar: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=120&q=80" },
+    startDate: "10/05", instructor: { name: "Ms. Minh Hạnh", avatar: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=120&q=80" },
     image: "/images/course-group-study.png"
   },
   {
     id: 4, levelLabel: "TOEIC S+W", title: "TOEIC SW S18", schedule: "Tối 2-4-6 | 19h-20h30", price: "3.500.000đ",
-    startDate: "13/05", enrolled: "19/20", instructor: { name: "Ms. Gia Hân", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80" },
+    startDate: "13/05", instructor: { name: "Ms. Gia Hân", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80" },
     image: "/images/course-team-collab.png"
   }
 ];
@@ -170,7 +167,6 @@ export default function HomePage() {
     sessions: c.totalSessions ? `${c.totalSessions} buổi` : "24 buổi",
     price: c.price ? (c.price.toString().includes('đ') ? c.price : `${Number(c.price).toLocaleString()}đ`) : "2.500.000đ",
     startDate: c.startDate || "10/06/2024",
-    enrolled: `${c.enrolled || 0}/${c.capacity || 30}`,
     instructor: { 
       name: c.instructor || "TZONE", 
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" 
@@ -237,8 +233,7 @@ export default function HomePage() {
             </ul>
 
             <div className="tz-hero-actions">
-              <button className="tz-btn-primary">Đăng ký học ngay</button>
-              <button className="tz-btn-outline"><PlayIcon /> Xem video giới thiệu</button>
+              <Link to="/courses" className="tz-btn-primary">Đăng ký học ngay</Link>
             </div>
           </div>
           

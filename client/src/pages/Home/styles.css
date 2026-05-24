@@ -305,6 +305,8 @@
 }
 
 .tz-btn-primary {
+  display: inline-block;
+  text-decoration: none;
   background: #10b981;
   color: white;
   border: none;

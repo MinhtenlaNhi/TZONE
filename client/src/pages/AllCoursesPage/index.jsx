@@ -47,17 +47,6 @@ function IconStar() {
   );
 }
 
-function IconUsers() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-      <circle cx="9" cy="7" r="4"></circle>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-    </svg>
-  );
-}
-
 function IconCalendar() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -98,8 +87,6 @@ export default function AllCoursesPage() {
   const [filters, setFilters] = useState({
     search: searchParams.get("search") || "",
     category: searchParams.get("category") || "",
-    minPrice: "",
-    maxPrice: "",
     sort: "createdAt_desc"
   });
 
@@ -137,8 +124,6 @@ export default function AllCoursesPage() {
       const query = new URLSearchParams();
       if (filters.search) query.append("search", filters.search);
       if (filters.category) query.append("category", filters.category);
-      if (filters.minPrice) query.append("minPrice", filters.minPrice);
-      if (filters.maxPrice) query.append("maxPrice", filters.maxPrice);
       if (filters.sort) query.append("sort", filters.sort);
       query.append("page", page);
       query.append("limit", limit);
@@ -163,7 +148,7 @@ export default function AllCoursesPage() {
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
-    if (name !== 'search' && name !== 'minPrice' && name !== 'maxPrice') {
+    if (name !== "search") {
       setPage(1);
     }
   };
@@ -293,18 +278,6 @@ export default function AllCoursesPage() {
                   ))}
                 </div>
               </div>
-
-              <div className="tz-ac-widget-section">
-                <h3 className="tz-ac-widget-title">Khoảng giá (VNĐ)</h3>
-                <div className="tz-ac-price-range">
-                  <input type="number" name="minPrice" placeholder="Tối thiểu" value={filters.minPrice} onChange={handleFilterChange} />
-                  <span className="tz-price-divider">~</span>
-                  <input type="number" name="maxPrice" placeholder="Tối đa" value={filters.maxPrice} onChange={handleFilterChange} />
-                </div>
-                <button className="tz-ac-btn-apply" onClick={loadCourses}>
-                  <IconFilter /> Áp dụng
-                </button>
-              </div>
             </div>
           </aside>
 
@@ -380,15 +353,9 @@ export default function AllCoursesPage() {
                       <div className="tz-cc-body">
                         <h3 className="tz-cc-title">{course.title}</h3>
 
-                        <div className="tz-cc-meta-row">
-                          <div className="tz-cc-meta-item">
-                            <IconStar />
-                            <span>{course.rating || "4.5"} ({course.ratingLabel || "-"})</span>
-                          </div>
-                          <div className="tz-cc-meta-item">
-                            <IconUsers />
-                            <span>{course.enrolled || 0} HV</span>
-                          </div>
+                        <div className="tz-cc-rating">
+                          <IconStar />
+                          <span>{course.rating || "4.5"} ({course.ratingLabel || "-"})</span>
                         </div>
 
                         <div className="tz-cc-schedule">

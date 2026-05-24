@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { getProfile, updateProfile, uploadAvatar } from "../../api/users";
 import { changePassword } from "../../api/auth";
 import { getAuth, setAuth } from "../../auth/auth";
@@ -23,7 +24,9 @@ function IconEyeClosed() {
   );
 }
 
-export default function ProfilePage() {
+export default function ProfilePage({ variant = "student" }) {
+  const isTeacherView = variant === "teacher";
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,6 +51,12 @@ export default function ProfilePage() {
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
   const fileRef = useRef(null);
+
+  useEffect(() => {
+    if (!isTeacherView && getAuth()?.role === "teacher") {
+      navigate("/teacher/account", { replace: true });
+    }
+  }, [isTeacherView, navigate]);
 
   useEffect(() => {
     loadProfile();
@@ -79,11 +88,17 @@ export default function ProfilePage() {
     try {
       const data = await updateProfile({ name: name.trim(), phone: phone.trim() });
       setUser(data.user);
-      // Đồng bộ session
       const auth = getAuth();
       if (auth) {
-        auth.name = data.user.name;
-        setAuth(auth);
+        setAuth({
+          ...auth,
+          ...data.user,
+          name: data.user.name,
+          phone: data.user.phone,
+          role: auth.role || data.user.role,
+          teacherApprovalStatus: auth.teacherApprovalStatus ?? data.user.teacherApprovalStatus,
+          at: Date.now()
+        });
       }
       setMsg("Cập nhật thành công!");
       setMsgType("success");
@@ -104,8 +119,14 @@ export default function ProfilePage() {
       setUser(data.user);
       const auth = getAuth();
       if (auth) {
-        auth.avatar = data.user.avatar;
-        setAuth(auth);
+        setAuth({
+          ...auth,
+          ...data.user,
+          avatar: data.user.avatar,
+          role: auth.role || data.user.role,
+          teacherApprovalStatus: auth.teacherApprovalStatus ?? data.user.teacherApprovalStatus,
+          at: Date.now()
+        });
       }
       setMsg("Cập nhật avatar thành công!");
       setMsgType("success");
@@ -330,18 +351,20 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Quick Links */}
-      <div className="profile-section">
-        <h2>Lối tắt</h2>
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-          <a href="/my-courses" className="profile-btn secondary" style={{ textDecoration: 'none', textAlign: 'center' }}>
-            📚 Khóa học của tôi
-          </a>
-          <a href="/orders" className="profile-btn secondary" style={{ textDecoration: 'none', textAlign: 'center' }}>
-            🛒 Lịch sử mua hàng
-          </a>
+      {/* Quick Links — chỉ học viên */}
+      {!isTeacherView ? (
+        <div className="profile-section">
+          <h2>Lối tắt</h2>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+            <a href="/my-courses" className="profile-btn secondary" style={{ textDecoration: 'none', textAlign: 'center' }}>
+              📚 Khóa học của tôi
+            </a>
+            <a href="/orders" className="profile-btn secondary" style={{ textDecoration: 'none', textAlign: 'center' }}>
+              🛒 Lịch sử mua hàng
+            </a>
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

@@ -5,8 +5,23 @@ const Section = require("../models/Lesson"); // Note: there is no Section model,
 const Lesson = require("../models/Lesson");
 const Assignment = require("../models/Assignment");
 const { authMiddleware } = require("../middlewares/auth");
+const { buildCurriculum } = require("../utils/lessonHelpers");
 
 const router = express.Router();
+
+/** Chỉ enrollment của tài khoản học viên (loại giáo viên / admin). */
+async function findStudentEnrollments(filter) {
+  const enrollments = await Enrollment.find(filter)
+    .populate({
+      path: "user",
+      select: "name email avatar phone role",
+      match: { role: "student" }
+    })
+    .sort({ enrolledAt: -1 })
+    .lean();
+
+  return enrollments.filter((e) => e.user);
+}
 
 // Middleware: Check if user is teacher
 const isTeacher = (req, res, next) => {
@@ -27,16 +42,19 @@ router.get("/", authMiddleware, isTeacher, async (req, res) => {
 
     const courseIds = courses.map(c => c._id);
     
-    const enrollments = await Enrollment.find({ course: { $in: courseIds } }).lean();
-    const totalStudents = enrollments.length;
+    const studentEnrollments = await findStudentEnrollments({ course: { $in: courseIds } });
+    const totalStudents = studentEnrollments.length;
     
     let totalProgress = 0;
-    enrollments.forEach(e => {
+    studentEnrollments.forEach(e => {
       totalProgress += (e.progress || 0);
     });
     const avgCompletionRate = totalStudents > 0 ? Math.round(totalProgress / totalStudents) : 0;
 
-    const totalLessons = await Lesson.countDocuments({ courseRef: { $in: courseIds } });
+    const totalLessons = await Lesson.countDocuments({
+      courseRef: { $in: courseIds },
+      isSectionPlaceholder: { $ne: true }
+    });
 
     res.json({ 
       success: true, 
@@ -61,12 +79,9 @@ router.get("/:id/students", authMiddleware, isTeacher, async (req, res) => {
       return res.status(403).json({ success: false, message: "Khóa học không thuộc quyền quản lý của bạn." });
     }
 
-    const enrollments = await Enrollment.find({ course: id })
-      .populate("user", "name email avatar phone")
-      .sort({ enrolledAt: -1 })
-      .lean();
+    const students = await findStudentEnrollments({ course: id });
 
-    res.json({ success: true, students: enrollments });
+    res.json({ success: true, students });
   } catch (err) {
     res.status(500).json({ success: false, message: "Lỗi máy chủ" });
   }
@@ -83,22 +98,7 @@ router.get("/:id/lessons", authMiddleware, isTeacher, async (req, res) => {
 
     const lessons = await Lesson.find({ courseRef: id }).sort({ sectionIndex: 1, order: 1 }).lean();
     const assignments = await Assignment.find({ courseRef: id }).lean();
-
-    const curriculum = [];
-    lessons.forEach(lesson => {
-      lesson.assignments = assignments.filter(a => a.lessonRef.toString() === lesson._id.toString());
-
-      let section = curriculum.find(sec => sec.sectionIndex === lesson.sectionIndex);
-      if (!section) {
-        section = {
-          sectionIndex: lesson.sectionIndex,
-          sectionTitle: lesson.sectionTitle,
-          lessons: []
-        };
-        curriculum.push(section);
-      }
-      section.lessons.push(lesson);
-    });
+    const curriculum = buildCurriculum(lessons, assignments);
 
     res.json({ success: true, curriculum });
   } catch (err) {
@@ -121,18 +121,51 @@ router.post("/:id/sections", authMiddleware, isTeacher, async (req, res) => {
     const lastLesson = await Lesson.findOne({ courseRef: id }).sort({ sectionIndex: -1 });
     const nextSectionIndex = lastLesson ? lastLesson.sectionIndex + 1 : 1;
 
-    // Tạo một placeholder lesson để lưu section
+    // Tạo bản ghi placeholder để lưu metadata chương (không hiển thị như bài học)
     const newSectionPlaceholder = new Lesson({
       courseRef: id,
       sectionIndex: nextSectionIndex,
       sectionTitle,
-      title: "Bài học đầu tiên (Vui lòng cập nhật)",
-      order: 1
+      title: sectionTitle,
+      order: 0,
+      isSectionPlaceholder: true
     });
 
     await newSectionPlaceholder.save();
 
     res.json({ success: true, message: "Đã thêm chương mới", sectionIndex: nextSectionIndex });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ" });
+  }
+});
+
+// 3.5 PUT /api/teacher/courses/:id/sections/:sectionIndex - Cập nhật tên chương
+router.put("/:id/sections/:sectionIndex", authMiddleware, isTeacher, async (req, res) => {
+  try {
+    const { id, sectionIndex } = req.params;
+    const { sectionTitle } = req.body;
+
+    if (!sectionTitle?.trim()) {
+      return res.status(400).json({ success: false, message: "Tên chương không được để trống." });
+    }
+
+    const course = await Course.findOne({ _id: id, instructorRef: req.user._id });
+    if (!course) {
+      return res.status(403).json({ success: false, message: "Truy cập bị từ chối." });
+    }
+
+    const idx = Number(sectionIndex);
+    const sectionExists = await Lesson.findOne({ courseRef: id, sectionIndex: idx });
+    if (!sectionExists) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy chương này." });
+    }
+
+    await Lesson.updateMany(
+      { courseRef: id, sectionIndex: idx },
+      { $set: { sectionTitle: sectionTitle.trim() } }
+    );
+
+    res.json({ success: true, message: "Đã cập nhật chương." });
   } catch (err) {
     res.status(500).json({ success: false, message: "Lỗi máy chủ" });
   }
@@ -155,8 +188,12 @@ router.post("/:id/lessons", authMiddleware, isTeacher, async (req, res) => {
       return res.status(404).json({ success: false, message: "Không tìm thấy chương này." });
     }
 
-    // Lấy order lớn nhất trong section này
-    const lastLessonInSec = await Lesson.findOne({ courseRef: id, sectionIndex }).sort({ order: -1 });
+    // Lấy order lớn nhất trong section này (bỏ qua placeholder chương)
+    const lastLessonInSec = await Lesson.findOne({
+      courseRef: id,
+      sectionIndex,
+      isSectionPlaceholder: { $ne: true }
+    }).sort({ order: -1 });
     const nextOrder = lastLessonInSec ? lastLessonInSec.order + 1 : 1;
 
     const newLesson = new Lesson({

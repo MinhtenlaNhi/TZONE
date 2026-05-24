@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { apiFetchJson, apiPath } from "../../api/base";
-import { createTeacherSection, createTeacherLesson, uploadLessonMaterial, createLessonAssignment, updateLessonAssignment } from "../../api/teacherApi";
+import { createTeacherSection, updateTeacherSection, createTeacherLesson, updateTeacherLesson, uploadLessonMaterial, createLessonAssignment, updateLessonAssignment } from "../../api/teacherApi";
 import { toast } from "react-toastify";
 import "./TeacherLessons.css";
 
@@ -45,6 +45,9 @@ const IconChevronDown = () => (
 const IconChevronUp = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
 );
+const IconEdit = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+);
 const IconCheckCircleSolid = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="#10b981" stroke="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
 );
@@ -58,9 +61,13 @@ export default function TeacherLessonsPage() {
   
   // Modals state
   const [showSecModal, setShowSecModal] = useState(false);
+  const [secModalMode, setSecModalMode] = useState("add");
+  const [editingSecIdx, setEditingSecIdx] = useState(null);
   const [secTitle, setSecTitle] = useState("");
 
   const [showLessonModal, setShowLessonModal] = useState(false);
+  const [lessonModalMode, setLessonModalMode] = useState("add");
+  const [editingLessonId, setEditingLessonId] = useState(null);
   const [activeSecIdx, setActiveSecIdx] = useState(null);
   const [lessonTitle, setLessonTitle] = useState("");
   const [isFreePreview, setIsFreePreview] = useState(false);
@@ -101,30 +108,71 @@ export default function TeacherLessonsPage() {
     }));
   };
 
-  const handleAddSection = async (e) => {
+  const openAddSectionModal = () => {
+    setSecModalMode("add");
+    setEditingSecIdx(null);
+    setSecTitle("");
+    setShowSecModal(true);
+  };
+
+  const openEditSectionModal = (sec) => {
+    setSecModalMode("edit");
+    setEditingSecIdx(sec.sectionIndex);
+    setSecTitle(sec.sectionTitle);
+    setShowSecModal(true);
+  };
+
+  const openAddLessonModal = (sectionIndex) => {
+    setLessonModalMode("add");
+    setEditingLessonId(null);
+    setActiveSecIdx(sectionIndex);
+    setLessonTitle("");
+    setIsFreePreview(false);
+    setShowLessonModal(true);
+  };
+
+  const openEditLessonModal = (lesson) => {
+    setLessonModalMode("edit");
+    setEditingLessonId(lesson._id);
+    setActiveSecIdx(lesson.sectionIndex);
+    setLessonTitle(lesson.title);
+    setIsFreePreview(!!lesson.isFreePreview);
+    setShowLessonModal(true);
+  };
+
+  const handleSaveSection = async (e) => {
     e.preventDefault();
     try {
-      const res = await createTeacherSection(courseId, secTitle);
+      const res = secModalMode === "edit"
+        ? await updateTeacherSection(courseId, editingSecIdx, secTitle)
+        : await createTeacherSection(courseId, secTitle);
       if (res.success) {
-        toast.success("Thêm chương mới thành công");
+        toast.success(secModalMode === "edit" ? "Cập nhật chương thành công" : "Thêm chương mới thành công");
         setShowSecModal(false);
         setSecTitle("");
         loadCourseData();
+      } else {
+        toast.error(res.message || "Lỗi lưu chương");
       }
-    } catch { toast.error("Lỗi thêm chương"); }
+    } catch { toast.error("Lỗi lưu chương"); }
   };
 
-  const handleAddLesson = async (e) => {
+  const handleSaveLesson = async (e) => {
     e.preventDefault();
     try {
-      const res = await createTeacherLesson(courseId, activeSecIdx, lessonTitle, isFreePreview);
+      const res = lessonModalMode === "edit"
+        ? await updateTeacherLesson(editingLessonId, { title: lessonTitle, isFreePreview })
+        : await createTeacherLesson(courseId, activeSecIdx, lessonTitle, isFreePreview);
       if (res.success) {
-        toast.success("Thêm bài học mới thành công");
+        toast.success(lessonModalMode === "edit" ? "Cập nhật bài học thành công" : "Thêm bài học mới thành công");
         setShowLessonModal(false);
         setLessonTitle("");
+        setIsFreePreview(false);
         loadCourseData();
+      } else {
+        toast.error(res.message || "Lỗi lưu bài học");
       }
-    } catch { toast.error("Lỗi thêm bài học"); }
+    } catch { toast.error("Lỗi lưu bài học"); }
   };
 
   const handleUpload = async (e) => {
@@ -220,7 +268,7 @@ export default function TeacherLessonsPage() {
               <div className="tz-tl-header-meta">QUẢN LÝ GIÁO TRÌNH</div>
               <h1 className="tz-tl-title">{course?.title || "Đang tải..."}</h1>
               <p className="tz-tl-header-desc">Quản lý nội dung, bài học và các hoạt động học tập</p>
-              <button onClick={() => setShowSecModal(true)} className="tz-tl-btn-primary tz-tl-add-chap-btn">
+              <button onClick={openAddSectionModal} className="tz-tl-btn-primary tz-tl-add-chap-btn">
                 <IconPlus /> Thêm Chương Mới
               </button>
             </div>
@@ -253,7 +301,7 @@ export default function TeacherLessonsPage() {
                 <IconFolder />
                 <h3>Chưa có giáo trình</h3>
                 <p>Khóa học này chưa có chương học nào. Hãy bắt đầu bằng cách thêm chương mới.</p>
-                <button onClick={() => setShowSecModal(true)} className="tz-tl-btn-outline">Thêm Chương Đầu Tiên</button>
+                <button onClick={openAddSectionModal} className="tz-tl-btn-outline">Thêm Chương Đầu Tiên</button>
               </div>
             ) : (
               lessons.map((sec) => (
@@ -264,11 +312,16 @@ export default function TeacherLessonsPage() {
                       <h3 className="tz-tl-sec-title">{sec.sectionTitle}</h3>
                     </div>
                     <div className="tz-tl-sec-actions">
-                      <button className="tz-tl-btn-icon-more">
-                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                      <button
+                        type="button"
+                        className="tz-tl-btn-outline-sm"
+                        onClick={() => openEditSectionModal(sec)}
+                        title="Sửa chương"
+                      >
+                        <IconEdit /> 
                       </button>
                       <button 
-                        onClick={() => { setActiveSecIdx(sec.sectionIndex); setShowLessonModal(true); }} 
+                        onClick={() => openAddLessonModal(sec.sectionIndex)} 
                         className="tz-tl-btn-outline-sm"
                       >
                         <IconPlus /> Thêm Bài Học
@@ -298,6 +351,14 @@ export default function TeacherLessonsPage() {
                               </div>
                             </div>
                             <div className="tz-tl-lesson-actions">
+                              <button
+                                type="button"
+                                onClick={() => openEditLessonModal(lesson)}
+                                className="tz-tl-action-btn"
+                                title="Sửa bài học"
+                              >
+                                <IconEdit />
+                              </button>
                               <Link to={`/teacher/course-links`} className="tz-tl-action-btn" title="Gắn link Meet">
                                 <IconVideo />
                               </Link>
@@ -346,34 +407,36 @@ export default function TeacherLessonsPage() {
           </div>
         )}
 
-        {/* Modal: Thêm Chương */}
+        {/* Modal: Thêm / Sửa Chương */}
         {showSecModal && (
           <div className="tz-tl-modal-overlay">
             <div className="tz-tl-modal">
               <div className="tz-tl-modal-header">
-                <h2>Thêm Chương Mới</h2>
+                <h2>{secModalMode === "edit" ? "Sửa Chương" : "Thêm Chương Mới"}</h2>
                 <button onClick={() => setShowSecModal(false)} className="tz-tl-modal-close">&times;</button>
               </div>
-              <form onSubmit={handleAddSection} className="tz-tl-modal-body">
+              <form onSubmit={handleSaveSection} className="tz-tl-modal-body">
                 <div className="tz-tl-form-group">
                   <label>Tên chương</label>
                   <input type="text" required value={secTitle} onChange={e => setSecTitle(e.target.value)} placeholder="Nhập tên chương..." />
                 </div>
-                <button type="submit" className="tz-tl-btn-primary full-width">Lưu Chương Học</button>
+                <button type="submit" className="tz-tl-btn-primary full-width">
+                  {secModalMode === "edit" ? "Lưu Thay Đổi" : "Lưu Chương Học"}
+                </button>
               </form>
             </div>
           </div>
         )}
 
-        {/* Modal: Thêm Bài Học */}
+        {/* Modal: Thêm / Sửa Bài Học */}
         {showLessonModal && (
           <div className="tz-tl-modal-overlay">
             <div className="tz-tl-modal">
               <div className="tz-tl-modal-header">
-                <h2>Thêm Bài Học Mới</h2>
+                <h2>{lessonModalMode === "edit" ? "Sửa Bài Học" : "Thêm Bài Học Mới"}</h2>
                 <button onClick={() => setShowLessonModal(false)} className="tz-tl-modal-close">&times;</button>
               </div>
-              <form onSubmit={handleAddLesson} className="tz-tl-modal-body">
+              <form onSubmit={handleSaveLesson} className="tz-tl-modal-body">
                 <div className="tz-tl-form-group">
                   <label>Tên bài học</label>
                   <input type="text" required value={lessonTitle} onChange={e => setLessonTitle(e.target.value)} placeholder="Nhập tên bài học..." />
@@ -384,7 +447,9 @@ export default function TeacherLessonsPage() {
                     <span className="checkbox-text">Cho phép học thử miễn phí (Trial)</span>
                   </label>
                 </div>
-                <button type="submit" className="tz-tl-btn-primary full-width">Lưu Bài Học</button>
+                <button type="submit" className="tz-tl-btn-primary full-width">
+                  {lessonModalMode === "edit" ? "Lưu Thay Đổi" : "Lưu Bài Học"}
+                </button>
               </form>
             </div>
           </div>

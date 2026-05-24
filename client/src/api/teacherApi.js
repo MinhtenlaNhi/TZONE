@@ -15,10 +15,24 @@ export async function createTeacherSection(courseId, sectionTitle) {
   });
 }
 
+export async function updateTeacherSection(courseId, sectionIndex, sectionTitle) {
+  return apiFetchJson(apiPath(`/api/teacher/courses/${courseId}/sections/${sectionIndex}`), {
+    method: "PUT",
+    body: JSON.stringify({ sectionTitle })
+  });
+}
+
 export async function createTeacherLesson(courseId, sectionIndex, title, isFreePreview = false) {
   return apiFetchJson(apiPath(`/api/teacher/courses/${courseId}/lessons`), {
     method: "POST",
     body: JSON.stringify({ sectionIndex, title, isFreePreview })
+  });
+}
+
+export async function updateTeacherLesson(lessonId, { title, isFreePreview }) {
+  return apiFetchJson(apiPath(`/api/teacher/lessons/${lessonId}`), {
+    method: "PUT",
+    body: JSON.stringify({ title, isFreePreview })
   });
 }
 

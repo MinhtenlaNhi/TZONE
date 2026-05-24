@@ -11,6 +11,9 @@ export default function OnboardingRoute({ children }) {
     return <Navigate to="/admin" replace />;
   }
   if (hasCompletedOnboarding(auth.email)) {
+    if (auth.role === "teacher") {
+      return <Navigate to="/teacher/dashboard" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
   return children;

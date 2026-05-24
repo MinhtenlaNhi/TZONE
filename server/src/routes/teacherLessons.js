@@ -28,6 +28,10 @@ const verifyLessonOwnership = async (req, res, next) => {
     if (lesson.courseRef.instructorRef?.toString() !== req.user._id.toString() && req.user.role !== "admin") {
       return res.status(403).json({ success: false, message: "Truy cập bị từ chối." });
     }
+
+    if (lesson.isSectionPlaceholder) {
+      return res.status(400).json({ success: false, message: "Không thể thao tác trên bản ghi placeholder của chương." });
+    }
     
     req.lesson = lesson;
     next();
@@ -35,6 +39,27 @@ const verifyLessonOwnership = async (req, res, next) => {
     res.status(500).json({ success: false, message: "Lỗi hệ thống." });
   }
 };
+
+// 0. PUT /api/teacher/lessons/:id - Cập nhật bài học
+router.put("/:id", authMiddleware, isTeacher, verifyLessonOwnership, async (req, res) => {
+  try {
+    const { title, isFreePreview } = req.body;
+
+    if (!title?.trim()) {
+      return res.status(400).json({ success: false, message: "Tên bài học không được để trống." });
+    }
+
+    req.lesson.title = title.trim();
+    if (typeof isFreePreview === "boolean") {
+      req.lesson.isFreePreview = isFreePreview;
+    }
+
+    await req.lesson.save();
+    res.json({ success: true, message: "Đã cập nhật bài học.", lesson: req.lesson });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Lỗi máy chủ." });
+  }
+});
 
 // 1. POST /api/teacher/lessons/:id/materials - Upload tài liệu bài giảng
 router.post("/:id/materials", authMiddleware, isTeacher, verifyLessonOwnership, upload.single("file"), async (req, res) => {

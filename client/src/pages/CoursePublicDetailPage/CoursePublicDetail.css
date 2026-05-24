@@ -136,10 +136,6 @@
   gap: 0.5rem;
 }
 
-.cp-hero-meta .separator {
-  opacity: 0.5;
-}
-
 .cp-hero-graphic {
   flex-shrink: 0;
   width: 400px;

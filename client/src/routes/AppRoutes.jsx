@@ -19,6 +19,7 @@ import MyCoursesPage from "../pages/MyCoursesPage";
 import LearningPage from "../pages/LearningPage";
 import AssignmentPage from "../pages/AssignmentPage";
 import TeacherCourseLinksPage from "../pages/TeacherCourseLinks";
+import TeacherSchedulePage from "../pages/TeacherSchedulePage";
 import SchedulePage from "../pages/SchedulePage";
 import ForgotPasswordPage from "../pages/ForgotPassword";
 import ResetPasswordPage from "../pages/ResetPassword";
@@ -46,6 +47,7 @@ import StudentShell from "../layouts/StudentShell";
 import AdminRoute from "./AdminRoute";
 import OnboardingRoute from "./OnboardingRoute";
 import PrivateRoute from "./PrivateRoute";
+import StudentRoute from "./StudentRoute";
 
 const PlaceholderPage = ({ title }) => (
   <div style={{ padding: 24, maxWidth: 720, margin: "0 auto" }}>
@@ -78,7 +80,7 @@ function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/register/details" element={<RegisterDetailsPage />} />
       {/* Teacher Routes moved inside StudentShell */}
-      <Route element={<PrivateRoute><StudentShell /></PrivateRoute>}>
+      <Route element={<PrivateRoute><StudentRoute><StudentShell /></StudentRoute></PrivateRoute>}>
         <Route path="/dashboard" element={<DashboardHome />} />
         <Route path="/schedule" element={<SchedulePage />} />
         
@@ -105,6 +107,8 @@ function AppRoutes() {
         <Route path="/teacher/courses/:courseId/lessons" element={<TeacherLessonsPage />} />
         <Route path="/teacher/lessons/:lessonId/submissions" element={<TeacherSubmissionsPage />} />
         <Route path="/teacher/course-links" element={<TeacherCourseLinksPage />} />
+        <Route path="/teacher/schedule" element={<TeacherSchedulePage />} />
+        <Route path="/teacher/account" element={<ProfilePage variant="teacher" />} />
       </Route>
 
       <Route

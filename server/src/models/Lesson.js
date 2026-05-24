@@ -36,6 +36,11 @@ const LessonSchema = new mongoose.Schema({
   isFreePreview: {
     type: Boolean,
     default: false
+  },
+  /** Chỉ dùng để lưu metadata chương — không hiển thị như bài học thật. */
+  isSectionPlaceholder: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

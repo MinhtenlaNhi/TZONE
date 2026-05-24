@@ -75,9 +75,7 @@ function GoogleSignInButton() {
           
           const role = resolveRole(email) === "admin" ? "admin" : user.role;
           
-          sessionStorage.setItem(
-            AUTH_STORAGE_KEY,
-            JSON.stringify({
+          const payload = {
               provider: "google",
               _id: user._id,
               email: user.email,
@@ -87,8 +85,11 @@ function GoogleSignInButton() {
               role,
               accountType: user.role,
               at: Date.now()
-            })
-          );
+            };
+          if (user.role === "teacher") {
+            payload.teacherApprovalStatus = user.teacherApprovalStatus ?? "approved";
+          }
+          sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
 
           if (role === "admin") {
             clearPendingRegisterRole();

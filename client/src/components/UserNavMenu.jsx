@@ -124,6 +124,7 @@ export default function UserNavMenu() {
   const avatarUrl = rawAvatar ? (rawAvatar.startsWith("http") ? rawAvatar : apiPath(rawAvatar)) : null;
   const badgeText = accountBadgeLabel(user);
   const nameShort = shortDisplayName(user, displayName);
+  const isTeacher = user.role === "teacher";
 
   function handleLogout() {
     clearAuth();
@@ -183,33 +184,48 @@ export default function UserNavMenu() {
           </div>
           <div className="user-nav__dd-sep" role="separator" />
 
-          <Link className="user-nav__item" role="menuitem" to="/dashboard" onClick={() => setOpen(false)}>
-            <IconOverview /> Tổng quan
-          </Link>
-          <Link className="user-nav__item" role="menuitem" to="/schedule" onClick={() => setOpen(false)}>
-            <IconCalendar /> Lịch học
-          </Link>
-          <Link className="user-nav__item" role="menuitem" to="/my-courses" onClick={() => setOpen(false)}>
-            <IconCourses /> Các khóa học của bạn
-          </Link>
-
           <div className="user-nav__dd-sep" role="separator" />
 
-          <Link className="user-nav__item" role="menuitem" to="/account" onClick={() => setOpen(false)}>
-            <IconDdPerson /> Thông tin cá nhân
-          </Link>
-          <Link className="user-nav__item" role="menuitem" to="/reviews" onClick={() => setOpen(false)}>
-            <IconDdStar /> Đánh giá
-          </Link>
-          <Link className="user-nav__item" role="menuitem" to="/tests" onClick={() => setOpen(false)}>
-            <IconDdTests /> Các bài kiểm tra
-          </Link>
+          {isTeacher ? (
+            <>
+              <Link className="user-nav__item" role="menuitem" to="/teacher/dashboard" onClick={() => setOpen(false)}>
+                <IconOverview /> Workspace Giảng viên
+              </Link>
+              <Link className="user-nav__item" role="menuitem" to="/teacher/account" onClick={() => setOpen(false)}>
+                <IconDdPerson /> Thông tin cá nhân
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link className="user-nav__item" role="menuitem" to="/dashboard" onClick={() => setOpen(false)}>
+                <IconOverview /> Tổng quan
+              </Link>
+              <Link className="user-nav__item" role="menuitem" to="/schedule" onClick={() => setOpen(false)}>
+                <IconCalendar /> Lịch học
+              </Link>
+              <Link className="user-nav__item" role="menuitem" to="/my-courses" onClick={() => setOpen(false)}>
+                <IconCourses /> Các khóa học của bạn
+              </Link>
+
+              <div className="user-nav__dd-sep" role="separator" />
+
+              <Link className="user-nav__item" role="menuitem" to="/account" onClick={() => setOpen(false)}>
+                <IconDdPerson /> Thông tin cá nhân
+              </Link>
+              <Link className="user-nav__item" role="menuitem" to="/reviews" onClick={() => setOpen(false)}>
+                <IconDdStar /> Đánh giá
+              </Link>
+              <Link className="user-nav__item" role="menuitem" to="/tests" onClick={() => setOpen(false)}>
+                <IconDdTests /> Các bài kiểm tra
+              </Link>
+            </>
+          )}
 
           {canUseTeacherCourseLinkTools(user) ? (
             <>
               <div className="user-nav__dd-sep" role="separator" />
-              <Link className="user-nav__item" role="menuitem" to="/teacher/dashboard" onClick={() => setOpen(false)}>
-                <IconDdTests /> Workspace Giảng viên
+              <Link className="user-nav__item" role="menuitem" to="/teacher/course-links" onClick={() => setOpen(false)}>
+                <IconDdTests /> Gắn link Meet
               </Link>
             </>
           ) : null}
