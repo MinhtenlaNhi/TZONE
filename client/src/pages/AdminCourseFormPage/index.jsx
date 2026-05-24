@@ -32,7 +32,6 @@ export default function AdminCourseFormPage() {
     schedule: "",
     totalSessions: 0,
     sessionDuration: 90,
-    startDate: "",
     enrollmentOpenDate: "",
     enrollmentCloseDate: "",
     isPublished: false,
@@ -101,7 +100,6 @@ export default function AdminCourseFormPage() {
               schedule: course.schedule || "",
               totalSessions: course.totalSessions || 0,
               sessionDuration: course.sessionDuration || 90,
-              startDate: course.startDate || "",
               enrollmentOpenDate: course.enrollmentOpenDate ? dateToDatetimeLocalVN(course.enrollmentOpenDate) : "",
               enrollmentCloseDate: course.enrollmentCloseDate ? dateToDatetimeLocalVN(course.enrollmentCloseDate) : "",
               isPublished: course.isPublished || false,
@@ -368,11 +366,6 @@ export default function AdminCourseFormPage() {
               <h3>Lịch học & Thời gian</h3>
             </div>
             <div className="tz-card-body">
-              <div className="tz-form-group">
-                <label>Lịch khai giảng (chuỗi) <span className="text-danger">*</span></label>
-                <input type="text" name="startDate" value={formData.startDate} onChange={handleChange} placeholder="VD: 15/09/2024" />
-              </div>
-
               <div className="tz-form-row">
                 <div className="tz-form-group">
                   <label>Số buổi <span className="text-danger">*</span></label>
