@@ -31,7 +31,9 @@ const LessonSchema = new mongoose.Schema({
   },
   materials: [{
     title: String,
-    url: String
+    url: String,
+    // "file" = tài liệu (PDF, slide...), "video" = video ghi hình buổi học để học viên xem lại.
+    kind: { type: String, enum: ["file", "video"], default: "file" }
   }],
   isFreePreview: {
     type: Boolean,

@@ -1,11 +1,11 @@
 const express = require("express");
 const Course = require("../models/Course");
 const Enrollment = require("../models/Enrollment");
-const Section = require("../models/Lesson"); // Note: there is no Section model, sections are grouped by sectionIndex in Lesson
 const Lesson = require("../models/Lesson");
 const Assignment = require("../models/Assignment");
 const { authMiddleware } = require("../middlewares/auth");
 const { buildCurriculum } = require("../utils/lessonHelpers");
+const { seedCurriculumForCourse } = require("../utils/courseCurriculum");
 
 const router = express.Router();
 
@@ -96,6 +96,13 @@ router.get("/:id/lessons", authMiddleware, isTeacher, async (req, res) => {
       return res.status(403).json({ success: false, message: "Khóa học không thuộc quyền quản lý của bạn." });
     }
 
+    // Tự động tạo lộ trình cố định nếu khóa thuộc danh mục có template (vd: tap-su) mà chưa có bài học.
+    try {
+      await seedCurriculumForCourse(course);
+    } catch (seedErr) {
+      console.error("[teacherCourses] Tạo lộ trình mặc định thất bại:", seedErr.message);
+    }
+
     const lessons = await Lesson.find({ courseRef: id }).sort({ sectionIndex: 1, order: 1 }).lean();
     const assignments = await Assignment.find({ courseRef: id }).lean();
     const curriculum = buildCurriculum(lessons, assignments);
@@ -107,36 +114,12 @@ router.get("/:id/lessons", authMiddleware, isTeacher, async (req, res) => {
 });
 
 // 3. POST /api/teacher/courses/:id/sections - Thêm chương mới
+// Giáo viên KHÔNG còn quyền thêm chương — giáo trình do quản trị viên thiết lập.
 router.post("/:id/sections", authMiddleware, isTeacher, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { sectionTitle } = req.body;
-
-    const course = await Course.findOne({ _id: id, instructorRef: req.user._id });
-    if (!course) {
-      return res.status(403).json({ success: false, message: "Truy cập bị từ chối." });
-    }
-
-    // Lấy sectionIndex lớn nhất hiện tại
-    const lastLesson = await Lesson.findOne({ courseRef: id }).sort({ sectionIndex: -1 });
-    const nextSectionIndex = lastLesson ? lastLesson.sectionIndex + 1 : 1;
-
-    // Tạo bản ghi placeholder để lưu metadata chương (không hiển thị như bài học)
-    const newSectionPlaceholder = new Lesson({
-      courseRef: id,
-      sectionIndex: nextSectionIndex,
-      sectionTitle,
-      title: sectionTitle,
-      order: 0,
-      isSectionPlaceholder: true
-    });
-
-    await newSectionPlaceholder.save();
-
-    res.json({ success: true, message: "Đã thêm chương mới", sectionIndex: nextSectionIndex });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Lỗi máy chủ" });
-  }
+  return res.status(403).json({
+    success: false,
+    message: "Giáo viên không có quyền thêm chương. Giáo trình do quản trị viên thiết lập."
+  });
 });
 
 // 3.5 PUT /api/teacher/courses/:id/sections/:sectionIndex - Cập nhật tên chương
@@ -172,45 +155,12 @@ router.put("/:id/sections/:sectionIndex", authMiddleware, isTeacher, async (req,
 });
 
 // 4. POST /api/teacher/courses/:id/lessons - Thêm bài học mới vào một chương
+// Giáo viên KHÔNG còn quyền thêm bài học — giáo trình do quản trị viên thiết lập.
 router.post("/:id/lessons", authMiddleware, isTeacher, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { sectionIndex, title, isFreePreview } = req.body;
-
-    const course = await Course.findOne({ _id: id, instructorRef: req.user._id });
-    if (!course) {
-      return res.status(403).json({ success: false, message: "Truy cập bị từ chối." });
-    }
-
-    // Tìm sectionTitle của sectionIndex này
-    const existingLesson = await Lesson.findOne({ courseRef: id, sectionIndex });
-    if (!existingLesson) {
-      return res.status(404).json({ success: false, message: "Không tìm thấy chương này." });
-    }
-
-    // Lấy order lớn nhất trong section này (bỏ qua placeholder chương)
-    const lastLessonInSec = await Lesson.findOne({
-      courseRef: id,
-      sectionIndex,
-      isSectionPlaceholder: { $ne: true }
-    }).sort({ order: -1 });
-    const nextOrder = lastLessonInSec ? lastLessonInSec.order + 1 : 1;
-
-    const newLesson = new Lesson({
-      courseRef: id,
-      sectionIndex,
-      sectionTitle: existingLesson.sectionTitle,
-      title,
-      order: nextOrder,
-      isFreePreview: !!isFreePreview
-    });
-
-    await newLesson.save();
-
-    res.json({ success: true, message: "Đã thêm bài học mới", lesson: newLesson });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Lỗi máy chủ" });
-  }
+  return res.status(403).json({
+    success: false,
+    message: "Giáo viên không có quyền thêm bài học. Giáo trình do quản trị viên thiết lập."
+  });
 });
 
 module.exports = router;

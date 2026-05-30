@@ -25,18 +25,48 @@ function IconClock() {
 const speakingItems = [
   {
     id: "sp1",
-    title: "Buổi 1 – Buổi 5: Module 01+02",
+    title: "Buổi 1 – 5: Module 01 + 02",
     bullets: [
-      "Đọc văn bản dạng Announcement – Guide – Intro (công viên, đường phố, bãi biển, cửa hàng, nhà hàng).",
-      "Đọc văn bản dạng News – Automated message – Advertisement (văn phòng, lớp học, sân bay).",
-      "Luyện đọc tổng hợp (thư viện, phòng lab, …).",
-      "Miêu tả vật thể và các dạng tranh khó."
+      "Đọc đoạn văn: Announcement – Guide – Intro (tranh chủ đề: park, road, beach, store, restaurant).",
+      "Đọc đoạn văn: News – Automated message – Advertisement (tranh chủ đề: office, classroom, airport).",
+      "Luyện đọc đoạn văn tổng hợp (tranh chủ đề: library, lab; tranh chỉ vật & các tranh khó)."
     ]
   },
-  { id: "sp2", title: "Buổi 6 – 10: Module 03", detail: null },
-  { id: "sp3", title: "Buổi 11 – 15: Module 05", detail: null },
-  { id: "sp4", title: "Buổi 15 – 16: Module 04", detail: null },
-  { id: "sp5", title: "Buổi 17 – 18: Full test", detail: null }
+  {
+    id: "sp2",
+    title: "Buổi 6 – 10: Module 03",
+    bullets: [
+      "Internet – service – shopping.",
+      "Daily life 1.",
+      "Daily life 2.",
+      "Job & Work.",
+      "Practice."
+    ]
+  },
+  {
+    id: "sp3",
+    title: "Buổi 11 – 15: Module 05",
+    bullets: [
+      "Topic: At work (teamwork, communication, leadership, internship, trait to success).",
+      "Topic: Business (advertising, startup, recruitment, work environment).",
+      "Topic: At school (volunteer, fieldtrip, teacher, subject).",
+      "Topic: Daily life (hobby, travelling, eating out, living area, role models).",
+      "Topic: Daily life 2 (learning culture, talent, luck, technology)."
+    ]
+  },
+  {
+    id: "sp4",
+    title: "Buổi 15 – 16: Module 04",
+    bullets: [
+      "Practice Module 5 — Module 4: Conference schedule + Class schedule.",
+      "Practice Module 5 — Module 4: Interview schedule; Order form / Registration sheet."
+    ]
+  },
+  {
+    id: "sp5",
+    title: "Buổi 17 – 18: Full test",
+    bullets: ["Luyện đề 1.", "Luyện đề 2.", "Luyện đề 3.", "Luyện đề 4."]
+  }
 ];
 
 const writingItems = [
@@ -44,15 +74,66 @@ const writingItems = [
     id: "w1",
     title: "Buổi 1",
     bullets: [
-      "Phân biệt các phần ngữ pháp dễ nhầm lẫn.",
-      "Làm quen miêu tả tranh và luyện tập."
+      "Phân biệt những mảng ngữ pháp hay nhầm lẫn.",
+      "Giới thiệu phần mô tả tranh + luyện tập."
     ]
   },
-  ...[2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => ({
-    id: `w${n}`,
-    title: `Buổi ${n}`,
-    detail: null
-  }))
+  {
+    id: "w2",
+    title: "Buổi 2",
+    bullets: ["Giới thiệu essay.", "Cấu trúc chính của lập luận."]
+  },
+  {
+    id: "w3",
+    title: "Buổi 3",
+    bullets: ["Học cách paraphrase + tổ chức bài viết.", "Luyện tập viết lập luận theo chủ đề."]
+  },
+  {
+    id: "w4",
+    title: "Buổi 4",
+    bullets: [
+      "Cách tăng tính liên kết trong lập luận và câu từ.",
+      "Giới thiệu dạng bài.",
+      "Luyện tập cách viết mở – kết theo từng dạng bài."
+    ]
+  },
+  {
+    id: "w5",
+    title: "Buổi 5",
+    bullets: ["Tính chính phụ trong bài viết.", "Cách sử dụng hedging words.", "Email."]
+  },
+  {
+    id: "w6",
+    title: "Buổi 6",
+    bullets: [
+      "Mock test essay.",
+      "GV viết mẫu dạng bài lợi ích – bất lợi.",
+      "Luyện tập viết và chữa emails."
+    ]
+  },
+  {
+    id: "w7",
+    title: "Buổi 7",
+    bullets: ["Mock test essay.", "GV viết mẫu dạng bài ý kiến theo 2 cách tiếp cận."]
+  },
+  {
+    id: "w8",
+    title: "Buổi 8",
+    bullets: ["GV viết mẫu dạng bài đề mở.", "Mock test tranh + email: chấm chữa trực tiếp."]
+  },
+  {
+    id: "w9",
+    title: "Buổi 9",
+    bullets: ["Mock test essay.", "Luyện tập tranh + email."]
+  },
+  {
+    id: "w10",
+    title: "Buổi 10",
+    bullets: [
+      "Full test – chữa trực tiếp phần tranh + email.",
+      "Tổng kết dạng bài và các lưu ý khi thi writing."
+    ]
+  }
 ];
 
 function SyllabusAccordion({ items, openId, onToggle }) {
@@ -132,7 +213,7 @@ export default function CourseCategoryToeicSWPage({ embedded = false }) {
 
           <article className="tap-su-card">
             <p className="tap-su-card__duration-label">Thời lượng</p>
-            <p className="tap-su-card__stat tap-su-card__stat--block">27 buổi</p>
+            <p className="tap-su-card__stat tap-su-card__stat--block">28 buổi</p>
             <ul className="tap-su-card__list">
               <li>18 buổi học Speaking</li>
               <li>10 buổi học Writing</li>

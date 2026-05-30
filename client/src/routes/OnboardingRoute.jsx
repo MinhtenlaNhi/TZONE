@@ -7,7 +7,7 @@ export default function OnboardingRoute({ children }) {
   if (!auth) {
     return <Navigate to="/login" replace />;
   }
-  if (auth.role === "admin") {
+  if (auth.role === "admin" || auth.role === "operation") {
     return <Navigate to="/admin" replace />;
   }
   if (hasCompletedOnboarding(auth.email)) {

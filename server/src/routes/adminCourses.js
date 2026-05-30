@@ -6,13 +6,14 @@ const Course = require("../models/Course");
 const Category = require("../models/Category");
 const { isDbReady } = require("../db");
 const { authMiddleware } = require("../middlewares/auth");
-const { isAdmin } = require("../middlewares/role");
+const { isStaff } = require("../middlewares/role");
 const { verifyAdminFromRequestBody } = require("../utils/adminAuth");
 const { parseEnrollmentDatetime } = require("../utils/datetime");
 const {
   findInstructorScheduleConflict,
   buildInstructorConflictMessage
 } = require("../utils/scheduleConflict");
+const { seedCurriculumForCourse } = require("../utils/courseCurriculum");
 
 const router = express.Router();
 
@@ -96,7 +97,7 @@ router.post("/courses-list", async (req, res) => {
 });
 
 // --- NEW JWT PROTECTED ROUTES ---
-router.use("/v2/courses", authMiddleware, isAdmin);
+router.use("/v2/courses", authMiddleware, isStaff);
 
 /** GET /api/admin/v2/courses - Lấy tất cả khóa học */
 router.get("/v2/courses", async (req, res) => {
@@ -168,7 +169,22 @@ router.post("/v2/courses", upload.single("thumbnail"), async (req, res) => {
     }
 
     const doc = await Course.create(docData);
-    return res.status(201).json({ success: true, message: "Đã tạo khóa học.", course: doc });
+
+    // Tự động tạo sẵn lộ trình bài học cố định cho khóa thuộc danh mục có template (vd: Tập sự).
+    let seededLessons = 0;
+    try {
+      seededLessons = await seedCurriculumForCourse(doc);
+    } catch (seedErr) {
+      console.error("[adminCourses] Tạo lộ trình bài học mặc định thất bại:", seedErr.message);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: seededLessons > 0
+        ? "Đã tạo khóa học kèm lộ trình bài học mặc định."
+        : "Đã tạo khóa học.",
+      course: doc
+    });
   } catch (e) {
     console.error(e);
     if (e.code === 11000) {

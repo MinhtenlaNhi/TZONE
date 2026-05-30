@@ -21,7 +21,7 @@ export default function AdminCoursesPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  if (!auth || auth.role !== "admin") {
+  if (!auth || (auth.role !== "admin" && auth.role !== "operation")) {
     return <Navigate to="/" replace />;
   }
 

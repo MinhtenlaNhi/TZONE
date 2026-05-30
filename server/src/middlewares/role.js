@@ -18,6 +18,8 @@ function requireRole(...roles) {
 
 const isAdmin = requireRole("admin");
 const isStudent = requireRole("student", "admin");
+/** Admin hoặc Bộ phận vận hành — dùng cho các module: danh mục, khóa học, đơn hàng, đánh giá. */
+const isStaff = requireRole("admin", "operation");
 
 const isTeacher = (req, res, next) => {
   if (!req.user) {
@@ -36,4 +38,4 @@ const isTeacher = (req, res, next) => {
   return res.status(403).json({ success: false, message: "Bạn không có quyền truy cập." });
 };
 
-module.exports = { requireRole, isAdmin, isTeacher, isStudent };
+module.exports = { requireRole, isAdmin, isTeacher, isStudent, isStaff };

@@ -67,12 +67,14 @@ router.post("/:id/materials", authMiddleware, isTeacher, verifyLessonOwnership, 
   try {
     if (!req.file) return res.status(400).json({ success: false, message: "Không tìm thấy file upload." });
     
-    const { title } = req.body;
+    const { title, kind: bodyKind } = req.body;
     const fileUrl = req.file.path;
+    const isVideo = bodyKind === "video" || (req.file.mimetype || "").startsWith("video/");
 
     req.lesson.materials.push({
       title: title?.trim() || req.file.originalname,
-      url: fileUrl
+      url: fileUrl,
+      kind: isVideo ? "video" : "file"
     });
 
     await req.lesson.save();
@@ -91,9 +93,13 @@ router.put("/:id/materials/:materialId", authMiddleware, isTeacher, verifyLesson
       return res.status(404).json({ success: false, message: "Không tìm thấy tài liệu." });
     }
 
-    const { title } = req.body;
+    const { title, kind: bodyKind } = req.body;
     if (title?.trim()) material.title = title.trim();
-    if (req.file) material.url = req.file.path;
+    if (req.file) {
+      material.url = req.file.path;
+      const isVideo = bodyKind === "video" || (req.file.mimetype || "").startsWith("video/");
+      material.kind = isVideo ? "video" : "file";
+    }
 
     await req.lesson.save();
     res.json({ success: true, message: "Đã cập nhật tài liệu.", materials: req.lesson.materials });

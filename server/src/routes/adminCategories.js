@@ -3,12 +3,12 @@ const Category = require("../models/Category");
 const Course = require("../models/Course");
 const { isDbReady } = require("../db");
 const { authMiddleware } = require("../middlewares/auth");
-const { isAdmin } = require("../middlewares/role");
+const { isStaff } = require("../middlewares/role");
 
 const router = express.Router();
 
-// Tất cả các route dưới đây đều yêu cầu đăng nhập và quyền admin
-router.use(authMiddleware, isAdmin);
+// Tất cả các route dưới đây yêu cầu đăng nhập và quyền admin hoặc bộ phận vận hành
+router.use(authMiddleware, isStaff);
 
 /** GET /api/admin/categories - Lấy tất cả danh mục (bao gồm cả không active) */
 router.get("/", async (req, res) => {

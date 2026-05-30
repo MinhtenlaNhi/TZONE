@@ -44,9 +44,15 @@ import TeacherShell from "../layouts/TeacherShell";
 import AdminShell from "../layouts/AdminShell";
 import StudentShell from "../layouts/StudentShell";
 import AdminRoute from "./AdminRoute";
+import AdminOnlyRoute from "./AdminOnlyRoute";
 import OnboardingRoute from "./OnboardingRoute";
 import PrivateRoute from "./PrivateRoute";
 import StudentRoute from "./StudentRoute";
+import { getAdminHomePath } from "../auth/auth";
+
+function AdminIndexRedirect() {
+  return <Navigate to={getAdminHomePath()} replace />;
+}
 
 const PlaceholderPage = ({ title }) => (
   <div style={{ padding: 24, maxWidth: 720, margin: "0 auto" }}>
@@ -118,10 +124,10 @@ function AppRoutes() {
           </AdminRoute>
         }
       >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<AdminDashboardPage />} />
-        <Route path="users" element={<AdminUsersPage />} />
-        <Route path="teachers" element={<AdminTeachersPage />} />
+        <Route index element={<AdminIndexRedirect />} />
+        <Route path="dashboard" element={<AdminOnlyRoute><AdminDashboardPage /></AdminOnlyRoute>} />
+        <Route path="users" element={<AdminOnlyRoute><AdminUsersPage /></AdminOnlyRoute>} />
+        <Route path="teachers" element={<AdminOnlyRoute><AdminTeachersPage /></AdminOnlyRoute>} />
         <Route path="categories" element={<AdminCategoriesPage />} />
         <Route path="courses" element={<AdminCoursesPage />} />
         <Route path="courses/create" element={<AdminCourseFormPage />} />

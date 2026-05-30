@@ -11,6 +11,17 @@ import { COL_LABELS } from "../../utils/courseSchedule";
 import "./AdminCourseForm.css";
 import { apiPath } from "../../api/base";
 
+/**
+ * Số buổi học cố định theo danh mục, khớp với lộ trình mẫu phía server
+ * (server/src/data/*Curriculum.js). Khi chọn danh mục có lộ trình, "Số buổi"
+ * sẽ tự điền và không cho sửa tay để đồng bộ với số bài học được tạo sẵn.
+ */
+const SESSIONS_BY_SLUG = {
+  "tap-su": 12,
+  "toeic-a": 27,
+  "toeic-sw": 28
+};
+
 export default function AdminCourseFormPage() {
   const auth = getAuth();
   const navigate = useNavigate();
@@ -51,7 +62,7 @@ export default function AdminCourseFormPage() {
   const [formData, setFormData] = useState({ ...defaultFormData });
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
 
-  if (!auth || auth.role !== "admin") {
+  if (!auth || (auth.role !== "admin" && auth.role !== "operation")) {
     return <Navigate to="/" replace />;
   }
 
@@ -137,6 +148,18 @@ export default function AdminCourseFormPage() {
   useEffect(() => {
     loadData();
   }, [routeId]);
+
+  // Tự điền "Số buổi" theo danh mục được chọn (nếu danh mục có lộ trình cố định).
+  useEffect(() => {
+    const cat = categories.find((c) => c.id === formData.categoryRef);
+    const auto = cat ? SESSIONS_BY_SLUG[cat.slug] : undefined;
+    if (auto != null && Number(formData.totalSessions) !== auto) {
+      setFormData((prev) => ({ ...prev, totalSessions: auto }));
+    }
+  }, [formData.categoryRef, categories]);
+
+  const selectedCategory = categories.find((c) => c.id === formData.categoryRef);
+  const autoSessions = selectedCategory ? SESSIONS_BY_SLUG[selectedCategory.slug] : undefined;
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
@@ -366,15 +389,20 @@ export default function AdminCourseFormPage() {
               <h3>Lịch học & Thời gian</h3>
             </div>
             <div className="tz-card-body">
-              <div className="tz-form-row">
-                <div className="tz-form-group">
-                  <label>Số buổi <span className="text-danger">*</span></label>
-                  <input type="number" name="totalSessions" value={formData.totalSessions} onChange={handleChange} />
-                </div>
-                <div className="tz-form-group">
-                  <label>Thời lượng (phút/buổi) <span className="text-danger">*</span></label>
-                  <input type="number" name="sessionDuration" value={formData.sessionDuration} onChange={handleChange} />
-                </div>
+              <div className="tz-form-group">
+                <label>Số buổi <span className="text-danger">*</span></label>
+                <input
+                  type="number"
+                  name="totalSessions"
+                  value={formData.totalSessions}
+                  onChange={handleChange}
+                  readOnly={autoSessions != null}
+                />
+                {autoSessions != null && (
+                  <small className="tz-field-hint">
+                    Số buổi được tự động lấy theo lộ trình của danh mục "{selectedCategory?.name}".
+                  </small>
+                )}
               </div>
 
               <div className="tz-form-group">
@@ -478,10 +506,6 @@ export default function AdminCourseFormPage() {
                   <li>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     Học phí: {formData.price || "--"}
-                  </li>
-                  <li>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    Thời lượng: {formData.sessionDuration ? `${formData.sessionDuration} phút/buổi` : "--"}
                   </li>
                   <li>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>

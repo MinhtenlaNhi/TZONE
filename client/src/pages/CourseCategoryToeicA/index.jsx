@@ -25,21 +25,59 @@ function IconClock() {
 const syllabusItems = [
   {
     id: "p1",
-    title: "Buổi 1 – Buổi 3: Luyện tập Part 1",
-    bullets: ["Tranh tả người", "Tranh tả vật", "Tranh hỗn hợp"]
+    title: "Buổi 1 – 3: Luyện tập Part 1 (Mô tả tranh)",
+    bullets: [
+      "Buổi 1: Part 1 – Tranh tả người: nhận diện hành động & trạng thái",
+      "Buổi 2: Part 1 – Tranh tả vật & cảnh: vị trí, đặc điểm, bố cục",
+      "Buổi 3: Part 1 – Tranh hỗn hợp: phân biệt người, vật và bối cảnh"
+    ]
   },
-  { id: "p2", title: "Buổi 4 – 8: Luyện tập Part 2", detail: null },
+  {
+    id: "p2",
+    title: "Buổi 4 – 8: Luyện tập Part 2 (Hỏi đáp)",
+    bullets: [
+      "Buổi 4: Part 2 – Tổng quan & câu hỏi lấy thông tin (Who, What)",
+      "Buổi 5: Part 2 – Câu hỏi lấy thông tin (When, Where, Why, How)",
+      "Buổi 6: Part 2 – Câu hỏi xác nhận thông tin (Yes/No)",
+      "Buổi 7: Part 2 – Câu hỏi lựa chọn & câu hỏi đuôi",
+      "Buổi 8: Part 2 – Câu trần thuật & luyện tập tổng hợp"
+    ]
+  },
   {
     id: "p3",
     title: "Buổi 9 – 19: Luyện tập Part 3 + Ngữ pháp Part 5 – 6",
-    detail: null
+    bullets: [
+      "Buổi 9: Part 3 – Tổng quan & chiến lược nghe hội thoại",
+      "Buổi 10: Part 3 – Câu hỏi thông tin chung (chủ đề, mục đích, nơi chốn)",
+      "Buổi 11: Part 3 – Câu hỏi chi tiết & suy luận",
+      "Buổi 12: Part 3 – Câu hỏi hàm ý & kết hợp bảng biểu (graphic)",
+      "Buổi 13: Part 3 – Luyện tập tổng hợp các dạng câu hỏi",
+      "Buổi 14: Ngữ pháp – Từ loại: danh từ & đại từ",
+      "Buổi 15: Ngữ pháp – Từ loại: tính từ & trạng từ",
+      "Buổi 16: Ngữ pháp – Động từ & sự hòa hợp chủ – vị",
+      "Buổi 17: Ngữ pháp – Thì và các dạng của động từ",
+      "Buổi 18: Ngữ pháp – Mệnh đề quan hệ",
+      "Buổi 19: Ngữ pháp – Liên từ & giới từ"
+    ]
   },
   {
     id: "p4",
     title: "Buổi 20 – 26: Luyện tập Part 4 + Ngữ pháp Part 5–6 + Luyện đề",
-    detail: null
+    bullets: [
+      "Buổi 20: Part 4 – Tổng quan & chiến lược nghe bài độc thoại",
+      "Buổi 21: Part 4 – Các dạng câu hỏi thường gặp",
+      "Buổi 22: Part 4 – Câu hỏi suy luận & kết hợp bảng biểu",
+      "Buổi 23: Ngữ pháp – Các chủ điểm trọng tâm còn lại (so sánh, câu điều kiện…)",
+      "Buổi 24: Reading – Part 5 & 6: vận dụng và mở rộng",
+      "Buổi 25: Luyện đề – Hoàn thiện kỹ năng Nghe & Đọc",
+      "Buổi 26: Luyện đề – Chữa đề chi tiết trên lớp"
+    ]
   },
-  { id: "final", title: "Buổi 27 – Final test", detail: null }
+  {
+    id: "final",
+    title: "Buổi 27 – Final Test",
+    bullets: ["Buổi 27: Bài kiểm tra cuối khóa (Final Test)"]
+  }
 ];
 
 export default function CourseCategoryToeicAPage({ embedded = false }) {

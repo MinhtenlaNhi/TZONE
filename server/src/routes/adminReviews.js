@@ -2,12 +2,12 @@ const express = require("express");
 const Review = require("../models/Review");
 const { updateCourseRating } = require("./reviews");
 const { authMiddleware } = require("../middlewares/auth");
-const { isAdmin } = require("../middlewares/role");
+const { isStaff } = require("../middlewares/role");
 
 const router = express.Router();
 
 // 1. Lấy tất cả reviews (Có populate course title và user info)
-router.get("/", authMiddleware, isAdmin, async (req, res) => {
+router.get("/", authMiddleware, isStaff, async (req, res) => {
   try {
     const { courseId } = req.query;
     const filter = {};
@@ -26,7 +26,7 @@ router.get("/", authMiddleware, isAdmin, async (req, res) => {
 });
 
 // 2. Ẩn/Hiện đánh giá
-router.put("/:id/toggle-hide", authMiddleware, isAdmin, async (req, res) => {
+router.put("/:id/toggle-hide", authMiddleware, isStaff, async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
     if (!review) return res.status(404).json({ success: false, message: "Không tìm thấy" });
@@ -44,7 +44,7 @@ router.put("/:id/toggle-hide", authMiddleware, isAdmin, async (req, res) => {
 });
 
 // 3. Xóa vĩnh viễn đánh giá
-router.delete("/:id", authMiddleware, isAdmin, async (req, res) => {
+router.delete("/:id", authMiddleware, isStaff, async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
     if (!review) return res.status(404).json({ success: false, message: "Không tìm thấy" });

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { clearAuth, getAuth } from "../auth/auth";
+import { toast } from "react-toastify";
+import { clearAuth, getAuth, setAuth } from "../auth/auth";
+import { getCurrentUser } from "../api/auth";
 import { apiPath } from "../api/base";
 import "./AdminShell.css";
 
@@ -106,9 +108,9 @@ function IconLogout() {
 }
 
 const navItems = [
-  { to: "/admin/dashboard", label: "Tổng quan", Icon: IconDashboard },
-  { to: "/admin/users", label: "Người dùng", Icon: IconUsers },
-  { to: "/admin/teachers", label: "Giáo viên", Icon: IconTeachers },
+  { to: "/admin/dashboard", label: "Tổng quan", Icon: IconDashboard, adminOnly: true },
+  { to: "/admin/users", label: "Người dùng", Icon: IconUsers, adminOnly: true },
+  { to: "/admin/teachers", label: "Giáo viên", Icon: IconTeachers, adminOnly: true },
   { to: "/admin/categories", label: "Danh mục", Icon: IconCategories },
   { to: "/admin/courses", label: "Khóa học", Icon: IconCourses },
   { to: "/admin/orders", label: "Đơn hàng", Icon: IconOrders },
@@ -125,6 +127,41 @@ export default function AdminShell() {
     setUser(getAuth());
   }, [location.pathname]);
 
+  // Xác minh role THẬT với server (nguồn chân lý là role trong CSDL, không phải
+  // role cache trong session/JWT cũ). Tránh trường hợp phiên cũ/lệch role vẫn
+  // hiển thị khu vực quản trị nhưng mọi API đều trả 403.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await getCurrentUser();
+        const realUser = res?.user;
+        if (!active) return;
+        if (!realUser || (realUser.role !== "admin" && realUser.role !== "operation")) {
+          clearAuth();
+          toast.error("Tài khoản của bạn không có quyền truy cập khu vực quản trị.");
+          navigate("/login", { replace: true });
+          return;
+        }
+        // Đồng bộ phiên với role thật từ server.
+        const current = getAuth() || {};
+        const merged = { ...current, ...realUser };
+        setAuth(merged);
+        setUser(merged);
+      } catch {
+        // Token không hợp lệ / hết hạn → quay lại đăng nhập.
+        if (!active) return;
+        clearAuth();
+        navigate("/login", { replace: true });
+      }
+    })();
+    return () => {
+      active = false;
+    };
+    // Chỉ chạy 1 lần khi vào khu vực admin.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Close sidebar on mobile when navigating
   useEffect(() => {
     setSidebarOpen(false);
@@ -138,6 +175,10 @@ export default function AdminShell() {
   const rawAvatar = user?.avatar || user?.picture || user?.googlePicture;
   const avatarUrl = rawAvatar ? (rawAvatar.startsWith("http") ? rawAvatar : apiPath(rawAvatar)) : null;
   const displayName = user?.name || user?.email?.split("@")[0] || "Admin";
+  const isOperation = user?.role === "operation";
+  const roleLabel = isOperation ? "Bộ phận vận hành" : "Quản trị viên";
+  const visibleNavItems = navItems.filter((item) => !item.adminOnly || !isOperation);
+  const homePath = isOperation ? "/admin/categories" : "/admin/dashboard";
 
   return (
     <div className="admin-shell">
@@ -151,12 +192,12 @@ export default function AdminShell() {
       {/* SIDEBAR */}
       <aside className={`admin-shell__sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="admin-shell__logo-area">
-          <Link to="/admin/dashboard" className="admin-shell__logo">
+          <Link to={homePath} className="admin-shell__logo">
             TZONE
           </Link>
         </div>
         <nav className="admin-shell__nav">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -194,7 +235,7 @@ export default function AdminShell() {
             <div className="admin-shell__profile">
               <div className="admin-shell__profile-text">
                 <span className="admin-shell__profile-name">{displayName}</span>
-                <span className="admin-shell__profile-role">Quản trị viên</span>
+                <span className="admin-shell__profile-role">{roleLabel}</span>
               </div>
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="admin-shell__profile-avatar" />

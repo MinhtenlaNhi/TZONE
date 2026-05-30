@@ -58,6 +58,194 @@ function buildResetEmailText(resetUrl) {
   return `Đặt lại mật khẩu TZONE\n\nLink (hiệu lực 1 giờ): ${resetUrl}\n\nNếu bạn không yêu cầu, hãy bỏ qua email này.`;
 }
 
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatVnd(amount) {
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return "0đ";
+  return n.toLocaleString("vi-VN") + "đ";
+}
+
+function formatVnDateTime(date) {
+  const d = date ? new Date(date) : new Date();
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+const PAYMENT_METHOD_LABELS = {
+  transfer: "Chuyển khoản ngân hàng",
+  vnpay: "VNPAY",
+  momo: "Ví MoMo",
+  zalopay: "Ví ZaloPay"
+};
+
+function buildInvoiceHtml({ customerName, customerEmail, order, courses, appBaseUrl }) {
+  const orderId = String(order._id);
+  const orderCode = orderId.slice(-8).toUpperCase();
+  const paidAt = formatVnDateTime(order.updatedAt || new Date());
+  const methodLabel = PAYMENT_METHOD_LABELS[order.paymentMethod] || order.paymentMethod;
+
+  const itemsHtml = courses
+    .map((c, idx) => {
+      const title = escapeHtml(c.title || "Khóa học");
+      const instructor = escapeHtml(c.instructor || "—");
+      const price = formatVnd(c.priceAtPurchase);
+      return `
+        <tr>
+          <td style="padding:12px 8px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;text-align:center;">${idx + 1}</td>
+          <td style="padding:12px 8px;border-bottom:1px solid #e5e7eb;color:#111827;font-size:14px;">
+            <div style="font-weight:600;">${title}</div>
+            <div style="color:#6b7280;font-size:13px;margin-top:2px;">Giảng viên: ${instructor}</div>
+          </td>
+          <td style="padding:12px 8px;border-bottom:1px solid #e5e7eb;color:#111827;font-size:14px;text-align:right;white-space:nowrap;">${price}</td>
+        </tr>`;
+    })
+    .join("");
+
+  const myCoursesUrl = `${appBaseUrl.replace(/\/$/, "")}/my-courses`;
+
+  return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hóa đơn TZONE #${orderCode}</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:32px 32px 24px;color:#ffffff;">
+              <div style="font-size:13px;letter-spacing:2px;text-transform:uppercase;opacity:0.85;">TZONE Toeic</div>
+              <h1 style="margin:8px 0 4px;font-size:24px;font-weight:700;">Hóa đơn thanh toán</h1>
+              <div style="font-size:14px;opacity:0.9;">Cảm ơn bạn đã đăng ký khóa học!</div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 32px 0;">
+              <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:14px 16px;color:#065f46;font-size:14px;">
+                <strong>Thanh toán đã được xác nhận.</strong> Bạn có thể vào học ngay trong mục "Khóa học của tôi".
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 32px 0;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td width="50%" style="padding-right:12px;vertical-align:top;">
+                    <div style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Mã hóa đơn</div>
+                    <div style="font-size:15px;color:#111827;font-weight:600;">#${orderCode}</div>
+                  </td>
+                  <td width="50%" style="padding-left:12px;vertical-align:top;">
+                    <div style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Ngày thanh toán</div>
+                    <div style="font-size:15px;color:#111827;font-weight:600;">${paidAt}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding-top:16px;">
+                    <div style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Khách hàng</div>
+                    <div style="font-size:15px;color:#111827;font-weight:600;">${escapeHtml(customerName || customerEmail)}</div>
+                    <div style="font-size:13px;color:#6b7280;margin-top:2px;">${escapeHtml(customerEmail)}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2" style="padding-top:16px;">
+                    <div style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Phương thức thanh toán</div>
+                    <div style="font-size:15px;color:#111827;font-weight:600;">${escapeHtml(methodLabel)}</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 32px 0;">
+              <h3 style="margin:0 0 12px;font-size:16px;color:#111827;">Chi tiết khóa học</h3>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb;border-radius:8px;border-collapse:separate;overflow:hidden;">
+                <thead>
+                  <tr style="background:#f9fafb;">
+                    <th style="padding:10px 8px;text-align:center;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;width:40px;">#</th>
+                    <th style="padding:10px 8px;text-align:left;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Khóa học</th>
+                    <th style="padding:10px 8px;text-align:right;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Học phí</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHtml}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="2" style="padding:14px 8px;text-align:right;font-size:14px;color:#111827;font-weight:600;background:#f9fafb;">Tổng cộng</td>
+                    <td style="padding:14px 8px;text-align:right;font-size:18px;color:#059669;font-weight:700;background:#f9fafb;white-space:nowrap;">${formatVnd(order.totalAmount)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 32px;">
+              <a href="${myCoursesUrl}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px;">Vào học ngay →</a>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:0 32px 24px;">
+              <div style="border-top:1px solid #e5e7eb;padding-top:16px;font-size:12px;color:#6b7280;line-height:1.6;">
+                Đây là email tự động xác nhận thanh toán từ TZONE Toeic. Nếu có vấn đề về thanh toán hoặc khóa học, vui lòng liên hệ qua kênh hỗ trợ chính thức của chúng tôi.<br/>
+                <span style="color:#9ca3af;">© ${new Date().getFullYear()} TZONE Toeic</span>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildInvoiceText({ customerName, customerEmail, order, courses }) {
+  const orderCode = String(order._id).slice(-8).toUpperCase();
+  const paidAt = formatVnDateTime(order.updatedAt || new Date());
+  const methodLabel = PAYMENT_METHOD_LABELS[order.paymentMethod] || order.paymentMethod;
+  const lines = [
+    "TZONE — Hóa đơn thanh toán",
+    "============================",
+    `Mã hóa đơn: #${orderCode}`,
+    `Ngày thanh toán: ${paidAt}`,
+    `Khách hàng: ${customerName || customerEmail}`,
+    `Email: ${customerEmail}`,
+    `Phương thức: ${methodLabel}`,
+    "",
+    "Chi tiết khóa học:"
+  ];
+  courses.forEach((c, idx) => {
+    lines.push(`  ${idx + 1}. ${c.title || "Khóa học"} — ${formatVnd(c.priceAtPurchase)}`);
+  });
+  lines.push("");
+  lines.push(`Tổng cộng: ${formatVnd(order.totalAmount)}`);
+  lines.push("");
+  lines.push("Cảm ơn bạn đã đăng ký khóa học tại TZONE!");
+  return lines.join("\n");
+}
+
 function withTimeout(promise, ms, label) {
   return Promise.race([
     promise,
@@ -67,7 +255,6 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
-/** Brevo (HTTPS) — free 300 email/ngày, gửi mọi địa chỉ sau khi verify sender 1 lần. */
 async function sendViaBrevo(to, subject, html, text) {
   const apiKey = process.env.BREVO_API_KEY;
   if (!apiKey) return false;
@@ -202,6 +389,33 @@ function getActiveProviders() {
   return list;
 }
 
+/** Gửi email qua các provider theo thứ tự ưu tiên. */
+async function sendEmail({ to, subject, html, text }) {
+  const safeText = text || subject;
+  try {
+    if (process.env.BREVO_API_KEY) {
+      const sent = await sendViaBrevo(to, subject, html, safeText);
+      if (sent) return true;
+    }
+    if (process.env.SENDGRID_API_KEY) {
+      const sent = await sendViaSendGrid(to, subject, html, safeText);
+      if (sent) return true;
+    }
+    if (process.env.RESEND_API_KEY) {
+      const sent = await sendViaResend(to, subject, html);
+      if (sent) return true;
+    }
+    if (process.env.RENDER) {
+      console.warn("[mailer] Render chặn SMTP. Cần BREVO_API_KEY hoặc SENDGRID_API_KEY.");
+      return false;
+    }
+    return await sendViaSmtp(to, subject, html, safeText);
+  } catch (err) {
+    console.error(`[mailer] Gửi email "${subject}" thất bại:`, err.message);
+    return false;
+  }
+}
+
 async function sendResetPasswordEmail(to, resetUrl) {
   const subject = "TZONE Toeic — Đặt lại mật khẩu";
   const html = buildResetEmailHtml(resetUrl);
@@ -209,40 +423,36 @@ async function sendResetPasswordEmail(to, resetUrl) {
 
   console.log(`[mailer] Gửi reset password → ${to} | providers: ${getActiveProviders().join(", ") || "none"}`);
 
-  try {
-    if (process.env.BREVO_API_KEY) {
-      const sent = await sendViaBrevo(to, subject, html, text);
-      if (sent) return true;
-    }
-
-    if (process.env.SENDGRID_API_KEY) {
-      const sent = await sendViaSendGrid(to, subject, html, text);
-      if (sent) return true;
-    }
-
-    if (process.env.RESEND_API_KEY) {
-      const sent = await sendViaResend(to, subject, html);
-      if (sent) return true;
-    }
-
-    if (process.env.RENDER) {
-      console.warn(
-        "[mailer] Render chặn SMTP. Cần BREVO_API_KEY hoặc SENDGRID_API_KEY trên Environment. Reset URL:",
-        resetUrl
-      );
-      return false;
-    }
-
-    const sent = await sendViaSmtp(to, subject, html, text);
-    if (!sent) {
-      console.warn("[mailer] Không có provider email nào được cấu hình.");
-    }
-    return sent;
-  } catch (err) {
-    console.error("[mailer] Gửi email thất bại:", err.message);
-    console.error("[mailer] Reset URL (fallback):", resetUrl);
-    return false;
+  const sent = await sendEmail({ to, subject, html, text });
+  if (!sent) {
+    console.warn("[mailer] Reset URL (fallback):", resetUrl);
   }
+  return sent;
 }
 
-module.exports = { sendResetPasswordEmail, getSmtpConfig, getActiveProviders };
+/**
+ * Gửi hóa đơn xác nhận thanh toán sau khi admin duyệt đơn.
+ * @param {string} to Email người nhận.
+ * @param {object} payload { customerName, order, courses, appBaseUrl }
+ *   - order: { _id, totalAmount, paymentMethod, updatedAt }
+ *   - courses: Array<{ title, instructor, priceAtPurchase }>
+ */
+async function sendOrderConfirmationEmail(to, payload) {
+  const appBaseUrl =
+    payload.appBaseUrl || process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || "http://localhost:5173";
+  const orderCode = String(payload.order._id).slice(-8).toUpperCase();
+  const subject = `TZONE Toeic — Hóa đơn thanh toán #${orderCode}`;
+  const html = buildInvoiceHtml({ ...payload, customerEmail: to, appBaseUrl });
+  const text = buildInvoiceText({ ...payload, customerEmail: to });
+
+  console.log(`[mailer] Gửi hóa đơn → ${to} | providers: ${getActiveProviders().join(", ") || "none"}`);
+  return sendEmail({ to, subject, html, text });
+}
+
+module.exports = {
+  sendResetPasswordEmail,
+  sendOrderConfirmationEmail,
+  sendEmail,
+  getSmtpConfig,
+  getActiveProviders
+};

@@ -840,6 +840,27 @@
   word-break: break-word;
 }
 
+.tz-tl-material-kind-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #7c3aed;
+  background: #ede9fe;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.tz-tl-material-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
 .tz-tl-material-actions {
   display: flex;
   flex-wrap: wrap;

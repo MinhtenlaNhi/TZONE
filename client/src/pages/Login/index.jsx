@@ -91,7 +91,7 @@ function GoogleSignInButton() {
           }
           sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
 
-          if (role === "admin") {
+          if (role === "admin" || role === "operation") {
             clearPendingRegisterRole();
             navigate("/admin");
           } else if (!hasCompletedOnboarding(email)) {
@@ -207,7 +207,7 @@ export default function LoginPage() {
         payload.teacherApprovalStatus = user.teacherApprovalStatus ?? "approved";
       }
       sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload));
-      if (role === "admin") {
+      if (role === "admin" || role === "operation") {
         clearPendingRegisterRole();
         navigate("/admin");
       } else if (!hasCompletedOnboarding(user.email)) {

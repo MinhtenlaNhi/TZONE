@@ -114,15 +114,6 @@ export default function AdminReviewsPage() {
               </select>
             </div>
           </div>
-          <div className="ar-illustration">
-            <div className="ar-bubble">
-              <div className="ar-stars">★★★★★</div>
-              <div className="ar-lines">
-                <span className="ar-line w-full"></span>
-                <span className="ar-line w-2-3"></span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

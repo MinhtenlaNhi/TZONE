@@ -29,7 +29,7 @@ export default function AdminCategoriesPage() {
     isActive: true
   });
 
-  if (!auth || auth.role !== "admin") {
+  if (!auth || (auth.role !== "admin" && auth.role !== "operation")) {
     return <Navigate to="/" replace />;
   }
 

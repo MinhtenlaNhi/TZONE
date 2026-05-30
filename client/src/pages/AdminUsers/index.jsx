@@ -129,6 +129,7 @@ export default function AdminUsersPage() {
   const roleText = (r) => {
     switch(r) {
       case "admin": return "Quản trị viên";
+      case "operation": return "Bộ phận vận hành";
       case "teacher": return "Giảng viên";
       default: return "Học viên";
     }
@@ -168,6 +169,7 @@ export default function AdminUsersPage() {
               <option value="student">Học viên</option>
               <option value="teacher">Giảng viên</option>
               <option value="admin">Quản trị viên</option>
+              <option value="operation">Bộ phận vận hành</option>
             </select>
           </div>
           <button className="tz-btn-add-user" onClick={handleOpenAdd}>
@@ -275,6 +277,7 @@ export default function AdminUsersPage() {
                         <option value="student">Học viên</option>
                         <option value="teacher">Giảng viên</option>
                         <option value="admin">Quản trị viên</option>
+                        <option value="operation">Bộ phận vận hành</option>
                       </select>
                     </td>
                     <td>
@@ -387,6 +390,7 @@ export default function AdminUsersPage() {
                   <option value="student">Học viên</option>
                   <option value="teacher">Giảng viên</option>
                   <option value="admin">Quản trị viên</option>
+                  <option value="operation">Bộ phận vận hành</option>
                 </select>
               </div>
               <div className="tz-modal-footer">

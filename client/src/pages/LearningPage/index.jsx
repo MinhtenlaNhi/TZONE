@@ -35,6 +35,9 @@ const IconChevronDown = ({ open }) => (
     <polyline points="6 9 12 15 18 9"></polyline>
   </svg>
 );
+const IconLock = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+);
 
 export default function LearningPage() {
   const { courseId } = useParams();
@@ -90,11 +93,27 @@ export default function LearningPage() {
           } else {
             setCourseMeetUrl("");
           }
-          
-          if (res.curriculum?.length > 0 && res.curriculum[0].lessons.length > 0) {
-            setActiveLesson(res.curriculum[0].lessons[0]);
-            setActiveSection(res.curriculum[0].sectionIndex);
-            loadAssignments(res.curriculum[0].lessons[0]._id);
+
+          // Tự chọn bài học có thể học đầu tiên (ưu tiên bài không bị khóa).
+          const sections = res.curriculum || [];
+          let firstLesson = null;
+          let firstSection = null;
+          for (const sec of sections) {
+            const open = (sec.lessons || []).find((l) => !l.locked);
+            if (open) {
+              firstLesson = open;
+              firstSection = sec.sectionIndex;
+              break;
+            }
+          }
+          if (!firstLesson && sections[0]?.lessons?.length) {
+            firstLesson = sections[0].lessons[0];
+            firstSection = sections[0].sectionIndex;
+          }
+          if (firstLesson) {
+            setActiveLesson(firstLesson);
+            setActiveSection(firstSection);
+            if (!firstLesson.locked) loadAssignments(firstLesson._id);
           }
         } else {
           toast.error(res.message || "Lỗi tải bài học");
@@ -126,6 +145,10 @@ export default function LearningPage() {
 
   const handleLessonSelect = (lesson, sectionIndex) => {
     setActiveLesson(lesson);
+    if (lesson.locked) {
+      setAssignments([]);
+      return;
+    }
     loadAssignments(lesson._id);
   };
 
@@ -228,17 +251,19 @@ export default function LearningPage() {
                     {section.lessons.map(lesson => {
                       const isActive = activeLesson?._id === lesson._id;
                       const isCompleted = completedLessons.has(lesson._id);
+                      const isLocked = !!lesson.locked;
                       return (
                         <div 
                           key={lesson._id}
-                          className={`tz-ls-lesson-item ${isActive ? 'active' : ''}`}
+                          className={`tz-ls-lesson-item ${isActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`}
                           onClick={() => handleLessonSelect(lesson, section.sectionIndex)}
                         >
                           <div className="tz-ls-lesson-icon">
-                            <IconCheckCircle checked={isCompleted} />
+                            {isLocked ? <IconLock /> : <IconCheckCircle checked={isCompleted} />}
                           </div>
                           <span className="tz-ls-lesson-name">{lesson.title}</span>
-                          {lesson.isFreePreview && <span className="tz-ls-preview-tag">Free</span>}
+                          {lesson.isFreePreview && <span className="tz-ls-preview-tag">Học thử</span>}
+                          {isLocked && <span className="tz-ls-lock-tag"><IconLock /></span>}
                         </div>
                       );
                     })}
@@ -254,6 +279,19 @@ export default function LearningPage() {
       <main className="tz-learning-main">
         <div className="tz-lm-container">
           {activeLesson ? (
+            activeLesson.locked ? (
+              <div className="tz-lm-locked-panel">
+                <div className="tz-lm-locked-panel-icon"><IconLock /></div>
+                <h2 className="tz-lm-locked-panel-title">Bài học chỉ dành cho học viên đã đăng ký</h2>
+                <p className="tz-lm-locked-panel-desc">
+                  Bạn đang ở chế độ <strong>học thử</strong>. Bài “{activeLesson.title}” chưa được mở cho học thử.
+                  Hãy đăng ký khóa học để mở khóa toàn bộ bài học, tài liệu và lớp học trực tuyến.
+                </p>
+                <Link to={`/courses/${courseId}`} className="tz-lm-locked-panel-btn">
+                  Đăng ký khóa học để mở khóa
+                </Link>
+              </div>
+            ) : (
             <>
               <div className="tz-lm-lesson-header">
                 {activeLesson.isFreePreview && <span className="tz-lm-preview-badge">Bài học miễn phí (Học thử)</span>}
@@ -275,7 +313,11 @@ export default function LearningPage() {
                   <div className="tz-lm-card-icon bg-green"><IconVideo /></div>
                   <div className="tz-lm-card-content">
                     <h3>Phòng học Trực tuyến</h3>
-                    {activeMeetUrl ? (
+                    {courseInfo?.isTrial ? (
+                      <p className="tz-lm-no-link">
+                        <IconLock /> Vào lớp trực tuyến chỉ dành cho học viên đã đăng ký. Hãy đăng ký khóa học để tham gia lớp.
+                      </p>
+                    ) : activeMeetUrl ? (
                       <a href={activeMeetUrl} target="_blank" rel="noreferrer" className="tz-lm-btn-meet">
                         <IconVideo /> Vào lớp Google Meet
                       </a>
@@ -286,24 +328,45 @@ export default function LearningPage() {
                 </div>
               </div>
 
+              {/* Video ghi hình buổi học (xem lại) */}
+              {activeLesson.materials && activeLesson.materials.some((m) => m.kind === "video") && (
+                <div className="tz-lm-section">
+                  <h3 className="tz-lm-section-title"><IconFile /> Video buổi học (xem lại)</h3>
+                  <div className="tz-lm-recordings">
+                    {activeLesson.materials
+                      .filter((m) => m.kind === "video")
+                      .map((mat, idx) => (
+                        <div key={idx} className="tz-lm-recording">
+                          <div className="tz-lm-recording-title" title={mat.title || "Video buổi học"}>
+                            {formatFileName(mat.title)}
+                          </div>
+                          <video className="tz-lm-recording-player" src={mat.url} controls preload="metadata" />
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
               {/* Tài liệu đính kèm */}
-              {activeLesson.materials && activeLesson.materials.length > 0 && (
+              {activeLesson.materials && activeLesson.materials.some((m) => m.kind !== "video") && (
                 <div className="tz-lm-section">
                   <h3 className="tz-lm-section-title"><IconFile /> Tài liệu bài học</h3>
                   <div className="tz-lm-materials-grid">
-                    {activeLesson.materials.map((mat, idx) => (
-                      <a key={idx} href={mat.url} target="_blank" rel="noreferrer" className="tz-lm-material-card">
-                        <div className="tz-lm-material-icon">
-                          <IconFile />
-                        </div>
-                        <div className="tz-lm-material-info">
-                          <span className="tz-lm-material-name" title={mat.title || "Tài liệu đính kèm"}>
-                            {formatFileName(mat.title)}
-                          </span>
-                          <span className="tz-lm-material-action">Tải xuống</span>
-                        </div>
-                      </a>
-                    ))}
+                    {activeLesson.materials
+                      .filter((m) => m.kind !== "video")
+                      .map((mat, idx) => (
+                        <a key={idx} href={mat.url} target="_blank" rel="noreferrer" className="tz-lm-material-card">
+                          <div className="tz-lm-material-icon">
+                            <IconFile />
+                          </div>
+                          <div className="tz-lm-material-info">
+                            <span className="tz-lm-material-name" title={mat.title || "Tài liệu đính kèm"}>
+                              {formatFileName(mat.title)}
+                            </span>
+                            <span className="tz-lm-material-action">Tải xuống</span>
+                          </div>
+                        </a>
+                      ))}
                   </div>
                 </div>
               )}
@@ -362,6 +425,7 @@ export default function LearningPage() {
                 </button>
               </div>
             </>
+            )
           ) : (
             <div className="tz-lm-empty-state">
               <div className="tz-lm-empty-icon">📚</div>

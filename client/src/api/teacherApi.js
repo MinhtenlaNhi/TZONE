@@ -36,10 +36,11 @@ export async function updateTeacherLesson(lessonId, { title, isFreePreview }) {
   });
 }
 
-export async function uploadLessonMaterial(lessonId, file, title = "") {
+export async function uploadLessonMaterial(lessonId, file, title = "", kind = "file") {
   const formData = new FormData();
   formData.append("file", file);
   if (title) formData.append("title", title);
+  formData.append("kind", kind);
 
   return apiFetchJson(apiPath(`/api/teacher/lessons/${lessonId}/materials`), {
     method: "POST",
@@ -47,10 +48,11 @@ export async function uploadLessonMaterial(lessonId, file, title = "") {
   });
 }
 
-export async function updateLessonMaterial(lessonId, materialId, { title, file } = {}) {
+export async function updateLessonMaterial(lessonId, materialId, { title, file, kind } = {}) {
   const formData = new FormData();
   if (title) formData.append("title", title);
   if (file) formData.append("file", file);
+  if (kind) formData.append("kind", kind);
 
   return apiFetchJson(apiPath(`/api/teacher/lessons/${lessonId}/materials/${materialId}`), {
     method: "PUT",

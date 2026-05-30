@@ -68,6 +68,7 @@ function IconDdLogout() {
 function accountBadgeLabel(user) {
   if (!user) return "Học sinh";
   if (user.role === "admin") return "Quản trị";
+  if (user.role === "operation") return "Vận hành";
   if (user.role === "teacher") return "Giáo viên";
   return "Học sinh";
 }
@@ -230,11 +231,11 @@ export default function UserNavMenu() {
             </>
           ) : null}
 
-          {user?.role === "admin" ? (
+          {user?.role === "admin" || user?.role === "operation" ? (
             <>
               <div className="user-nav__dd-sep" role="separator" />
               <Link className="user-nav__item" role="menuitem" to="/admin" onClick={() => setOpen(false)}>
-                <IconDdPerson /> Quản trị
+                <IconDdPerson /> {user?.role === "operation" ? "Bộ phận vận hành" : "Quản trị"}
               </Link>
             </>
           ) : null}

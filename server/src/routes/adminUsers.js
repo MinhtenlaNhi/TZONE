@@ -93,7 +93,7 @@ router.put("/:id", authMiddleware, isAdmin, async (req, res) => {
     }
 
     if (name) user.name = name;
-    if (role && ["student", "teacher", "admin"].includes(role)) {
+    if (role && ["student", "teacher", "admin", "operation"].includes(role)) {
       if (user._id.toString() === req.user._id.toString() && role !== "admin") {
         return res.status(403).json({ success: false, message: "Không thể tự hạ quyền của chính mình" });
       }
@@ -144,7 +144,7 @@ router.put("/:id/toggle-block", authMiddleware, isAdmin, async (req, res) => {
 router.put("/:id/role", authMiddleware, isAdmin, async (req, res) => {
   try {
     const { role } = req.body;
-    if (!["student", "teacher", "admin"].includes(role)) {
+    if (!["student", "teacher", "admin", "operation"].includes(role)) {
       return res.status(400).json({ success: false, message: "Vai trò không hợp lệ" });
     }
 

@@ -219,6 +219,89 @@
   text-transform: uppercase;
 }
 
+/* Bài học bị khóa (chế độ học thử) */
+.tz-ls-lesson-item.locked .tz-ls-lesson-name {
+  color: #94a3b8;
+}
+
+.tz-ls-lesson-item.locked .tz-ls-lesson-icon {
+  color: #cbd5e1;
+}
+
+.tz-ls-lock-tag {
+  display: inline-flex;
+  align-items: center;
+  color: #cbd5e1;
+}
+
+.tz-ls-lock-tag svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Panel nội dung khi bài học bị khóa */
+.tz-lm-locked-panel {
+  text-align: center;
+  max-width: 520px;
+  margin: 48px auto;
+  padding: 40px 28px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+}
+
+.tz-lm-locked-panel-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fef2f2;
+  color: #ef4444;
+  border-radius: 50%;
+}
+
+.tz-lm-locked-panel-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.tz-lm-locked-panel-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 10px;
+}
+
+.tz-lm-locked-panel-desc {
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.tz-lm-locked-panel-btn {
+  display: inline-block;
+  background: #00a260;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.tz-lm-locked-panel-btn:hover {
+  background: #008a52;
+}
+
+.tz-lm-no-link svg {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
 /* Main Content */
 .tz-learning-main {
   flex: 1;
@@ -693,4 +776,35 @@
   .tz-lm-cards-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Video ghi hình buổi học (xem lại) */
+.tz-lm-recordings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tz-lm-recording {
+  background: #0f172a;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #1e293b;
+}
+
+.tz-lm-recording-title {
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tz-lm-recording-player {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  background: #000;
 }

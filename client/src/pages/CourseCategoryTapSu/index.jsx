@@ -24,22 +24,45 @@ function IconClock() {
 
 const syllabusItems = [
   {
-    id: "p1",
-    title: "Buổi 1–4: Listening Part 1 (Photographs)",
-    detail:
-      "Học nhận diện và phân tích các dạng ảnh mô tả một người, nhiều người, đồ vật, v.v."
+    id: "w1",
+    title: "Tuần 1: Ngữ âm – Phát âm nền tảng",
+    lessons: [
+      "Ngữ âm: Nguyên âm đơn",
+      "Ngữ âm: Nguyên âm đôi + Phụ âm cơ bản",
+      "Ngữ âm: Phụ âm nâng cao"
+    ]
   },
-  { id: "p2", title: "Buổi 5–9: Listening Part 2", detail: null },
-  { id: "mid", title: "Buổi 10: Kiểm tra giữa khóa", detail: null },
-  { id: "gram", title: "Buổi 11–14: Chủ điểm ngữ pháp cơ bản", detail: null },
-  { id: "p34", title: "Buổi 15–18: Listening Part 3 + 4", detail: null },
-  { id: "rev", title: "Buổi 19: Ôn tập", detail: null },
-  { id: "r7", title: "Buổi 20–21: Reading Part 7", detail: null },
-  { id: "final", title: "Buổi 22: Bài kiểm tra cuối khóa", detail: null }
+  {
+    id: "w2",
+    title: "Tuần 2: Listening Part 1 & khởi động Part 2",
+    lessons: [
+      "Part 1: Luyện nghe tả tranh chỉ người (1)",
+      "Part 1: Luyện nghe tả tranh chỉ người (2)",
+      "Part 2: Tổng quan Part 2 & luyện nghe câu hỏi Who"
+    ]
+  },
+  {
+    id: "w3",
+    title: "Tuần 3: Listening Part 2 – Nhóm câu hỏi Wh-",
+    lessons: [
+      "Part 2: Nhóm câu hỏi Where + When",
+      "Part 2: Nhóm câu hỏi What / Which",
+      "Part 2: Nhóm câu hỏi Why + How"
+    ]
+  },
+  {
+    id: "w4",
+    title: "Tuần 4: Listening Part 2 nâng cao & kiểm tra cuối khóa",
+    lessons: [
+      "Part 2: Câu hỏi nghi vấn (Yes/No, lựa chọn, câu hỏi đuôi)",
+      "Part 2: Câu trần thuật",
+      "Bài kiểm tra cuối khóa (Final Test)"
+    ]
+  }
 ];
 
 export default function CourseCategoryTapSuPage({ embedded = false }) {
-  const [openId, setOpenId] = useState("p1");
+  const [openId, setOpenId] = useState("w1");
 
   return (
     <div className={embedded ? "tap-su-page tap-su-page--embedded" : "tap-su-page"}>
@@ -61,12 +84,12 @@ export default function CourseCategoryTapSuPage({ embedded = false }) {
           </article>
 
           <article className="tap-su-card">
-            <p className="tap-su-card__stat">Thời lượng: 28 buổi</p>
-            <p className="tap-su-card__text">6 buổi bổ trợ phát âm.</p>
+            <p className="tap-su-card__stat">Thời lượng: 4 tuần · 12 buổi</p>
+            <p className="tap-su-card__text">Tuần 1 tập trung bổ trợ phát âm.</p>
             <ul className="tap-su-card__list">
-              <li>Xây dựng kỹ năng nghe nền tảng</li>
-              <li>Tích lũy từ vựng</li>
-              <li>Làm quen ngữ pháp cơ bản</li>
+              <li>Xây dựng kỹ năng nghe nền tảng (Listening Part 1 & 2)</li>
+              <li>Luyện phát âm & tích lũy từ vựng</li>
+              <li>Kết thúc bằng bài kiểm tra cuối khóa</li>
             </ul>
           </article>
 
@@ -117,11 +140,11 @@ export default function CourseCategoryTapSuPage({ embedded = false }) {
                   </button>
                   {expanded ? (
                     <div className="tap-su-accordion__panel">
-                      {item.detail ?? (
-                        <span className="tap-su-accordion__placeholder">
-                          Chi tiết theo giáo trình từng buổi học.
-                        </span>
-                      )}
+                      <ul className="tap-su-accordion__lessons">
+                        {item.lessons.map((lesson, idx) => (
+                          <li key={idx}>{lesson}</li>
+                        ))}
+                      </ul>
                     </div>
                   ) : null}
                 </div>

@@ -21,6 +21,7 @@ export default function CheckoutPage() {
 
   const [paymentMethodsData, setPaymentMethodsData] = useState([]);
   const [selectedBankId, setSelectedBankId] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     if (!authEmail) {
@@ -102,11 +103,9 @@ export default function CheckoutPage() {
       const res = await createOrder(formData);
       if (res.success) {
         if (res.paymentUrl) {
-          // Chuyển hướng sang VNPAY
           window.location.href = res.paymentUrl;
         } else {
-          toast.success("Đặt hàng thành công!");
-          navigate("/orders"); // Chuyển đến trang lịch sử đơn hàng
+          setShowSuccessModal(true);
         }
       } else {
         toast.error(res.message || "Có lỗi xảy ra khi đặt hàng.");
@@ -245,6 +244,55 @@ export default function CheckoutPage() {
           </div>
         </aside>
       </div>
+
+      {showSuccessModal && (
+        <div
+          className="checkout-success-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="checkout-success-title"
+        >
+          <div className="checkout-success-modal">
+            <div className="checkout-success-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h2 id="checkout-success-title">Đặt hàng thành công!</h2>
+            <p className="checkout-success-desc">
+              Đơn hàng của bạn đã được ghi nhận và đang chờ <strong>Admin xác nhận</strong>.
+              Sau khi đơn hàng được duyệt, một <strong>email hóa đơn xác nhận thanh toán</strong>{" "}
+              sẽ được gửi về địa chỉ:
+            </p>
+            <div className="checkout-success-email">{authEmail}</div>
+            <p className="checkout-success-note">
+              Vui lòng kiểm tra hộp thư (bao gồm cả mục Spam/Quảng cáo) sau khi đơn hàng được duyệt.
+            </p>
+            <div className="checkout-success-actions">
+              <button
+                type="button"
+                className="btn-success-primary"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate("/orders");
+                }}
+              >
+                Xem đơn hàng của tôi
+              </button>
+              <button
+                type="button"
+                className="btn-success-secondary"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  navigate("/courses");
+                }}
+              >
+                Tiếp tục mua sắm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

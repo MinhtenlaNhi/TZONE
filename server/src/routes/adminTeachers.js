@@ -15,11 +15,13 @@ function dbUnavailable(res) {
   return res.status(503).json({ success: false, message: "Cơ sở dữ liệu chưa sẵn sàng." });
 }
 
-// Áp dụng middleware bảo vệ cho toàn bộ route
-router.use(authMiddleware, isAdmin);
+// LƯU Ý: Router này được mount tại "/api/admin" (cùng cấp với orders/reviews/categories...).
+// Không dùng router.use(isAdmin) chung vì nó sẽ chặn TẤT CẢ request /api/admin/* (kể cả các
+// route thuộc router khác như đơn hàng, đánh giá) trước khi chúng kịp đi tới đúng router.
+// Vì vậy phải gắn middleware bảo vệ cho TỪNG route cụ thể bên dưới.
 
 /** Danh sách giáo viên chờ duyệt */
-router.get("/pending-teachers", async (req, res) => {
+router.get("/pending-teachers", authMiddleware, isAdmin, async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
   try {
     const rows = await User.find({
@@ -41,7 +43,7 @@ router.get("/pending-teachers", async (req, res) => {
 });
 
 /** Tất cả giáo viên (để admin xem trạng thái) */
-router.get("/teachers", async (req, res) => {
+router.get("/teachers", authMiddleware, isAdmin, async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
   try {
     const rows = await User.find({ role: "teacher" })
@@ -55,7 +57,7 @@ router.get("/teachers", async (req, res) => {
   }
 });
 
-router.post("/approve-teacher", async (req, res) => {
+router.post("/approve-teacher", authMiddleware, isAdmin, async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
   try {
     const teacherEmail = normalizeEmail(req.body?.teacherEmail);
@@ -80,7 +82,7 @@ router.post("/approve-teacher", async (req, res) => {
   }
 });
 
-router.post("/reject-teacher", async (req, res) => {
+router.post("/reject-teacher", authMiddleware, isAdmin, async (req, res) => {
   if (!isDbReady()) return dbUnavailable(res);
   try {
     const teacherEmail = normalizeEmail(req.body?.teacherEmail);

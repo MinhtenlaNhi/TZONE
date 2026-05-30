@@ -82,6 +82,7 @@ export default function TeacherLessonsPage() {
   const [activeLessonId, setActiveLessonId] = useState(null);
   const [newMaterialTitle, setNewMaterialTitle] = useState("");
   const [newMaterialFile, setNewMaterialFile] = useState(null);
+  const [newMaterialKind, setNewMaterialKind] = useState("file");
   const [editingMaterialId, setEditingMaterialId] = useState(null);
   const [editMaterialTitle, setEditMaterialTitle] = useState("");
   const [editMaterialFile, setEditMaterialFile] = useState(null);
@@ -197,6 +198,7 @@ export default function TeacherLessonsPage() {
     setActiveLessonId(lesson._id);
     setNewMaterialTitle("");
     setNewMaterialFile(null);
+    setNewMaterialKind("file");
     setEditingMaterialId(null);
     setEditMaterialTitle("");
     setEditMaterialFile(null);
@@ -219,11 +221,12 @@ export default function TeacherLessonsPage() {
     e.preventDefault();
     if (!newMaterialFile) return toast.error("Chọn file tài liệu");
     try {
-      const res = await uploadLessonMaterial(activeLessonId, newMaterialFile, newMaterialTitle);
+      const res = await uploadLessonMaterial(activeLessonId, newMaterialFile, newMaterialTitle, newMaterialKind);
       if (res.success) {
-        toast.success("Thêm tài liệu thành công");
+        toast.success(newMaterialKind === "video" ? "Tải video buổi học thành công" : "Thêm tài liệu thành công");
         setNewMaterialTitle("");
         setNewMaterialFile(null);
+        setNewMaterialKind("file");
         loadCourseData();
       } else {
         toast.error(res.message || "Lỗi upload");
@@ -348,9 +351,6 @@ export default function TeacherLessonsPage() {
               <div className="tz-tl-header-meta">QUẢN LÝ GIÁO TRÌNH</div>
               <h1 className="tz-tl-title">{course?.title || "Đang tải..."}</h1>
               <p className="tz-tl-header-desc">Quản lý nội dung, bài học và các hoạt động học tập</p>
-              <button onClick={openAddSectionModal} className="tz-tl-btn-primary tz-tl-add-chap-btn">
-                <IconPlus /> Thêm Chương Mới
-              </button>
             </div>
           </div>
           <div className="tz-tl-banner-right">
@@ -380,8 +380,7 @@ export default function TeacherLessonsPage() {
               <div className="tz-tl-empty">
                 <IconFolder />
                 <h3>Chưa có giáo trình</h3>
-                <p>Khóa học này chưa có chương học nào. Hãy bắt đầu bằng cách thêm chương mới.</p>
-                <button onClick={openAddSectionModal} className="tz-tl-btn-outline">Thêm Chương Đầu Tiên</button>
+                <p>Khóa học này chưa có chương học nào. Giáo trình sẽ do quản trị viên thiết lập.</p>
               </div>
             ) : (
               lessons.map((sec) => (
@@ -399,12 +398,6 @@ export default function TeacherLessonsPage() {
                         title="Sửa chương"
                       >
                         <IconEdit /> 
-                      </button>
-                      <button 
-                        onClick={() => openAddLessonModal(sec.sectionIndex)} 
-                        className="tz-tl-btn-outline-sm"
-                      >
-                        <IconPlus /> Thêm Bài Học
                       </button>
                     </div>
                   </div>
@@ -588,6 +581,7 @@ export default function TeacherLessonsPage() {
                             <div className="tz-tl-material-info">
                               <IconFileText />
                               <span className="tz-tl-material-name">{mat.title || "Tài liệu"}</span>
+                              {mat.kind === "video" && <span className="tz-tl-material-kind-tag">Video</span>}
                             </div>
                             <div className="tz-tl-material-actions">
                               <a
@@ -618,21 +612,50 @@ export default function TeacherLessonsPage() {
                 <form onSubmit={handleAddMaterial} className="tz-tl-material-add">
                   <h3 className="tz-tl-material-list-title">Thêm tài liệu mới</h3>
                   <div className="tz-tl-form-group">
+                    <label>Loại</label>
+                    <select
+                      value={newMaterialKind}
+                      onChange={(e) => {
+                        setNewMaterialKind(e.target.value);
+                        setNewMaterialFile(null);
+                      }}
+                    >
+                      <option value="file">Tài liệu (PDF, slide, tệp...)</option>
+                      <option value="video">Video ghi hình buổi học</option>
+                    </select>
+                  </div>
+                  <div className="tz-tl-form-group">
                     <label>Tên hiển thị (tùy chọn)</label>
                     <input
                       type="text"
                       value={newMaterialTitle}
                       onChange={(e) => setNewMaterialTitle(e.target.value)}
-                      placeholder="VD: Slide bài 1, Giáo trình PDF..."
+                      placeholder={newMaterialKind === "video" ? "VD: Video buổi 5 — Part 3" : "VD: Slide bài 1, Giáo trình PDF..."}
                     />
                   </div>
                   <div className="tz-tl-form-group">
-                    <label>Chọn file (PDF, DOCX, ZIP — tối đa 10MB)</label>
+                    <label>
+                      {newMaterialKind === "video"
+                        ? "Chọn video buổi học (MP4, MOV, WEBM...)"
+                        : "Chọn file (PDF, DOCX, ZIP...)"}
+                    </label>
                     <div className="tz-tl-file-upload">
-                      <input type="file" required onChange={(e) => setNewMaterialFile(e.target.files[0] || null)} />
+                      <input
+                        type="file"
+                        required
+                        accept={newMaterialKind === "video" ? "video/*" : undefined}
+                        onChange={(e) => setNewMaterialFile(e.target.files[0] || null)}
+                      />
                     </div>
+                    {newMaterialKind === "video" && (
+                      <small className="tz-tl-material-hint">
+                        Video dung lượng lớn có thể mất vài phút để tải lên. Vui lòng giữ cửa sổ mở cho đến khi hoàn tất.
+                      </small>
+                    )}
                   </div>
-                  <button type="submit" className="tz-tl-btn-primary full-width">Tải lên tài liệu</button>
+                  <button type="submit" className="tz-tl-btn-primary full-width">
+                    {newMaterialKind === "video" ? "Tải lên video buổi học" : "Tải lên tài liệu"}
+                  </button>
                 </form>
               </div>
             </div>

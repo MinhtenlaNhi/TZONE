@@ -86,15 +86,20 @@ export default function DashboardHome() {
   }, []);
 
   const visibleEnrollments = getVisibleEnrollments(enrollments);
-  const totalCourses = visibleEnrollments.length;
-  const completedCourses = visibleEnrollments.filter((e) => e.progress >= 100).length;
+  const enrolledList = visibleEnrollments.filter((e) => !e.isTrial);
+  const trialList = visibleEnrollments.filter((e) => e.isTrial);
+  const totalCourses = enrolledList.length;
+  const trialCount = trialList.length;
+  const completedCourses = enrolledList.filter((e) => e.progress >= 100).length;
   const avgProgress =
     totalCourses > 0
-      ? Math.round(visibleEnrollments.reduce((sum, e) => sum + e.progress, 0) / totalCourses)
+      ? Math.round(enrolledList.reduce((sum, e) => sum + e.progress, 0) / totalCourses)
       : 0;
 
   const activeCourse =
-    visibleEnrollments.find((e) => e.progress < 100) || visibleEnrollments[0];
+    enrolledList.find((e) => e.progress < 100) ||
+    enrolledList[0] ||
+    trialList[0];
 
   if (loading) {
     return <div className="tz-dashboard-loading">Đang tải dữ liệu tổng quan...</div>;
@@ -138,7 +143,11 @@ export default function DashboardHome() {
           <div className="tz-do-stat-info">
             <h3>{totalCourses}</h3>
             <p className="tz-stat-label">Khóa học đã đăng ký</p>
-            <p className="tz-stat-desc">Tiếp tục cố gắng!</p>
+            <p className="tz-stat-desc">
+              {trialCount > 0
+                ? `+ ${trialCount} khóa đang học thử`
+                : "Tiếp tục cố gắng!"}
+            </p>
           </div>
         </div>
 
@@ -181,12 +190,16 @@ export default function DashboardHome() {
           </div>
         ) : (
           <div className="tz-do-course-grid">
-            {visibleEnrollments.slice(0, 4).map((enr) => {
+            {[...enrolledList, ...trialList].slice(0, 4).map((enr) => {
               const course = enr.course;
               const progressStr = `${Math.round(enr.progress)}%`;
+              const isTrial = !!enr.isTrial;
 
               return (
-                <div key={enr._id} className="tz-do-course-card">
+                <div
+                  key={enr._id}
+                  className={`tz-do-course-card ${isTrial ? "is-trial" : "is-enrolled"}`}
+                >
                   <div className="tz-doc-cover">
                     {course.thumbnail ? (
                       <img src={apiPath(course.thumbnail)} alt={course.title} />
@@ -198,28 +211,43 @@ export default function DashboardHome() {
                     <span className="tz-doc-badge-category">
                       {course.categoryRef?.name || "Khóa học"}
                     </span>
+                    <span
+                      className={`tz-doc-badge-status ${isTrial ? "trial" : "enrolled"}`}
+                      title={isTrial ? "Khóa học thử — chưa thanh toán" : "Khóa học đã đăng ký"}
+                    >
+                      {isTrial ? "HỌC THỬ" : "ĐÃ ĐĂNG KÝ"}
+                    </span>
                   </div>
 
                   <div className="tz-doc-body">
                     <h3 className="tz-doc-title">{course.title}</h3>
-                    
+
+                    {isTrial && (
+                      <p className="tz-doc-trial-note">
+                        Bạn đang học thử khóa này. Đăng ký để mở toàn bộ bài học.
+                      </p>
+                    )}
+
                     <div className="tz-doc-progress-container">
                       <div className="tz-doc-progress-info">
                         <span className="tz-progress-label">Tiến độ</span>
                         <span className="tz-progress-value">{progressStr}</span>
                       </div>
                       <div className="tz-doc-progress-bar">
-                        <div className="tz-doc-progress-fill" style={{ width: progressStr }}></div>
+                        <div
+                          className={`tz-doc-progress-fill ${isTrial ? "is-trial" : ""}`}
+                          style={{ width: progressStr }}
+                        ></div>
                       </div>
                     </div>
                   </div>
 
                   <div className="tz-doc-footer">
-                    <button 
-                      onClick={() => navigate(getCourseLearnPath(course))} 
-                      className="tz-btn-continue"
+                    <button
+                      onClick={() => navigate(getCourseLearnPath(course))}
+                      className={`tz-btn-continue ${isTrial ? "tz-btn-continue-trial" : ""}`}
                     >
-                      <IconPlay /> Tiếp tục học
+                      <IconPlay /> {isTrial ? "Tiếp tục học thử" : "Tiếp tục học"}
                     </button>
                   </div>
                 </div>

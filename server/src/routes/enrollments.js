@@ -6,6 +6,7 @@ const { authMiddleware } = require("../middlewares/auth");
 const { isEnrollmentOpen } = require("../utils/enrollment");
 const { buildCurriculum } = require("../utils/lessonHelpers");
 const { attachCoursesToEnrollments } = require("../utils/enrollmentHelpers");
+const { seedCurriculumForCourse } = require("../utils/courseCurriculum");
 
 const router = express.Router();
 
@@ -43,16 +44,41 @@ router.get("/:courseId/lessons", authMiddleware, async (req, res) => {
       return res.status(403).json({ success: false, message: "Bạn chưa đăng ký khóa học này." });
     }
 
-    // Lấy bài học
-    let query = { courseRef: course._id, isSectionPlaceholder: { $ne: true } };
-    
-    // Nếu là học thử, chỉ trả về các bài học isFreePreview
-    if (enrollment.isTrial) {
-      query.isFreePreview = true;
+    // Tự động tạo lộ trình cố định nếu khóa thuộc danh mục có template (vd: tap-su) mà chưa có bài học.
+    try {
+      await seedCurriculumForCourse(course);
+    } catch (seedErr) {
+      console.error("[enrollments] Tạo lộ trình mặc định thất bại:", seedErr.message);
     }
 
+    // Lấy bài học. Học thử vẫn xem được TOÀN BỘ danh sách bài học,
+    // nhưng các bài không được giáo viên đánh dấu "học thử" (isFreePreview)
+    // sẽ bị khóa nội dung (chỉ còn tiêu đề để hiển thị).
+    const query = { courseRef: course._id, isSectionPlaceholder: { $ne: true } };
     const lessons = await Lesson.find(query).sort({ sectionIndex: 1, order: 1 }).lean();
-    const curriculum = buildCurriculum(lessons);
+    let curriculum = buildCurriculum(lessons);
+
+    if (enrollment.isTrial) {
+      curriculum = curriculum.map((section) => ({
+        ...section,
+        lessons: section.lessons.map((lesson) => {
+          if (lesson.isFreePreview) return lesson;
+          // Bài bị khóa: chỉ trả về thông tin tối thiểu, ẩn nội dung nhạy cảm
+          // (link Meet, tài liệu, ngày học, bài tập...).
+          return {
+            _id: lesson._id,
+            sectionIndex: lesson.sectionIndex,
+            sectionTitle: lesson.sectionTitle,
+            order: lesson.order,
+            title: lesson.title,
+            isFreePreview: false,
+            locked: true,
+            materials: [],
+            assignments: []
+          };
+        })
+      }));
+    }
 
     return res.json({
       success: true, 
